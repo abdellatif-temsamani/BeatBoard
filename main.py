@@ -39,6 +39,12 @@ def get_color_palette() -> list[str]:
 
     palette = ct.get_palette(color_count=10)
 
+    # NOTE: for debugging purposes
+    # import matplotlib.pyplot as plt
+    #
+    # plt.imshow([[palette[i] for i in range(9)]])
+    # plt.show()
+
     colors = []
     for color in palette:
         colors.append(f"{color[0]:02x}{color[1]:02x}{color[2]:02x}")
