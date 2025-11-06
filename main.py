@@ -53,8 +53,6 @@ def get_color_palette() -> list[str]:
 
     filtered_colors = []
 
-    filtered_colors = []
-
     for r, g, b in palette:
         # Convert RGB to HLS
         _, l, s = colorsys.rgb_to_hls(r / 255, g / 255, b / 255)
