@@ -22,7 +22,7 @@ def get_image() -> None:
     import requests
 
     url = subprocess.run(
-        ["playerctl", "metadata", "mpris:artUrl"],
+        ["playerctl", "--player=spotify", "metadata", "mpris:artUrl"],
         capture_output=True,
         text=True,
     )
