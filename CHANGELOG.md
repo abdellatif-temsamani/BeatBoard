@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - Debug tool
 - Follow spotify
-- Seperators
+- Separators
 - Hardware selector
 - _(hardware)_ Added multiple hardware support args
 - Pretty print
@@ -40,9 +40,9 @@ All notable changes to this project will be documented in this file.
 
 ### ⚙️ Miscellaneous Tasks
 
-- Gitinore
+- .gitignore
 - Docs
-- Open source data
+- open-source data
 - _(issue)_ Create issue template
 - _(repo)_ Getting ready for opensource
 
