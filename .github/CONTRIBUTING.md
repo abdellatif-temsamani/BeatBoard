@@ -105,7 +105,7 @@ Enhancement suggestions are tracked as [GitHub issues](https://github.com/abdell
 
 #### Prerequisites
 
-- Python 3.8+
+- Python 3.11+
 - `playerctl` installed
 - Basic knowledge of Python and hardware interfaces
 
