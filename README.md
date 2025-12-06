@@ -125,7 +125,7 @@ Help us expand hardware compatibility by:
 - Testing on new hardware
 - Documentation improvements
 
-See our GitHub repository for contribution guidelines.
+See our [Contributing Guide](.github/CONTRIBUTING.md) for detailed guidelines.
 
 ## 🐛 Troubleshooting
 
@@ -140,6 +140,7 @@ See our GitHub repository for contribution guidelines.
 
 ### Getting Help
 
+- See our [Support Guide](SUPPORT.md) for help channels
 - Open an [issue](https://github.com/abdellatif-temsamani/BeatBoard/issues)
 - Join our discussions
 
