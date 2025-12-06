@@ -68,7 +68,7 @@ async def process_art_url(art_url: str | None = None) -> None:
 
     # Extract palette (CPU-bound, run in thread)
     try:
-        image_colors = await asyncio.to_thread(get_color_palette, IMAGE_PATH)
+        image_colors = await get_color_palette(IMAGE_PATH)
     except Exception as e:
         print(f"Error extracting color palette: {e}")
         return
