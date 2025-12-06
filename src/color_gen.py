@@ -50,7 +50,17 @@ def get_color_palette(path: str) -> list[str]:
     img = Image.open(path).convert("RGB")
     pixels = [p for p in img.getdata()]
 
-    def color_count(rgb):
+    def color_count(rgb) -> int:
+        """
+        Count how many pixels match a specific RGB value.
+
+        Args:
+            rgb (tuple[int, int, int]):
+                The RGB color to match against each pixel.
+
+        Returns:
+            int: The number of pixels that have the exact same RGB value.
+        """
         return sum(1 for p in pixels if p == rgb)
 
     # Sort by how common each color is (descending)

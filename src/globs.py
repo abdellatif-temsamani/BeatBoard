@@ -1,6 +1,6 @@
 from typing import Self
 
-from .keyboard_support import KeyboardName
+from .hardware import hardwareName
 
 
 class Globs:
@@ -14,14 +14,19 @@ class Globs:
 
     Attributes:
         _instance: Holds the singleton instance. Automatically managed internally.
-        keyboard: The name of the keyboard currently in use. Defaults to an empty string.
+        hardware: the list of hardware devices to be used
     """
 
     __instance: Self | None = None
-    keyboard: KeyboardName = "g213"
+    hardware: list[hardwareName] = ["g213"]
 
-    def __new__(cls):
+    def __new__(cls) -> Self:
+        """
+        Create a new instance of the Globs class if one does not already exist.
+
+        Returns: The singleton instance of the Globs class.
+        """
         if cls.__instance is None:
             cls.__instance = super(Globs, cls).__new__(cls)
-            cls.__instance.keyboard = "g213"
+            cls.__instance.hardware = ["g213"]
         return cls.__instance
