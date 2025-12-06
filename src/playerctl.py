@@ -46,7 +46,7 @@ async def watch_playerctl(handle_art_change: Callable[[str], Awaitable[None]]):
     We grab both artUrl and title/artist.
 
     Args:
-        handle_art_change: A callback to handle the art change.
+        handle_art_change: A callback to handle the art change. runs on every song change.
     """
     process = await asyncio.create_subprocess_exec(
         "playerctl",
