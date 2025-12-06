@@ -73,8 +73,10 @@ async def watch_playerctl(handle_art_change: Callable[[str], Awaitable[None]]):
 
         song_label = f"{title} – {artist}" if artist else title
 
+        print(f":{"-" * 100}:")
         print(f'Processing "{song_label}"...')
 
         await handle_art_change(art_url)
 
         print("Processing done.")
+        print(f":{"-" * 100}:")
