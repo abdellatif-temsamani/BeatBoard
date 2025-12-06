@@ -3,6 +3,8 @@
 import asyncio
 import subprocess
 
+from rich import print
+
 from src.args import parser
 from src.color_gen import get_color_palette
 from src.globs import Globs
