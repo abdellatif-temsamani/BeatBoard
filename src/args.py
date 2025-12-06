@@ -5,3 +5,7 @@ parser = argparse.ArgumentParser(
 )
 
 parser.add_argument("--follow", action="store_true", help="Follow the music")
+
+parser.add_argument(
+    "--keyboard", choices=["g213"], default="g213", help="Keyboard to use"
+)
