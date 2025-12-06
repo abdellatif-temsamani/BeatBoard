@@ -8,7 +8,7 @@ hardware: dict[str, list[str]] = {
     ],
 }
 
-hardwareName = Literal["g213"]  # ← keyof, fully auto
+hardwareName = Literal["g213"]
 
 
 def get_command(names: list[hardwareName], color: str) -> list[list[str]]:
