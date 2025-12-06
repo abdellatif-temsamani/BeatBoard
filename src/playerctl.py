@@ -1,6 +1,7 @@
 import asyncio
 import subprocess
 from pathlib import Path
+from typing import Optional
 
 from rich import print
 
@@ -20,7 +21,7 @@ def playerctl(*args: str) -> list[str]:
 
 async def get_image(
     path: str,
-    art_url: str | None = None,
+    art_url: Optional[str] = None,
 ) -> None:
     """Get the album art from the current playing song
 
@@ -55,7 +56,7 @@ async def get_image(
     await asyncio.to_thread(Path(path).write_bytes, image_data)
 
 
-async def process_art_url(art_url: str | None = None) -> None:
+async def process_art_url(art_url: Optional[str] = None) -> None:
     """process art work of the current song
 
     Args:
