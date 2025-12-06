@@ -38,7 +38,11 @@ async def main():
 
     args = parser.parse_args()
 
-    Globs().hardware = args.hardware
+    globs = Globs()
+    globs.hardware = args.hardware
+    globs.debug = args.debug
+
+    print(globs.debug)
     await watch_playerctl(process_art_url, follow=args.follow)
 
 
