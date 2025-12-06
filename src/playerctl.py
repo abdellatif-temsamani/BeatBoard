@@ -4,6 +4,10 @@ from pathlib import Path
 from typing import Awaitable, Callable
 
 
+def playerctl(*args):
+    return ["playerctl", "--player=spotify", *args]
+
+
 async def get_image(
     path: str,
     art_url: str | None = None,
@@ -20,7 +24,7 @@ async def get_image(
     if not art_url:
         url = await asyncio.to_thread(
             subprocess.run,
-            ["playerctl", "--player=spotify", "metadata", "mpris:artUrl"],
+            playerctl("metadata", "mpris:artUrl"),
             capture_output=True,
             text=True,
         )
@@ -53,11 +57,12 @@ async def watch_playerctl(
         follow: Whether to follow the playerctl output. If False, only the current state is returned.
     """
     process = await asyncio.create_subprocess_exec(
-        "playerctl",
-        "metadata",
-        "--format",
-        "{{mpris:artUrl}}|{{xesam:title}}|{{xesam:artist}}",
-        "--follow",
+        *playerctl(
+            "metadata",
+            "--format",
+            "{{mpris:artUrl}}|{{xesam:title}}|{{xesam:artist}}",
+            "--follow",
+        ),
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
     )
