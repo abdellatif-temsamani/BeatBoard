@@ -1,0 +1,40 @@
+import pytest
+from src.hardware import get_command
+
+
+@pytest.mark.parametrize(
+    "hardware, color, expected",
+    [
+        (
+            ["g213"],
+            "ff0000",
+            [["python", "./G213Colors/G213Colors.py", "-c", "ff0000"]],
+        ),
+        (
+            ["g213"],
+            "00ff00",
+            [["python", "./G213Colors/G213Colors.py", "-c", "00ff00"]],
+        ),
+        (
+            ["g213", "g213"],
+            "000000",
+            [
+                ["python", "./G213Colors/G213Colors.py", "-c", "000000"],
+                ["python", "./G213Colors/G213Colors.py", "-c", "000000"],
+            ],
+        ),
+    ],
+)
+def test_get_command_valid(hardware, color, expected):
+    commands = get_command(hardware, color)
+    assert commands == expected
+
+
+def test_get_command_invalid():
+    with pytest.raises(ValueError, match="Unknown hardware"):
+        get_command(["invalid"], "000000")  # type: ignore
+
+
+def test_get_command_empty_hardware():
+    commands = get_command([], "ffffff")
+    assert commands == []
