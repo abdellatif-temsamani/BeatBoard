@@ -1,9 +1,40 @@
 import argparse
 
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
+
 from .hardware import hardware
 
+console = Console()
+
+
+class RichArgumentParser(argparse.ArgumentParser):
+    def print_help(self, file=None):
+        # Title
+        console.print(
+            Panel.fit(
+                "[bold blue]BeatBoard[/bold blue]\n[white]Change your keyboard RGB based on music[/white]",
+                border_style="blue",
+            )
+        )
+
+        # Build options table
+        table = Table(show_header=True, header_style="bold blue")
+        table.add_column("Option", style="cyan")
+        table.add_column("Description", style="white")
+
+        for action in self._actions:
+            if action.option_strings:
+                opts = ", ".join(action.option_strings)
+                table.add_row(opts, action.help or "")
+
+        console.print(table)
+        console.print()  # newlin
+
+
 # Create the parser
-parser = argparse.ArgumentParser(
+parser = RichArgumentParser(
     description="BeatBoard change your keyboard rgb based on music",
 )
 
