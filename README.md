@@ -16,7 +16,7 @@ selects vibrant, dominant colors for a dynamic music-light experience.
 - Fetch album art of the currently playing song via `playerctl`.
 - Extract vibrant, non-neutral colors from album art.
 - Apply the most prominent color to your keyboard using `G213Colors`.
-- Optionally follow the song in real-time with `follow.sh`.
+- Optionally follow the song in real-time with `python main.py --follow`.
 - similar to how Spotify does it (not 100% accurate)
 
 ---
@@ -58,14 +58,8 @@ python main.py
 ### Follow each song automatically:
 
 ```bash
-./follow.sh
+python main.py --follow
 ```
-
-> Make sure `follow.sh` is executable:
->
-> ```bash
-> chmod +x follow.sh
-> ```
 
 ---
 

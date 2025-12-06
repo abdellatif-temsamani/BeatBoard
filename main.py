@@ -3,11 +3,12 @@
 import asyncio
 import subprocess
 
+from src.args import parser
 from src.color_gen import get_color_palette
 from src.playerctl import get_image, watch_playerctl
 
 
-async def process_art_url(art_url: str):
+async def process_art_url(art_url: str | None = None):
     """process art work of the current song
 
     Args:
@@ -27,7 +28,10 @@ async def process_art_url(art_url: str):
 
 async def main():
     """Main function"""
-    await watch_playerctl(process_art_url)
+
+    args = parser.parse_args()
+
+    await watch_playerctl(process_art_url, follow=args.follow)
 
 
 if __name__ == "__main__":
