@@ -1,7 +1,7 @@
 # BeatBoard 🎵💡
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Linux](https://img.shields.io/badge/platform-linux-lightgrey.svg)](https://www.linux.org/)
 
 BeatBoard is a CLI tool for Linux that dynamically changes your keyboard's RGB
@@ -24,7 +24,7 @@ vibrant colors to create an immersive music experience.
 ### System Requirements
 
 - **Linux operating system** (tested on Ubuntu, Fedora, Arch)
-- **Python 3.8 or higher**
+- **Python 3.11 or higher**
 - **`playerctl`** for media player integration
 
 ### Media Players
