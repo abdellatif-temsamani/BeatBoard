@@ -20,7 +20,7 @@ def debug_palette(
         palette: A list of RGB color tuples (0-255).
 
     Raises:
-        ValueError: If neither `hex_colors` nor `palette` is provided.
+        ValueError: If neither `hex_colors` nor `palette` is provided, or if all provided palettes are empty.
     """
     import matplotlib.pyplot as plt
 
@@ -33,14 +33,30 @@ def debug_palette(
     # Hex palette
     if hex_colors is not None:
         hex_rgb = [to_rgb("#" + c) for c in hex_colors]
-        rows.append(hex_rgb)
-        labels.append("final colors")
+        if hex_rgb:  # Only add if not empty
+            rows.append(hex_rgb)
+            labels.append("final colors")
 
     # RGB palette
     if palette is not None:
         palette_rgb = [(r / 255, g / 255, b / 255) for r, g, b in palette]
-        rows.append(palette_rgb)
-        labels.append("extracted palette")
+        if palette_rgb:  # Only add if not empty
+            rows.append(palette_rgb)
+            labels.append("extracted palette")
+
+    # Filter out any empty rows (shouldn't happen with the above checks, but being safe)
+    filtered_rows = []
+    filtered_labels = []
+    for row, label in zip(rows, labels):
+        if len(row) > 0:
+            filtered_rows.append(row)
+            filtered_labels.append(label)
+
+    if not filtered_rows:
+        raise ValueError("At least one non-empty palette must be provided")
+
+    rows = filtered_rows
+    labels = filtered_labels
 
     # Normalize lengths (trim to shortest)
     min_len = min(len(row) for row in rows)
