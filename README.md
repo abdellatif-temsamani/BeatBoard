@@ -83,8 +83,8 @@ Press `Ctrl+C` to stop following.
 ### Advanced Options
 
 ```bash
-# Verbose output
-python main.py --follow
+# Specify hardware
+python main.py --hardware g213
 
 # Debug mode
 python main.py --debug

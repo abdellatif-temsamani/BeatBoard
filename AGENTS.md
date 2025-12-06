@@ -12,14 +12,14 @@
 ## Code Style
 - **Python version**: 3.11+
 - **Formatting**: ruff (88 char lines, single quotes preferred)
-- **Linting**: ruff with custom select/ignore rules
+- **Linting**: ruff with custom select/ignore rules, ignore submodules
 - **Imports**: stdlib, third-party, local; sorted with ruff
 - **Naming**: snake_case functions/vars, PascalCase classes, UPPER_CASE constants
 - **Types**: Use type hints; `from __future__ import annotations` for py3.11+
 - **Error handling**: Specific exceptions; avoid bare except
 - **Async**: Use asyncio; mark async tests with @pytest.mark.asyncio
 - **Docstrings**: Google/NumPy style for functions/classes
-- **Commits**: Imperative mood, <72 char subject
+- **Commits**: don't commit unless i tell you, use conventional commit
 - **Tests**: pytest; fixtures for setup; mock external deps
 
 ## Project Structure

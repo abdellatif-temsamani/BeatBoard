@@ -55,7 +55,7 @@ async def get_image(
     await asyncio.to_thread(Path(path).write_bytes, image_data)
 
 
-async def process_art_url(art_url: str | None = None):
+async def process_art_url(art_url: str | None = None) -> None:
     """process art work of the current song
 
     Args:
@@ -66,16 +66,27 @@ async def process_art_url(art_url: str | None = None):
     # Download or fetch new album art
     await get_image(IMAGE_PATH, art_url)
 
-    # Extract palette
-    image_colors = get_color_palette(IMAGE_PATH)
+    # Extract palette (CPU-bound, run in thread)
+    try:
+        image_colors = await asyncio.to_thread(get_color_palette, IMAGE_PATH)
+    except Exception as e:
+        print(f"Error extracting color palette: {e}")
+        return
+
+    if not image_colors:
+        print("No colors extracted from image, using fallback")
+        image_colors = ["ffffff"]  # fallback color
 
     globs = Globs()
-    commands = [*get_command(globs.hardware, image_colors[0])]
+    commands = get_command(globs.hardware, image_colors[0])
 
     for command in commands:
         if globs.debug:
             print(f"Running command: {command}")
-        subprocess.run(command)
+        try:
+            await asyncio.to_thread(subprocess.run, command)
+        except Exception as e:
+            print(f"Error running hardware command: {e}")
 
 
 async def watch_playerctl(follow: bool = True):
