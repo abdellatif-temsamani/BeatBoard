@@ -10,7 +10,7 @@
 - **Build**: `python -m build` (requires build package)
 
 ## Code Style
-- **Python version**: 3.11+
+- **Python version**: 3.8+
 - **Formatting**: ruff (88 char lines, single quotes preferred)
 - **Linting**: ruff with custom select/ignore rules, ignore submodules
 - **Imports**: stdlib, third-party, local; sorted with ruff
