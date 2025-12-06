@@ -3,6 +3,8 @@ import subprocess
 from pathlib import Path
 from typing import Awaitable, Callable
 
+from rich import print
+
 
 def playerctl(*args) -> list[str]:
     """base playerctl command
@@ -87,13 +89,13 @@ async def watch_playerctl(
 
         song_label = f"{title} – {artist}" if artist else title
 
-        print(f":{'-' * 100}:")
-        print(f'Processing "{song_label}"...')
+        print("")
+        print(f'[bold yellow]Processing[/bold yellow] "{song_label}"...')
 
         await handle_art_change(art_url)
 
-        print("Processing done.")
-        print(f":{'-' * 100}:")
+        print("[bold green]Processing done[/bold green].")
+        print("")
 
         if not follow:
             break
