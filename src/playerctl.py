@@ -41,12 +41,16 @@ async def get_image(
     await asyncio.to_thread(Path(path).write_bytes, image_data)
 
 
-async def watch_playerctl(handle_art_change: Callable[[str], Awaitable[None]]):
-    """ Stream metadata changes from playerctl --follow.
+async def watch_playerctl(
+    handle_art_change: Callable[[str], Awaitable[None]],
+    follow: bool = True,
+):
+    """Stream metadata changes from playerctl --follow.
     We grab both artUrl and title/artist.
 
     Args:
         handle_art_change: A callback to handle the art change. runs on every song change.
+        follow: Whether to follow the playerctl output. If False, only the current state is returned.
     """
     process = await asyncio.create_subprocess_exec(
         "playerctl",
@@ -73,10 +77,13 @@ async def watch_playerctl(handle_art_change: Callable[[str], Awaitable[None]]):
 
         song_label = f"{title} – {artist}" if artist else title
 
-        print(f":{"-" * 100}:")
+        print(f":{'-' * 100}:")
         print(f'Processing "{song_label}"...')
 
         await handle_art_change(art_url)
 
         print("Processing done.")
-        print(f":{"-" * 100}:")
+        print(f":{'-' * 100}:")
+
+        if not follow:
+            break
