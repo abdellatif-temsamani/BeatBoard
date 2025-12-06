@@ -11,10 +11,9 @@ console = Console()
 
 class RichArgumentParser(argparse.ArgumentParser):
     def print_help(self, file=None):
-        # Title
         console.print(
             Panel.fit(
-                "[bold blue]BeatBoard[/bold blue]\n[white]Change your keyboard RGB based on music[/white]",
+                "[bold blue]BeatBoard[/bold blue]\n[white]Change your hardware RGB based on music[/white]",
                 border_style="blue",
             )
         )

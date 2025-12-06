@@ -15,6 +15,7 @@ class Globs:
     Attributes:
         _instance: Holds the singleton instance. Automatically managed internally.
         hardware: the list of hardware devices to be used
+        debug: whether to print debug messages
     """
 
     __instance: Self | None = None
@@ -22,11 +23,7 @@ class Globs:
     debug: bool = False
 
     def __new__(cls) -> Self:
-        """
-        Create a new instance of the Globs class if one does not already exist.
-
-        Returns: The singleton instance of the Globs class.
-        """
+        """Singleton pattern implementation of the Globs class."""
         if cls.__instance is None:
             cls.__instance = super(Globs, cls).__new__(cls)
         return cls.__instance

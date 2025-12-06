@@ -9,7 +9,7 @@ from src.globs import Globs
 from src.hardware import get_command
 
 
-def playerctl(*args) -> list[str]:
+def playerctl(*args: str) -> list[str]:
     """base playerctl command
         *args: playerctl arguments
 
@@ -78,9 +78,7 @@ async def process_art_url(art_url: str | None = None):
         subprocess.run(command)
 
 
-async def watch_playerctl(
-    follow: bool = True,
-):
+async def watch_playerctl(follow: bool = True):
     """Stream metadata changes from playerctl --follow.
     We grab both artUrl and title/artist.
 

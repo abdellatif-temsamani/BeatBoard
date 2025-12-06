@@ -1,5 +1,4 @@
 import colorsys
-from asyncio import sleep
 from typing import List, Optional, Tuple
 
 import matplotlib.pyplot as plt
@@ -14,8 +13,15 @@ def debug_palette(
     hex_colors: Optional[List[str]] = None,
     palette: Optional[List[Tuple[int, int, int]]] = None,
 ) -> None:
-    """Show one or both color palettes in one matplotlib window, with labels."""
+    """Show one or both color palettes in one matplotlib window, with labels.
 
+    Args:
+        hex_colors: A list of hex color codes without the # symbol.
+        palette: A list of RGB color tuples (0-255).
+
+    Raises:
+        ValueError: If neither `hex_colors` nor `palette` is provided.
+    """
     if hex_colors is None and palette is None:
         raise ValueError("You must pass either `hex_colors` or `palette`.")
 
@@ -39,7 +45,7 @@ def debug_palette(
     rows = [row[:min_len] for row in rows]
 
     # Plot
-    fig, ax = plt.subplots(figsize=(min_len * 0.5, len(rows) * 1))
+    _, ax = plt.subplots(figsize=(min_len * 0.5, len(rows) * 1))
 
     ax.imshow(rows)
 
@@ -66,8 +72,8 @@ def get_color_palette(path: str) -> list[str]:
     Args:
         path: The path to the image to get the palette from.
 
-    Returns: A list of hex color codes without the # symbol.
-
+    Returns:
+        list[str]: A list of hex color codes without the # symbol.
     """
     theif: ColorThief = ColorThief(path)
 
