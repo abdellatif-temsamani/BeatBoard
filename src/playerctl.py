@@ -4,7 +4,12 @@ from pathlib import Path
 from typing import Awaitable, Callable
 
 
-def playerctl(*args):
+def playerctl(*args) -> list[str]:
+    """base playerctl command
+        *args: playerctl arguments
+
+    Returns: list[str]
+    """
     return ["playerctl", "--player=spotify", *args]
 
 

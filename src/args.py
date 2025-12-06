@@ -10,10 +10,11 @@ parser = argparse.ArgumentParser(
 # makes the program running and follow song changes
 parser.add_argument("--follow", action="store_true", help="Follow the music")
 
+# hardware to change the color of
 parser.add_argument(
     "--hardware",
     choices=list(hardware.keys()),
-    nargs="+",  # allow one or more values
+    nargs="+",
     default=[list(hardware.keys())[0]],
-    help="Hardware to use",
+    help="List of hardware to change the color of",
 )
