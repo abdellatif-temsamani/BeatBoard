@@ -57,6 +57,9 @@ Repository = "https://github.com/abdellatif-temsamani/BeatBoard"
 Issues = "https://github.com/abdellatif-temsamani/BeatBoard/issues"
 Changelog = "https://github.com/abdellatif-temsamani/BeatBoard/blob/main/CHANGELOG.md"
 
+[tool.setuptools.packages.find]
+where = ["src"]
+
 [tool.setuptools_scm]
 write_to = "src/_version.py"
 

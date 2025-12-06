@@ -5,8 +5,8 @@ from colorthief import ColorThief
 from matplotlib.colors import to_rgb
 from PIL import Image
 
-from src.globs import Globs
-from src.utils import run_in_main_thread
+from .globs import Globs
+from .utils import run_in_main_thread
 
 
 def debug_palette(
