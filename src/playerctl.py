@@ -4,9 +4,9 @@ from pathlib import Path
 
 from rich import print
 
-from src.color_gen import get_color_palette
-from src.globs import Globs
-from src.hardware import get_command
+from .color_gen import get_color_palette
+from .globs import Globs
+from .hardware import get_command
 
 
 def playerctl(*args: str) -> list[str]:
