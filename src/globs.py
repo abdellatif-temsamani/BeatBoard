@@ -1,4 +1,4 @@
-from typing import Self
+from typing import Optional
 
 from .hardware import hardwareName
 
@@ -18,11 +18,11 @@ class Globs:
         debug: whether to print debug messages
     """
 
-    __instance: Self | None = None
+    __instance: Optional["Globs"] = None
     hardware: list[hardwareName] = ["g213"]
     debug: bool = False
 
-    def __new__(cls) -> Self:
+    def __new__(cls) -> "Globs":
         """Singleton pattern implementation of the Globs class."""
         if cls.__instance is None:
             cls.__instance = super(Globs, cls).__new__(cls)
