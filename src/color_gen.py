@@ -6,6 +6,7 @@ from matplotlib.colors import to_rgb
 from PIL import Image
 
 from src.globs import Globs
+from src.utils import run_in_main_thread
 
 
 def debug_palette(
@@ -67,7 +68,7 @@ def debug_palette(
     plt.show()
 
 
-def get_color_palette(path: str) -> list[str]:
+async def get_color_palette(path: str) -> list[str]:
     """Get the color palette from the image
 
     Args:
@@ -122,6 +123,6 @@ def get_color_palette(path: str) -> list[str]:
     globs = Globs()
 
     if globs.debug:
-        debug_palette(hex_colors=hex_colors, palette=palette)
+        await run_in_main_thread(debug_palette, hex_colors, palette)
 
     return hex_colors
