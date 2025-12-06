@@ -19,6 +19,7 @@ class Globs:
 
     __instance: Self | None = None
     hardware: list[hardwareName] = ["g213"]
+    debug: bool = False
 
     def __new__(cls) -> Self:
         """
@@ -28,5 +29,4 @@ class Globs:
         """
         if cls.__instance is None:
             cls.__instance = super(Globs, cls).__new__(cls)
-            cls.__instance.hardware = ["g213"]
         return cls.__instance

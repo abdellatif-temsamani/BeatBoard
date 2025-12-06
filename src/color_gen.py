@@ -1,19 +1,62 @@
 import colorsys
-from typing import Tuple
+from asyncio import sleep
+from typing import List, Optional, Tuple
 
+import matplotlib.pyplot as plt
 from colorthief import ColorThief
+from matplotlib.colors import to_rgb
 from PIL import Image
 
+from src.globs import Globs
 
-def debug_pallete(palette: list[Tuple[int, int, int]]) -> None:
-    """Show the palette in a matplotlib window. `only for debugging.`
 
-    Args:
-        palette: A list of RGB tuples to display as a color palette.
-    """
-    import matplotlib.pyplot as plt
+def debug_palette(
+    hex_colors: Optional[List[str]] = None,
+    palette: Optional[List[Tuple[int, int, int]]] = None,
+) -> None:
+    """Show one or both color palettes in one matplotlib window, with labels."""
 
-    plt.imshow([[palette[i] for i in range(len(palette))]])
+    if hex_colors is None and palette is None:
+        raise ValueError("You must pass either `hex_colors` or `palette`.")
+
+    rows: list[list[tuple[float, float, float]]] = []
+    labels: list[str] = []
+
+    # Hex palette
+    if hex_colors is not None:
+        hex_rgb = [to_rgb("#" + c) for c in hex_colors]
+        rows.append(hex_rgb)
+        labels.append("final colors")
+
+    # RGB palette
+    if palette is not None:
+        palette_rgb = [(r / 255, g / 255, b / 255) for r, g, b in palette]
+        rows.append(palette_rgb)
+        labels.append("extracted palette")
+
+    # Normalize lengths (trim to shortest)
+    min_len = min(len(row) for row in rows)
+    rows = [row[:min_len] for row in rows]
+
+    # Plot
+    fig, ax = plt.subplots(figsize=(min_len * 0.5, len(rows) * 1))
+
+    ax.imshow(rows)
+
+    # Add labels
+    for i, label in enumerate(labels):
+        ax.text(
+            -0.5,  # Slightly left of the first column
+            i,  # Row index
+            label,
+            va="center",
+            ha="right",
+            fontsize=12,
+            fontweight="bold",
+            color="white",
+            backgroundcolor="black",  # Clean contrast
+        )
+
     plt.show()
 
 
@@ -68,5 +111,10 @@ def get_color_palette(path: str) -> list[str]:
 
     # Convert to hex
     hex_colors = [f"{r:02x}{g:02x}{b:02x}" for r, g, b in filtered_colors]
+
+    globs = Globs()
+
+    if globs.debug:
+        debug_palette(hex_colors=hex_colors, palette=palette)
 
     return hex_colors

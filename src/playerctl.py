@@ -1,9 +1,12 @@
 import asyncio
 import subprocess
 from pathlib import Path
-from typing import Awaitable, Callable
 
 from rich import print
+
+from src.color_gen import get_color_palette
+from src.globs import Globs
+from src.hardware import get_command
 
 
 def playerctl(*args) -> list[str]:
@@ -52,15 +55,36 @@ async def get_image(
     await asyncio.to_thread(Path(path).write_bytes, image_data)
 
 
+async def process_art_url(art_url: str | None = None):
+    """process art work of the current song
+
+    Args:
+        art_url: The new album art URL.
+    """
+    IMAGE_PATH = "/tmp/album_art.jpg"
+
+    # Download or fetch new album art
+    await get_image(IMAGE_PATH, art_url)
+
+    # Extract palette
+    image_colors = get_color_palette(IMAGE_PATH)
+
+    globs = Globs()
+    commands = [*get_command(globs.hardware, image_colors[0])]
+
+    for command in commands:
+        if globs.debug:
+            print(f"Running command: {command}")
+        subprocess.run(command)
+
+
 async def watch_playerctl(
-    handle_art_change: Callable[[str], Awaitable[None]],
     follow: bool = True,
 ):
     """Stream metadata changes from playerctl --follow.
     We grab both artUrl and title/artist.
 
     Args:
-        handle_art_change: A callback to handle the art change. runs on every song change.
         follow: Whether to follow the playerctl output. If False, only the current state is returned.
     """
     process = await asyncio.create_subprocess_exec(
@@ -89,10 +113,9 @@ async def watch_playerctl(
 
         song_label = f"{title} – {artist}" if artist else title
 
-        print("")
         print(f'[bold yellow]Processing[/bold yellow] "{song_label}"...')
 
-        await handle_art_change(art_url)
+        await process_art_url(art_url)
 
         print("[bold green]Processing done[/bold green].")
         print("")
