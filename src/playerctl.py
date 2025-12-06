@@ -8,7 +8,12 @@ async def get_image(
     path: str,
     art_url: str | None = None,
 ) -> None:
-    """Get the album art from the current playing song"""
+    """Get the album art from the current playing song
+
+    Args:
+        path: The path to store the image temporarily
+        art_url: The URL to the image. If not provided, it will be fetched from playerctl
+    """
 
     import requests
 
@@ -37,9 +42,11 @@ async def get_image(
 
 
 async def watch_playerctl(handle_art_change: Callable[[str], Awaitable[None]]):
-    """
-    Stream metadata changes from playerctl --follow.
+    """ Stream metadata changes from playerctl --follow.
     We grab both artUrl and title/artist.
+
+    Args:
+        handle_art_change: A callback to handle the art change.
     """
     process = await asyncio.create_subprocess_exec(
         "playerctl",

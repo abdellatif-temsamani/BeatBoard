@@ -6,8 +6,11 @@ from PIL import Image
 
 
 def debug_pallete(palette: list[Tuple[int, int, int]]) -> None:
-    """Show the palette in a matplotlib window"""
+    """Show the palette in a matplotlib window. `only for debugging.`
 
+    Args:
+        palette: A list of RGB tuples to display as a color palette.
+    """
     import matplotlib.pyplot as plt
 
     plt.imshow([[palette[i] for i in range(len(palette))]])
@@ -15,8 +18,14 @@ def debug_pallete(palette: list[Tuple[int, int, int]]) -> None:
 
 
 def get_color_palette(path: str) -> list[str]:
-    """Get the color palette from the image"""
+    """Get the color palette from the image
 
+    Args:
+        path: The path to the image to get the palette from.
+
+    Returns: A list of hex color codes without the # symbol.
+
+    """
     theif: ColorThief = ColorThief(path)
 
     palette: list[Tuple[int, int, int]] = theif.get_palette(color_count=10)
