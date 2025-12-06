@@ -1,7 +1,21 @@
 import asyncio
 import subprocess
 from pathlib import Path
-from typing import Awaitable, Callable
+
+from rich import print
+
+from .color_gen import get_color_palette
+from .globs import Globs
+from .hardware import get_command
+
+
+def playerctl(*args: str) -> list[str]:
+    """base playerctl command
+        *args: playerctl arguments
+
+    Returns: list[str]
+    """
+    return ["playerctl", "--player=spotify", *args]
 
 
 async def get_image(
@@ -20,7 +34,7 @@ async def get_image(
     if not art_url:
         url = await asyncio.to_thread(
             subprocess.run,
-            ["playerctl", "--player=spotify", "metadata", "mpris:artUrl"],
+            playerctl("metadata", "mpris:artUrl"),
             capture_output=True,
             text=True,
         )
@@ -41,19 +55,54 @@ async def get_image(
     await asyncio.to_thread(Path(path).write_bytes, image_data)
 
 
-async def watch_playerctl(handle_art_change: Callable[[str], Awaitable[None]]):
-    """ Stream metadata changes from playerctl --follow.
+async def process_art_url(art_url: str | None = None) -> None:
+    """process art work of the current song
+
+    Args:
+        art_url: The new album art URL.
+    """
+    IMAGE_PATH = "/tmp/album_art.jpg"
+
+    # Download or fetch new album art
+    await get_image(IMAGE_PATH, art_url)
+
+    # Extract palette (CPU-bound, run in thread)
+    try:
+        image_colors = await get_color_palette(IMAGE_PATH)
+    except Exception as e:
+        print(f"Error extracting color palette: {e}")
+        return
+
+    if not image_colors:
+        print("No colors extracted from image, using fallback")
+        image_colors = ["ffffff"]  # fallback color
+
+    globs = Globs()
+    commands = get_command(globs.hardware, image_colors[0])
+
+    for command in commands:
+        if globs.debug:
+            print(f"Running command: {command}")
+        try:
+            await asyncio.to_thread(subprocess.run, command)
+        except Exception as e:
+            print(f"Error running hardware command: {e}")
+
+
+async def watch_playerctl(follow: bool = True):
+    """Stream metadata changes from playerctl --follow.
     We grab both artUrl and title/artist.
 
     Args:
-        handle_art_change: A callback to handle the art change.
+        follow: Whether to follow the playerctl output. If False, only the current state is returned.
     """
     process = await asyncio.create_subprocess_exec(
-        "playerctl",
-        "metadata",
-        "--format",
-        "{{mpris:artUrl}}|{{xesam:title}}|{{xesam:artist}}",
-        "--follow",
+        *playerctl(
+            "metadata",
+            "--format",
+            "{{mpris:artUrl}}|{{xesam:title}}|{{xesam:artist}}",
+            "--follow",
+        ),
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
     )
@@ -73,8 +122,12 @@ async def watch_playerctl(handle_art_change: Callable[[str], Awaitable[None]]):
 
         song_label = f"{title} – {artist}" if artist else title
 
-        print(f'Processing "{song_label}"...')
+        print(f'[bold yellow]Processing[/bold yellow] "{song_label}"...')
 
-        await handle_art_change(art_url)
+        await process_art_url(art_url)
 
-        print("Processing done.")
+        print("[bold green]Processing done[/bold green].")
+        print("")
+
+        if not follow:
+            break
