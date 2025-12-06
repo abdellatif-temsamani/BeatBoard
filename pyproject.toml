@@ -12,6 +12,7 @@ requires-python = ">=3.11"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: End Users/Desktop",
+    "Environment :: Console",
 
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python :: 3",
@@ -46,6 +47,9 @@ dependencies = [
     "urllib3==2.5.0",
     "pytest==8.3.3",
 ]
+
+[project.scripts]
+beatboard = "main:main"
 
 [project.urls]
 Homepage = "https://github.com/abdellatif-temsamani/BeatBoard"
