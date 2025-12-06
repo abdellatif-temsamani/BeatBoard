@@ -5,6 +5,8 @@ import subprocess
 
 from src.args import parser
 from src.color_gen import get_color_palette
+from src.globs import Globs
+from src.keyboard_support import get_command
 from src.playerctl import get_image, watch_playerctl
 
 
@@ -22,14 +24,18 @@ async def process_art_url(art_url: str | None = None):
     # Extract palette
     image_colors = get_color_palette(IMAGE_PATH)
 
+    command = [*get_command(Globs().keyboard), "-c", image_colors[0]]
+
     # Run external script
-    subprocess.run(["python", "./G213Colors/G213Colors.py", "-c", image_colors[0]])
+    subprocess.run(command)
 
 
 async def main():
     """Main function"""
 
     args = parser.parse_args()
+
+    Globs().keyboard = args.keyboard
 
     await watch_playerctl(process_art_url, follow=args.follow)
 
