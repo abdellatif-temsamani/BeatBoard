@@ -40,6 +40,7 @@ parser = RichArgumentParser(
 
 # makes the program running and follow song changes
 parser.add_argument("--follow", action="store_true", help="Follow the music")
+parser.add_argument("--debug", action="store_true", help="Enable debug mode")
 
 # hardware to change the color of
 parser.add_argument(
