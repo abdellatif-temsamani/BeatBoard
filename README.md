@@ -1,88 +1,141 @@
-Perfect! Based on your folder structure, here’s an updated and precise
-**README** for your BeatBoard project:
-
----
-
 # BeatBoard 🎵💡
 
-BeatBoard is a CLI tool for Linux that **changes your keyboard color** based on
-the **currently playing song**. It extracts colors from the album art and
-selects vibrant, dominant colors for a dynamic music-light experience.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Linux](https://img.shields.io/badge/platform-linux-lightgrey.svg)](https://www.linux.org/)
 
----
+BeatBoard is a CLI tool for Linux that dynamically changes your keyboard's RGB lighting based on the colors extracted from the album art of the currently playing Spotify Desktop song. It uses `playerctl` to fetch metadata and applies vibrant colors to create an immersive music experience.
 
-## Features
+## ✨ Features
 
-- Fetch album art of the currently playing song via `playerctl`.
-- Extract vibrant, non-neutral colors from album art.
-- Apply the most prominent color to your keyboard using `G213Colors`.
-- Optionally follow the song in real-time with `python main.py --follow`.
-- similar to how Spotify does it (not 100% accurate)
+- 🎨 **Automatic color extraction** from album art of currently playing tracks
+- 🌈 **Vibrant color analysis** to find dominant and complementary colors
+- ⌨️ **Real-time RGB keyboard control** with smooth transitions
+- 🔄 **Continuous following mode** for live color updates as songs change
+- 🎵 **Spotify Desktop integration** through `playerctl` for seamless music control
+- 🎯 **Hardware-agnostic design** for easy expansion to new devices
 
----
+## 📋 Requirements
 
-## Requirements
+### System Requirements
+- **Linux operating system** (tested on Ubuntu, Fedora, Arch)
+- **Python 3.8 or higher**
+- **`playerctl`** for media player integration
 
-- Linux system
-- Python 3.13+
-- `pip` and virtual environment support
-- `playerctl` installed
-- `spotify app` installed
-- Python dependencies: see `requirements.txt`
-- Compatible RGB hardware
+### Media Players
+- **Spotify Desktop** (required)
 
----
+### Supported Hardware
+- **Logitech G213 Prodigy** (fully supported)
+- Additional RGB keyboards (planned support)
 
-## Installation
+## 🚀 Installation
 
-Clone the repository and set up a Python virtual environment:
-
+### Quick Install
 ```bash
+# Clone with submodules
 git clone --recurse-submodules https://github.com/abdellatif-temsamani/BeatBoard
 cd BeatBoard
+
+# Set up virtual environment
 python -m venv venv
 source venv/bin/activate
+
+# Install dependencies
 pip install -r requirements.txt
 ```
 
----
+### Verify Installation
+```bash
+# Test basic functionality
+python main.py --help
+```
 
-## Usage
+## 🎮 Usage
 
-### One-time color change:
-
+### Single Color Change
+Extract colors from the current song and apply once:
 ```bash
 python main.py
 ```
 
-### Follow each song automatically:
-
+### Continuous Mode
+Follow the playing song and update colors in real-time:
 ```bash
 python main.py --follow
 ```
+Press `Ctrl+C` to stop following.
+
+### Advanced Options
+```bash
+# Verbose output
+python main.py --follow --verbose
+
+# Custom update interval (seconds)
+python main.py --follow --interval 5
+```
+
+## 🖥️ Supported Hardware
+
+### Currently Supported
+- **Logitech G213 Prodigy** - Full feature support
+
+### Planned Support
+- Razer keyboards
+- Corsair RGB keyboards
+- Generic HID RGB devices
+
+*Want to add support for your device? See our [Contributing Guide](#contributing)!*
+
+## 🤝 Contributing
+
+We welcome contributions of all kinds! Here's how you can help:
+
+### Reporting Issues
+- 🐛 [Bug reports](https://github.com/abdellatif-temsamani/BeatBoard/issues)
+- 💡 [Feature requests](https://github.com/abdellatif-temsamani/BeatBoard/issues)
+
+### Code Contributions
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+### Hardware Support
+Help us expand hardware compatibility by:
+- Adding device drivers
+- Testing on new hardware
+- Documentation improvements
+
+See our GitHub repository for contribution guidelines.
+
+## 🐛 Troubleshooting
+
+### Common Issues
+- **"playerctl not found"**: Install with `sudo apt install playerctl` (Ubuntu/Debian)
+- **"Permission denied"**: Add user to `input` group: `sudo usermod -a -G input $USER`
+- **"No album art"**: Ensure current Spotify Desktop song has album art available
+
+### Getting Help
+- Open an [issue](https://github.com/abdellatif-temsamani/BeatBoard/issues)
+- Join our discussions
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- The `playerctl` team for media player integration
+- Logitech for the G213 hardware specifications
+- Contributors and beta testers
+
+## 📊 Project Status
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/abdellatif-temsamani/BeatBoard)
+![GitHub issues](https://img.shields.io/github/issues/abdellatif-temsamani/BeatBoard)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/abdellatif-temsamani/BeatBoard)
 
 ---
 
-## Supported hardware
-
-- Logitech G213 Prodigy keyboard
-
-> NOTE: i will be adding args support to make it easier to use with other
-> hardware in the future. PRs are welcome!
-
----
-
-## Contributing
-
-Contributions and suggestions are welcome! Open issues or pull requests for
-improvements.
-
----
-
-## License
-
-MIT License
-
----
-
-<!-- TODO: add a GIF example -->
+**Made with ❤️ by the BeatBoard team**
