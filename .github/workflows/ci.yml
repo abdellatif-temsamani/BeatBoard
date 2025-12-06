@@ -32,5 +32,4 @@ jobs:
           ruff format --check .
       - name: Run tests
         run: |
-          pytest
-
+          python -m pytest
