@@ -1,7 +1,6 @@
 import colorsys
 from typing import List, Optional, Tuple
 
-import matplotlib.pyplot as plt
 from colorthief import ColorThief
 from matplotlib.colors import to_rgb
 from PIL import Image
@@ -22,6 +21,8 @@ def debug_palette(
     Raises:
         ValueError: If neither `hex_colors` nor `palette` is provided.
     """
+    import matplotlib.pyplot as plt
+
     if hex_colors is None and palette is None:
         raise ValueError("You must pass either `hex_colors` or `palette`.")
 
