@@ -10,8 +10,12 @@ from src.playerctl import watch_playerctl
 
 
 async def main():
-    """Main function"""
+    """
+    Main entry point for BeatBoard.
 
+    Parses command-line arguments, sets up global state,
+    and starts the playerctl watching process.
+    """
     args = parser.parse_args()
 
     globs = Globs()
