@@ -26,6 +26,7 @@ vibrant colors to create an immersive music experience.
 - **Linux operating system** (tested on Ubuntu, Fedora, Arch)
 - **Python 3.11 or higher**
 - **`playerctl`** for media player integration
+- **`razer-cli`** for Razer keyboard support (optional)
 
 ### Media Players
 
