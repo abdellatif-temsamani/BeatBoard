@@ -1,4 +1,5 @@
 import pytest
+
 from src.hardware import get_command
 
 
@@ -16,12 +17,18 @@ from src.hardware import get_command
             [["python", "./G213Colors/G213Colors.py", "-c", "00ff00"]],
         ),
         (
-            ["g213", "g213"],
+            ["g213", "g213", "razer"],
             "000000",
             [
                 ["python", "./G213Colors/G213Colors.py", "-c", "000000"],
                 ["python", "./G213Colors/G213Colors.py", "-c", "000000"],
+                ["razer-cli", "-c", "000000"],
             ],
+        ),
+        (
+            ["razer"],
+            "55ff99",
+            [["razer-cli", "-c", "55ff99"]],
         ),
     ],
 )
