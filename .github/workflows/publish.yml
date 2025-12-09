@@ -1,4 +1,3 @@
----
 name: Publish
 
 on:
@@ -26,7 +25,9 @@ jobs:
           VERSION="${{ github.ref_name }}"
           VERSION="${VERSION#v}"
 
-          awk "/## \\[${VERSION}\\]/ {flag=1; getline; next} \
+          # Extract the matching changelog section:
+          # Matches: ## [VERSION] - DATE
+          awk "/## \\[${VERSION}\\] - / {flag=1; getline; next} \
                /## \\[/ && flag {flag=0} flag" CHANGELOG.md \
             > changelog.txt
 
@@ -35,6 +36,12 @@ jobs:
             cat changelog.txt
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
+
+      - name: Debug changelog
+        run: |
+          echo "--- Extracted Changelog ---"
+          cat changelog.txt || echo "EMPTY"
+          echo "---------------------------"
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
