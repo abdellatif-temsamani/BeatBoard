@@ -22,8 +22,16 @@ except (FileNotFoundError, KeyError, tomllib.TOMLDecodeError) as e:
 console = Console()
 
 
+from typing import Any, Sequence
+
 class VersionAction(argparse.Action):
-    def __call__(self, parser, namespace, values, option_string=None):
+    def __call__(
+        self,
+        parser: argparse.ArgumentParser,
+        namespace: argparse.Namespace,
+        values: str | Sequence[Any] | None,
+        option_string: str | None = None,
+    ) -> None:
         console.print(f"[bold blue]BeatBoard[/bold blue] [cyan]{__version__}[/cyan]")
         parser.exit()
 
