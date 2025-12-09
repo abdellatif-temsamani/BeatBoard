@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "BeatBoard"
-version = "0.1.1"
+version = "0.1.1-1"
 description = "Dynamic keyboard RGB lighting based on Spotify album art"
 readme = "README.md"
 license = "MIT"
@@ -61,12 +61,12 @@ Issues = "https://github.com/abdellatif-temsamani/BeatBoard/issues"
 Changelog = "https://github.com/abdellatif-temsamani/BeatBoard/blob/main/CHANGELOG.md"
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["src", "src/beatboard/G213Colors"]
 
 [tool.ruff]
 line-length = 88
 target-version = "py311"
-exclude = ["src/beatboard/G213Colors/**"]
+exclude = ["src/beatboard/G213Colors/"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -87,14 +87,14 @@ async def process_art_url(art_url: str | None = None) -> None:
     try:
         await get_image(IMAGE_PATH, art_url)
     except Exception as e:
-        print(f"[bold red]Error[/bold red] fetching album art: {e}")
+        print(f"[bold red]Error:[/bold red] fetching album art: {e}")
         return
 
     # Extract palette (CPU-bound, run in thread)
     try:
         image_colors = await get_color_palette(IMAGE_PATH)
     except Exception as e:
-        print(f"[bold red]Error[/bold red] extracting color palette: {e}")
+        print(f"[bold red]Error:[/bold red] extracting color palette: {e}")
         return
 
     if not image_colors:
@@ -118,7 +118,7 @@ async def process_art_url(art_url: str | None = None) -> None:
         try:
             await asyncio.to_thread(subprocess.run, command)
         except Exception as e:
-            print(f"[bold red]Error[/bold red] running hardware command: {e}")
+            print(f"[bold red]Error:[/bold red] running hardware command: {e}")
 
 
 async def watch_playerctl(follow: bool = True):
