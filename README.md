@@ -100,36 +100,6 @@ beatboard --version
 
 For development, clone the repository and use the dev script to run the latest code:
 
-```bash
-# Clone with submodules
-git clone --recurse-submodules https://github.com/abdellatif-temsamani/BeatBoard
-cd BeatBoard
-
-# Set up virtual environment
-python -m venv venv
-source venv/bin/activate
-
-# Install dependencies
-pip install -e ".[dev]"
-
-# Run with dev script
-python beatboard_dev.py --help
-python beatboard_dev.py
-python beatboard_dev.py --follow
-
-### Hardware Access for Development
-
-When testing RGB control during development, you may need elevated permissions:
-
-```bash
-# Add user to input group for hardware access
-sudo usermod -a -G input $USER
-
-# Or run with sudo (not recommended for regular use)
-sudo python beatboard_dev.py
-```
-
-Restart your session after adding to the input group.
 
 ## 🖥️ Supported Hardware
 
