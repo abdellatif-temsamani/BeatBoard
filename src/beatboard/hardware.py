@@ -1,9 +1,13 @@
+import os
+import sys
 from typing import Literal
+
+_g213_script = os.path.join(os.path.dirname(__file__), "G213Colors", "G213Colors.py")
 
 hardware: dict[str, list[str]] = {
     "g213": [
-        "python",
-        "./G213Colors/G213Colors.py",
+        sys.executable,
+        _g213_script,
         "-c",
     ],
     "razer": [
