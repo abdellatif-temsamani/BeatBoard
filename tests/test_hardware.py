@@ -1,6 +1,13 @@
+import os
+import sys
 import pytest
 
+from beatboard import hardware
 from beatboard.hardware import get_command
+
+_g213_script = os.path.join(
+    os.path.dirname(hardware.__file__), "G213Colors", "G213Colors.py"
+)
 
 
 @pytest.mark.parametrize(
@@ -9,19 +16,19 @@ from beatboard.hardware import get_command
         (
             ["g213"],
             "ff0000",
-            [["python", "./G213Colors/G213Colors.py", "-c", "ff0000"]],
+            [[sys.executable, _g213_script, "-c", "ff0000"]],
         ),
         (
             ["g213"],
             "00ff00",
-            [["python", "./G213Colors/G213Colors.py", "-c", "00ff00"]],
+            [[sys.executable, _g213_script, "-c", "00ff00"]],
         ),
         (
             ["g213", "g213", "razer"],
             "000000",
             [
-                ["python", "./G213Colors/G213Colors.py", "-c", "000000"],
-                ["python", "./G213Colors/G213Colors.py", "-c", "000000"],
+                [sys.executable, _g213_script, "-c", "000000"],
+                [sys.executable, _g213_script, "-c", "000000"],
                 ["razer-cli", "-c", "000000"],
             ],
         ),
