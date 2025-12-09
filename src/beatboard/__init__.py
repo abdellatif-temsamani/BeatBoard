@@ -18,7 +18,7 @@ async def beatboard_main():
 
     if not check_spotify_available():
         print(
-            "[red bold]Spotify app not found. Please ensure Spotify is installed and running.[/red bold]"
+            "[red bold]Error:[/red bold] Spotify app not found. Please ensure Spotify is installed and running."
         )
         return
 
