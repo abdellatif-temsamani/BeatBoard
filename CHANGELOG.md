@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - _(publish)_ Simplify changelog extraction to single section and add
   GITHUB_TOKEN env
+- _(publish)_ Fix awk command
 
 ## [0.1.0-4] - 2025-12-09
 
