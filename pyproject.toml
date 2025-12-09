@@ -44,7 +44,7 @@ dependencies = [
     "rich==14.2.0",
     "setuptools-scm==8.1.0",
     "six==1.17.0",
-    "urllib3==2.5.0",
+    "urllib3==2.6.1",
     "pytest==8.3.3",
 ]
 
