@@ -15,20 +15,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Extract Two Changelog Sections
+      - name: Extract Changelog Section
         run: |
           VERSION="${{ github.ref_name }}"
           VERSION="${VERSION#v}"
 
           awk "
-            /^## \\[${VERSION}\\] - / {flag=1; count=0; getline; next}
-            /^## \\[/ && flag && count==1 {flag=0}
-            /^## \\[/ && flag {count++}
+            /^## \\[${VERSION}\\] - / {flag=1; getline; next}
+            /^## \\[/ && flag {flag=0}
             flag
           " CHANGELOG.md > RELEASE_NOTES.md
 
-      - name: Debug Notes
-        run: cat RELEASE_NOTES.md
+      - name: Debug
+        run: |
+          echo "--- EXTRACTED ---"
+          cat RELEASE_NOTES.md
+          echo "------------------"
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
@@ -36,3 +38,5 @@ jobs:
           tag_name: ${{ github.ref_name }}
           name: "Release ${{ github.ref_name }}"
           body_path: RELEASE_NOTES.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
