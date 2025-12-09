@@ -61,12 +61,12 @@ Issues = "https://github.com/abdellatif-temsamani/BeatBoard/issues"
 Changelog = "https://github.com/abdellatif-temsamani/BeatBoard/blob/main/CHANGELOG.md"
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["src", "src/beatboard/G213Colors"]
 
 [tool.ruff]
 line-length = 88
 target-version = "py311"
-exclude = ["src/beatboard/G213Colors/**"]
+exclude = ["src/beatboard/G213Colors/"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
