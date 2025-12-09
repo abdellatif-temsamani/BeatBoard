@@ -94,7 +94,7 @@ async def process_art_url(art_url: str | None = None) -> None:
         return
 
     if not image_colors:
-        print("No colors extracted from image, using fallback")
+        print("[bold yellow]Warning:[/bold yellow] No colors extracted from image, using fallback")
         image_colors = ["ffffff"]  # fallback color
 
     globs = Globs()
