@@ -26,16 +26,13 @@ vibrant colors to create an immersive music experience.
 - **Linux operating system** (tested on Ubuntu, Fedora, Arch)
 - **Python 3.11 or higher**
 - **`playerctl`** for media player integration
-- **`razer-cli`** for Razer keyboard support (optional)
+- **`razer-cli`** for Razer device support (optional)
 
 ### Media Players
 
 - **Spotify Desktop** (required)
 
-### Supported Hardware
 
-- **Logitech G213 Prodigy** (single region supported)
-- Additional RGB devices (planned support)
 
 ## 🚀 Installation
 
@@ -45,11 +42,25 @@ vibrant colors to create an immersive music experience.
 pip install beatboard
 ```
 
+### Alternative: Using pipx
+
+For isolated installation without affecting system Python:
+
+```bash
+pipx install beatboard
+```
+
 ### Verify Installation
 
 ```bash
 # Test basic functionality
 beatboard --help
+
+# Verify playerctl integration (should show current player status)
+playerctl status
+
+# Test hardware access (may require sudo for initial setup)
+beatboard --debug
 ```
 
 ## 🎮 Usage
@@ -105,14 +116,27 @@ pip install -e ".[dev]"
 python beatboard_dev.py --help
 python beatboard_dev.py
 python beatboard_dev.py --follow
+
+### Hardware Access for Development
+
+When testing RGB control during development, you may need elevated permissions:
+
+```bash
+# Add user to input group for hardware access
+sudo usermod -a -G input $USER
+
+# Or run with sudo (not recommended for regular use)
+sudo python beatboard_dev.py
 ```
+
+Restart your session after adding to the input group.
 
 ## 🖥️ Supported Hardware
 
 ### Currently Supported
 
 - **Logitech G213 Prodigy** - single region supported
-- **Razer keyboards** - via razer-cli
+- **Razer devices** - via razer-cli (optional, requires razer-cli installation)
 
 ### Planned Support
 
@@ -148,8 +172,10 @@ See our [Contributing Guide](.github/CONTRIBUTING.md) for detailed guidelines.
 
 ### Common Issues
 
-- **"playerctl not found"**: Install with `sudo apt install playerctl`
-  (Ubuntu/Debian)
+- **"playerctl not found"**:
+  - Ubuntu/Debian: `sudo apt install playerctl`
+  - Fedora: `sudo dnf install playerctl`
+  - Arch Linux: `sudo pacman -S playerctl`
 - **"Permission denied"**: Add user to `input` group:
   `sudo usermod -a -G input $USER`
 - **"No album art"**: Ensure current Spotify Desktop song has album art
