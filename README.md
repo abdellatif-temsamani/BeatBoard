@@ -50,7 +50,7 @@ python -m venv venv
 source venv/bin/activate
 
 # Install dependencies
-pip install -e .[dev]
+pip install -e ".[dev]"
 ```
 
 ### Verify Installation
