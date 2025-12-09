@@ -32,8 +32,6 @@ vibrant colors to create an immersive music experience.
 
 - **Spotify Desktop** (required)
 
-
-
 ## 🚀 Installation
 
 ### Quick Install
@@ -98,8 +96,18 @@ beatboard --version
 
 ## 🛠️ Development
 
-For development, clone the repository and use the dev script to run the latest code:
+For development, clone the repository and use the dev script to run the latest
+code:
 
+```bash
+# Install in development mode
+pip install -e ".[dev]"
+
+# Run with dev script
+python beatboard_dev.py --help
+python beatboard_dev.py
+python beatboard_dev.py --follow
+```
 
 ## 🖥️ Supported Hardware
 
