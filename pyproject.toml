@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "BeatBoard"
-version = "0.1.0-2"
+version = "0.1.0-3"
 description = "Dynamic keyboard RGB lighting based on Spotify album art"
 readme = "README.md"
 license = { text = "MIT" }
