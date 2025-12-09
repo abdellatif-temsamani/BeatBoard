@@ -4,6 +4,7 @@
         "bash": {
             "*": "ask",
             "git": "allow",
+            "git checkout": "deny",
             "git add": "deny",
             "git push": "ask",
             "npm run build": "allow",
