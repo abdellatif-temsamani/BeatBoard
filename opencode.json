@@ -8,7 +8,7 @@
         },
         "commit": {
             "template": "{{type}}({{scope}}): {{message}}",
-            "description": "Writes a git commit using Conventional Commits,\nPS: don't add untracked files",
+            "description": "Writes a git commit using Conventional Commits,\nPS: ignore untracked files",
             "agent": "commit-writer"
         }
     },
@@ -32,7 +32,7 @@
         },
         "commit-writer": {
             "mode": "subagent",
-            "prompt": "You are a commit writer. Analyze code changes and create meaningful commit messages following conventional commits. PS: don't add untracked files",
+            "prompt": "You are a commit writer. Analyze code changes and create meaningful commit messages following conventional commits. PS: ignore untracked files",
             "tools": {
                 "bash": true,
                 "read": true,
