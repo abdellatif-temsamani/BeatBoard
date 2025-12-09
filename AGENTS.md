@@ -1,7 +1,7 @@
 # AGENTS.md - Coding Guidelines for BeatBoard
 
 ## Commands
-- **Install deps**: `pip install -e .[dev]`
+- **Install deps**: `pip install -e ".[dev]"`
 - **Run all tests**: `python -m pytest`
 - **Run single test**: `python -m pytest tests/test_file.py::test_function`
 - **Lint**: `ruff check .`
