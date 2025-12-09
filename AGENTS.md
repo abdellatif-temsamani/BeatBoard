@@ -1,6 +1,7 @@
 # AGENTS.md - Coding Guidelines for BeatBoard
 
 ## Commands
+
 - Install deps: `pip install -e ".[dev]"`
 - Run all tests: `python -m pytest`
 - Run single test: `python -m pytest tests/test_file.py::test_function`
@@ -10,6 +11,7 @@
 - Build: `python -m build`
 
 ## Code Style
+
 - Python: 3.11+, ruff formatting (88 chars, single quotes)
 - Linting: ruff (ignore submodules)
 - Imports: stdlib, third-party, local; auto-sorted
@@ -22,7 +24,12 @@
 - Tests: pytest with fixtures; mock external deps
 
 ## Project Structure
+
 - `src/`: Package, `tests/`: Unit tests, `docs/`: Docs
 - `pyproject.toml`: Config, `.github/`: CI/templates
+
+## rules
+
+- ignore `__pycache__`, `build`, `dist`, `venv`, `src/beatboard/G213Colors/**`
 
 No Cursor or Copilot rules found.
