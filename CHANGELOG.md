@@ -2,7 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.1.1-1] - 2025-12-09
+## [0.1.1-3] - 2025-12-09
+
+### ⚙️ Miscellaneous Tasks
+
+- Update publish workflow and bump version
+- Bump version
+
+## [0.1.1-2] - 2025-12-09
 
 ### 📚 Documentation
 
