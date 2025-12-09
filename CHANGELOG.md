@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.0-5] - 2025-12-09
+
+### ⚙️ Miscellaneous Tasks
+
+- _(publish)_ Simplify changelog extraction to single section and add
+  GITHUB_TOKEN env
+
 ## [0.1.0-4] - 2025-12-09
 
 ### 💼 Other
@@ -21,6 +28,7 @@ All notable changes to this project will be documented in this file.
 - Skip changelog header in release notes extraction
 - Enhance publish workflow with proper quoting and permissions
 - _(publish)_ Fix changelog extraction regex and add debug output
+- _(publish)_ Improve release notes extraction and changelog formatting
 
 ## [0.1.0-2] - 2025-12-09
 
