@@ -1,0 +1,4 @@
+---
+reviews:
+  path_filters:
+    - "!CHANGELOG.md"

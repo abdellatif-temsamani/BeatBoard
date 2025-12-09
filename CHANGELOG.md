@@ -2,13 +2,64 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.0-1] - 2025-12-09
+
+### 🚀 Features
+
+- Require Python 3.11+ for contourpy compatibility
+- Add console script entry point for beatboard command
+- Update dependencies for Python 3.8+ support
+- _(config)_ Add OpenCode AI configuration for development tools
+- _(cli)_ Add --version flag and switch to static versioning
+
+### 🐛 Bug Fixes
+
+- Update dependencies for Python 3.8-3.10 compatibility
+- Correct relative links in CONTRIBUTING.md to point to root README.md
+- Update license to SPDX expression in pyproject.toml
+- Update dependencies for security, improve async handling, and fix docs
+- Plt run on the main thread
+- Prevent matplotlib crashes when empty palettes are passed to debug_palette
+- _(commit-writer)_ Correct wording in commit writer description
+
+### 💼 Other
+
+- _(opencode)_ Add bash permissions and update commit-writer prompt
+- Bump version to 0.1.0-1
+
+### 🚜 Refactor
+
+- Backport code to Python 3.8+ syntax
+- Change imports to relative imports within src package
+
+### 📚 Documentation
+
+- Add AGENTS.md with coding guidelines for AI agents
+- Fix spelling and grammar in CHANGELOG.md
+- Update contributing guide and CI workflow
+- Update docs and CI for Python 3.8+ support
+
+### 🎨 Styling
+
+- Format src/\_version.py with ruff
+
+### ⚙️ Miscellaneous Tasks
+
+- Use python -m pytest in CI workflow
+- Add pip caching to speed up CI runs
+- _(workflows)_ Add publish workflow and enable reusable CI
+
+### ◀️ Revert
+
+- Restore Python 3.11+ requirement
+
 ## [0.1.0] - 2025-12-06
 
 ### 🚀 Features
 
 - Debug tool
 - Follow spotify
-- Separators
+- Seperators
 - Hardware selector
 - _(hardware)_ Added multiple hardware support args
 - Pretty print
@@ -40,9 +91,9 @@ All notable changes to this project will be documented in this file.
 
 ### ⚙️ Miscellaneous Tasks
 
-- .gitignore
+- Gitinore
 - Docs
-- open-source data
+- Open source data
 - _(issue)_ Create issue template
 - _(repo)_ Getting ready for opensource
 
