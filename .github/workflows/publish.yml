@@ -1,9 +1,10 @@
+---
 name: Publish
 
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   ci:
@@ -14,26 +15,33 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      id-token: write
+      actions: write
     steps:
       - uses: actions/checkout@v4
+
       - name: Get Changelog
         id: changelog
         run: |
-          VERSION=${{ github.ref_name }}
-          VERSION=${VERSION#v}
-          awk "/## \\[${VERSION}\\]/ {flag=1; getline; next} /## \\[/ && flag {flag=0} flag" CHANGELOG.md > changelog.txt
+          VERSION="${{ github.ref_name }}"
+          VERSION="${VERSION#v}"
+
+          awk "/## \\[${VERSION}\\]/ {flag=1; getline; next} \
+               /## \\[/ && flag {flag=0} flag" CHANGELOG.md \
+            > changelog.txt
+
           {
             echo "body<<EOF"
             cat changelog.txt
             echo "EOF"
-          } >> $GITHUB_OUTPUT
+          } >> "$GITHUB_OUTPUT"
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }}
-          body: ${{ steps.changelog.outputs.body }}
+          tag_name: "${{ github.ref_name }}"
+          name: "Release ${{ github.ref_name }}"
+          body: "${{ steps.changelog.outputs.body }}"
           generate_release_notes: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
