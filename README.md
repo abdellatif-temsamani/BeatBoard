@@ -41,16 +41,7 @@ vibrant colors to create an immersive music experience.
 ### Quick Install
 
 ```bash
-# Clone with submodules
-git clone --recurse-submodules https://github.com/abdellatif-temsamani/BeatBoard
-cd BeatBoard
-
-# Set up virtual environment
-python -m venv venv
-source venv/bin/activate
-
-# Install dependencies
-pip install -e ".[dev]"
+pip install beatboard
 ```
 
 ### Verify Installation
@@ -91,6 +82,28 @@ beatboard --debug
 
 # Show version
 beatboard --version
+```
+
+## 🛠️ Development
+
+For development, clone the repository and use the dev script to run the latest code:
+
+```bash
+# Clone with submodules
+git clone --recurse-submodules https://github.com/abdellatif-temsamani/BeatBoard
+cd BeatBoard
+
+# Set up virtual environment
+python -m venv venv
+source venv/bin/activate
+
+# Install dependencies
+pip install -e ".[dev]"
+
+# Run with dev script
+python beatboard_dev.py --help
+python beatboard_dev.py
+python beatboard_dev.py --follow
 ```
 
 ## 🖥️ Supported Hardware
