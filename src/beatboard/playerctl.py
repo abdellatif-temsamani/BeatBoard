@@ -1,4 +1,6 @@
 import asyncio
+import os
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -99,6 +101,12 @@ async def process_art_url(art_url: str | None = None) -> None:
     commands = get_command(globs.hardware, image_colors[0])
 
     for command in commands:
+        # Check if the command executable exists
+        if not (shutil.which(command[0]) or os.path.exists(command[0])):
+            print(
+                f"[bold red]Error:[/bold red] Command [bold]'{command[0]}'[/bold] not found. Skipping hardware command."
+            )
+            continue
         if globs.debug:
             print(f"Running command: {command}")
         try:
