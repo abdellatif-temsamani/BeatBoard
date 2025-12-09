@@ -3,9 +3,9 @@
     "permission": {
         "bash": {
             "*": "ask",
-            "git": "allow",
             "git add": "deny",
             "git push": "ask",
+            "git": "allow",
             "npm run build": "allow",
             "ls": "allow",
             "pwd": "allow"
