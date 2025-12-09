@@ -1,6 +1,7 @@
 import argparse
 import tomllib
 from pathlib import Path
+from typing import Any, Sequence
 
 from rich.console import Console
 from rich.panel import Panel
@@ -17,12 +18,11 @@ try:
 except (FileNotFoundError, KeyError, tomllib.TOMLDecodeError) as e:
     __version__ = "unknown"
     import warnings
+
     warnings.warn(f"Could not read version from pyproject.toml: {e}")
 
 console = Console()
 
-
-from typing import Any, Sequence
 
 class VersionAction(argparse.Action):
     def __call__(
