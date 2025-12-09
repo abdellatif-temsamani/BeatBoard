@@ -1,3 +1,4 @@
+---
 name: Publish
 
 on:
@@ -6,49 +7,32 @@ on:
       - "v*"
 
 jobs:
-  ci:
-    uses: ./.github/workflows/ci.yml
-
   release:
-    needs: ci
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      id-token: write
-      actions: write
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Get Changelog
-        id: changelog
+      - name: Extract Two Changelog Sections
         run: |
           VERSION="${{ github.ref_name }}"
           VERSION="${VERSION#v}"
 
-          # Extract the matching changelog section:
-          # Matches: ## [VERSION] - DATE
-          awk "/## \\[${VERSION}\\] - / {flag=1; getline; next} \
-               /## \\[/ && flag {flag=0} flag" CHANGELOG.md \
-            > changelog.txt
+          awk "
+            /^## \\[${VERSION}\\] - / {flag=1; count=0; getline; next}
+            /^## \\[/ && flag && count==1 {flag=0}
+            /^## \\[/ && flag {count++}
+            flag
+          " CHANGELOG.md > RELEASE_NOTES.md
 
-          {
-            echo "body<<EOF"
-            cat changelog.txt
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
-
-      - name: Debug changelog
-        run: |
-          echo "--- Extracted Changelog ---"
-          cat changelog.txt || echo "EMPTY"
-          echo "---------------------------"
+      - name: Debug Notes
+        run: cat RELEASE_NOTES.md
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: "${{ github.ref_name }}"
+          tag_name: ${{ github.ref_name }}
           name: "Release ${{ github.ref_name }}"
-          body: "${{ steps.changelog.outputs.body }}"
-          generate_release_notes: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          body_path: RELEASE_NOTES.md
