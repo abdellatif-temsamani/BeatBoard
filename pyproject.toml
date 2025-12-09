@@ -46,6 +46,7 @@ dependencies = [
     "six==1.17.0",
     "urllib3==2.6.1",
     "pytest==8.3.3",
+    "pytest-asyncio==1.3.0",
 ]
 
 [project.scripts]
@@ -71,3 +72,4 @@ python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
 asyncio_default_fixture_loop_scope = "function"
+asyncio_mode = "auto"
