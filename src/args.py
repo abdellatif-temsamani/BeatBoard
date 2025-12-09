@@ -1,4 +1,6 @@
 import argparse
+import tomllib
+from pathlib import Path
 
 from rich.console import Console
 from rich.panel import Panel
@@ -6,7 +8,19 @@ from rich.table import Table
 
 from .hardware import hardware
 
+# Read version from pyproject.toml
+pyproject_path = Path(__file__).parent.parent / "pyproject.toml"
+with open(pyproject_path, "rb") as f:
+    pyproject_data = tomllib.load(f)
+__version__ = pyproject_data["project"]["version"]
+
 console = Console()
+
+
+class VersionAction(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        console.print(f"[bold blue]BeatBoard[/bold blue] [cyan]{__version__}[/cyan]")
+        parser.exit()
 
 
 class RichArgumentParser(argparse.ArgumentParser):
@@ -35,6 +49,10 @@ class RichArgumentParser(argparse.ArgumentParser):
 # Create the parser
 parser = RichArgumentParser(
     description="BeatBoard change your keyboard rgb based on music",
+)
+
+parser.add_argument(
+    "--version", action=VersionAction, nargs=0, help="Show the version number and exit"
 )
 
 # makes the program running and follow song changes
