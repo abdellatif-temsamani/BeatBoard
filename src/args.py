@@ -9,10 +9,15 @@ from rich.table import Table
 from .hardware import hardware
 
 # Read version from pyproject.toml
-pyproject_path = Path(__file__).parent.parent / "pyproject.toml"
-with open(pyproject_path, "rb") as f:
-    pyproject_data = tomllib.load(f)
-__version__ = pyproject_data["project"]["version"]
+try:
+    pyproject_path = Path(__file__).parent.parent / "pyproject.toml"
+    with open(pyproject_path, "rb") as f:
+        pyproject_data = tomllib.load(f)
+    __version__ = pyproject_data["project"]["version"]
+except (FileNotFoundError, KeyError, tomllib.TOMLDecodeError) as e:
+    __version__ = "unknown"
+    import warnings
+    warnings.warn(f"Could not read version from pyproject.toml: {e}")
 
 console = Console()
 
