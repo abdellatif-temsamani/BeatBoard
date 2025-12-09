@@ -27,6 +27,39 @@ class VersionAction(argparse.Action):
         parser.exit()
 
 
+class HardwareAction(argparse.Action):
+    def __call__(
+        self,
+        parser: argparse.ArgumentParser,
+        namespace: argparse.Namespace,
+        values: str | Sequence[Any] | None,
+        option_string: str | None = None,
+    ) -> None:
+        if values is None:
+            values = []
+        elif isinstance(values, str):
+            values = [values]
+
+        keys = list(hardware.keys())
+        invalid = [v for v in values if v not in keys]
+
+        if invalid:
+            console.print(
+                "[red bold]Error:[/red bold] Invalid hardware option(s):",
+                ", ".join(f"'{v}'" for v in invalid),
+            )
+            console.print("\n[bold blue]Available hardware options:[/bold blue]")
+            table = Table(show_header=True, header_style="bold blue")
+            table.add_column("Hardware", style="cyan")
+            table.add_column("Description", style="white")
+            for key in keys:
+                table.add_row(key, f"Controls {key.upper()} keyboard RGB")
+            console.print(table)
+            parser.exit(1)
+
+        setattr(namespace, self.dest, values)
+
+
 class RichArgumentParser(argparse.ArgumentParser):
     def print_help(self, file=None):
         console.print(
@@ -67,7 +100,7 @@ parser.add_argument("--debug", action="store_true", help="Enable debug mode")
 keys = list(hardware.keys())
 parser.add_argument(
     "--hardware",
-    choices=keys,
+    action=HardwareAction,
     nargs="+",
     default=[keys[0]],
     help=(
