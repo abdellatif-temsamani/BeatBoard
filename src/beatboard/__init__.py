@@ -6,6 +6,7 @@ from .args import parser
 from .globs import Globs
 from .playerctl import check_spotify_available, watch_playerctl
 
+
 async def beatboard_main():
     """
     Main entry point for BeatBoard.
@@ -16,7 +17,9 @@ async def beatboard_main():
     args = parser.parse_args()
 
     if not check_spotify_available():
-        print("[red bold]Spotify app not found. Please ensure Spotify is installed and running.[/red bold]")
+        print(
+            "[red bold]Spotify app not found. Please ensure Spotify is installed and running.[/red bold]"
+        )
         return
 
     globs = Globs()
@@ -32,4 +35,3 @@ def main():
         asyncio.run(beatboard_main())
     except KeyboardInterrupt:
         print("\nShutting down...")
-
