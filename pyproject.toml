@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "BeatBoard"
-dynamic = ["version"]
+version = "0.1.0"
 description = "Dynamic keyboard RGB lighting based on Spotify album art"
 readme = "README.md"
 license = { text = "MIT" }
@@ -59,9 +59,6 @@ Changelog = "https://github.com/abdellatif-temsamani/BeatBoard/blob/main/CHANGEL
 
 [tool.setuptools.packages.find]
 where = ["src"]
-
-[tool.setuptools_scm]
-write_to = "src/_version.py"
 
 [tool.ruff]
 line-length = 88
