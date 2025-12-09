@@ -73,10 +73,14 @@ parser.add_argument("--follow", action="store_true", help="Follow the music")
 parser.add_argument("--debug", action="store_true", help="Enable debug mode")
 
 # hardware to change the color of
+keys = list(hardware.keys())
 parser.add_argument(
     "--hardware",
-    choices=list(hardware.keys()),
+    choices=keys,
     nargs="+",
-    default=[list(hardware.keys())[0]],
-    help="List of hardware to change the color of",
+    default=[keys[0]],
+    help=(
+        f"List of hardware to change the color of:\n"
+        f"{''.join(', '.join(keys[i:i + 4]) for i in range(0, len(keys), 4))}"
+    ),
 )
