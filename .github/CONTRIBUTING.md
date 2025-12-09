@@ -114,12 +114,12 @@ Enhancement suggestions are tracked as [GitHub issues](https://github.com/abdell
 1. Fork the repository
 2. Clone your fork: `git clone --recurse-submodules https://github.com/YOUR_USERNAME/BeatBoard`
 3. Set up virtual environment: `python -m venv venv && source venv/bin/activate`
-4. Install dependencies: `pip install -r requirements.txt`
-5. Install dev dependencies: `pip install pytest ruff mypy` (for testing and linting)
+4. Install dependencies: `pip install -e ".[dev]"`
+5. Run the development version: `python beatboard_dev.py --help`
 6. Run tests: `pytest`
-7. Make your changes
-8. Run linting: `ruff check .`
-9. Commit your changes
+6. Make your changes
+7. Run linting: `ruff check .`
+8. Commit your changes
 
 #### Hardware Support Contributions
 
