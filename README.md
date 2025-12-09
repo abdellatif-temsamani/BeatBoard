@@ -57,7 +57,7 @@ pip install -e .[dev]
 
 ```bash
 # Test basic functionality
-python main.py --help
+beatboard --help
 ```
 
 ## 🎮 Usage
@@ -67,7 +67,7 @@ python main.py --help
 Extract colors from the current song and apply once:
 
 ```bash
-python main.py
+beatboard
 ```
 
 ### Continuous Mode
@@ -75,7 +75,7 @@ python main.py
 Follow the playing song and update colors in real-time:
 
 ```bash
-python main.py --follow
+beatboard --follow
 ```
 
 Press `Ctrl+C` to stop following.
@@ -84,10 +84,13 @@ Press `Ctrl+C` to stop following.
 
 ```bash
 # Specify hardware
-python main.py --hardware g213
+beatboard --hardware g213
 
 # Debug mode
-python main.py --debug
+beatboard --debug
+
+# Show version
+beatboard --version
 ```
 
 ## 🖥️ Supported Hardware
@@ -95,10 +98,10 @@ python main.py --debug
 ### Currently Supported
 
 - **Logitech G213 Prodigy** - single region supported
+- **Razer keyboards** - via razer-cli
 
 ### Planned Support
 
-- Razer keyboards
 - Corsair RGB keyboards
 - Generic HID RGB devices
 
