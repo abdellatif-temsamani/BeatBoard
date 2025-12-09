@@ -26,38 +26,39 @@ vibrant colors to create an immersive music experience.
 - **Linux operating system** (tested on Ubuntu, Fedora, Arch)
 - **Python 3.11 or higher**
 - **`playerctl`** for media player integration
+- **`razer-cli`** for Razer device support (optional)
 
 ### Media Players
 
 - **Spotify Desktop** (required)
-
-### Supported Hardware
-
-- **Logitech G213 Prodigy** (single region supported)
-- Additional RGB devices (planned support)
 
 ## 🚀 Installation
 
 ### Quick Install
 
 ```bash
-# Clone with submodules
-git clone --recurse-submodules https://github.com/abdellatif-temsamani/BeatBoard
-cd BeatBoard
+pip install beatboard
+```
 
-# Set up virtual environment
-python -m venv venv
-source venv/bin/activate
+### Alternative: Using pipx
 
-# Install dependencies
-pip install -e .[dev]
+For isolated installation without affecting system Python:
+
+```bash
+pipx install beatboard
 ```
 
 ### Verify Installation
 
 ```bash
 # Test basic functionality
-python main.py --help
+beatboard --help
+
+# Verify playerctl integration (should show current player status)
+playerctl status
+
+# Test hardware access (may require sudo for initial setup)
+beatboard --debug
 ```
 
 ## 🎮 Usage
@@ -67,7 +68,7 @@ python main.py --help
 Extract colors from the current song and apply once:
 
 ```bash
-python main.py
+beatboard
 ```
 
 ### Continuous Mode
@@ -75,7 +76,7 @@ python main.py
 Follow the playing song and update colors in real-time:
 
 ```bash
-python main.py --follow
+beatboard --follow
 ```
 
 Press `Ctrl+C` to stop following.
@@ -84,10 +85,28 @@ Press `Ctrl+C` to stop following.
 
 ```bash
 # Specify hardware
-python main.py --hardware g213
+beatboard --hardware g213
 
 # Debug mode
-python main.py --debug
+beatboard --debug
+
+# Show version
+beatboard --version
+```
+
+## 🛠️ Development
+
+For development, clone the repository and use the dev script to run the latest
+code:
+
+```bash
+# Install in development mode
+pip install -e ".[dev]"
+
+# Run with dev script
+python beatboard_dev.py --help
+python beatboard_dev.py
+python beatboard_dev.py --follow
 ```
 
 ## 🖥️ Supported Hardware
@@ -95,10 +114,10 @@ python main.py --debug
 ### Currently Supported
 
 - **Logitech G213 Prodigy** - single region supported
+- **Razer devices** - via razer-cli (optional, requires razer-cli installation)
 
 ### Planned Support
 
-- Razer keyboards
 - Corsair RGB keyboards
 - Generic HID RGB devices
 
@@ -131,8 +150,10 @@ See our [Contributing Guide](.github/CONTRIBUTING.md) for detailed guidelines.
 
 ### Common Issues
 
-- **"playerctl not found"**: Install with `sudo apt install playerctl`
-  (Ubuntu/Debian)
+- **"playerctl not found"**:
+  - Ubuntu/Debian: `sudo apt install playerctl`
+  - Fedora: `sudo dnf install playerctl`
+  - Arch Linux: `sudo pacman -S playerctl`
 - **"Permission denied"**: Add user to `input` group:
   `sudo usermod -a -G input $USER`
 - **"No album art"**: Ensure current Spotify Desktop song has album art

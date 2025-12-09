@@ -1,6 +1,6 @@
 import pytest
 
-from src.args import parser
+from beatboard.args import parser
 
 
 @pytest.mark.parametrize(

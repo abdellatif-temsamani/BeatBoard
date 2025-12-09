@@ -1,3 +1,3 @@
-[submodule "G213Colors"]
-	path = G213Colors
+[submodule "src/beatboard/G213Colors"]
+	path = src/beatboard/G213Colors
 	url = https://github.com/SebiTimeWaster/G213Colors.git
