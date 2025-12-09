@@ -1,6 +1,6 @@
 import pytest
 
-from src.hardware import get_command
+from beatboard.hardware import get_command
 
 
 @pytest.mark.parametrize(

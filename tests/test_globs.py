@@ -1,5 +1,5 @@
 import pytest
-from src.globs import Globs
+from beatboard.globs import Globs
 
 
 def test_globs_singleton():
