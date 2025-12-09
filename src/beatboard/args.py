@@ -1,6 +1,7 @@
 import argparse
-import tomllib
-from pathlib import Path
+
+# Read version from package metadata
+from importlib.metadata import version
 from typing import Any, Sequence
 
 from rich.console import Console
@@ -9,17 +10,7 @@ from rich.table import Table
 
 from .hardware import hardware
 
-# Read version from pyproject.toml
-try:
-    pyproject_path = Path(__file__).parent.parent / "pyproject.toml"
-    with open(pyproject_path, "rb") as f:
-        pyproject_data = tomllib.load(f)
-    __version__ = pyproject_data["project"]["version"]
-except (FileNotFoundError, KeyError, tomllib.TOMLDecodeError) as e:
-    __version__ = "unknown"
-    import warnings
-
-    warnings.warn(f"Could not read version from pyproject.toml: {e}")
+__version__ = version("beatboard")
 
 console = Console()
 
@@ -81,6 +72,6 @@ parser.add_argument(
     default=[keys[0]],
     help=(
         f"List of hardware to change the color of:\n"
-        f"{''.join(', '.join(keys[i:i + 4]) for i in range(0, len(keys), 4))}"
+        f"{''.join(', '.join(keys[i : i + 4]) for i in range(0, len(keys), 4))}"
     ),
 )
