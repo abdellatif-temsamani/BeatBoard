@@ -6,9 +6,13 @@ hardware: dict[str, list[str]] = {
         "./G213Colors/G213Colors.py",
         "-c",
     ],
+    "razer": [
+        "razer-cli",
+        "-c",
+    ],
 }
 
-hardwareName = Literal["g213"]
+hardwareName = Literal["g213", "razer"]
 
 
 def get_command(names: list[hardwareName], color: str) -> list[list[str]]:
