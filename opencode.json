@@ -1,0 +1,84 @@
+{
+    "$schema": "https://opencode.ai/config.json",
+    "permission": {
+        "bash": {
+            "*": "ask",
+            "git": "allow",
+            "git add": "deny",
+            "git push": "ask",
+            "npm run build": "allow",
+            "ls": "allow",
+            "pwd": "allow"
+        }
+    },
+    "command": {
+        "snyk": {
+            "template": "Run `snyk test` to check for security vulnerabilities.",
+            "description": "Run Snyk security test",
+            "agent": "build"
+        },
+        "commit": {
+            "template": "{{type}}({{scope}}): {{message}}",
+            "description": "Writes a git commit using Conventional Commits,\nPS: ignore untracked files",
+            "agent": "commit-writer"
+        }
+    },
+    "agent": {
+        "quick-thinker": {
+            "description": "Fast reasoning with limited iterations",
+            "prompt": "You are a quick thinker. Solve problems with minimal steps.",
+            "maxSteps": 5
+        },
+        "code-reviewer": {
+            "mode": "primary",
+            "prompt": "You are a code reviewer. Focus on security, performance, maintainability, code quality, best practices, and python conventions.",
+            "tools": {
+                "laravel-boost": true,
+                "read": true,
+                "list": true,
+                "grep": true,
+                "write": false,
+                "edit": false
+            }
+        },
+        "commit-writer": {
+            "mode": "subagent",
+            "prompt": "You are a commit writer. Analyze code changes and create meaningful commit messages following conventional commits. PS: ignore untracked files and don't run git add. If no file is added notify me",
+            "tools": {
+                "bash": true,
+                "read": true,
+                "list": true,
+                "grep": true,
+                "glob": true
+            }
+        }
+    },
+    "tools": {
+        "laravel-boost": true,
+        "read": true,
+        "write": true,
+        "edit": true,
+        "list": true,
+        "grep": true,
+        "glob": true,
+        "bash": true,
+        "task": true,
+        "todowrite": true,
+        "todoread": true,
+        "websearch": true,
+        "codesearch": true,
+        "webfetch": true
+    },
+    "mcp": {
+        "snyk": {
+            "type": "local",
+            "enabled": true,
+            "command": [
+                "snyk",
+                "mcp",
+                "-t",
+                "stdio"
+            ]
+        }
+    }
+}
