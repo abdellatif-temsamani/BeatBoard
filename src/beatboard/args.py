@@ -1,6 +1,7 @@
 import argparse
-import tomllib
-from pathlib import Path
+
+# Read version from package metadata
+from importlib.metadata import version
 from typing import Any, Sequence
 
 from rich.console import Console
@@ -9,17 +10,7 @@ from rich.table import Table
 
 from .hardware import hardware
 
-# Read version from pyproject.toml
-try:
-    pyproject_path = Path(__file__).parent.parent / "pyproject.toml"
-    with open(pyproject_path, "rb") as f:
-        pyproject_data = tomllib.load(f)
-    __version__ = pyproject_data["project"]["version"]
-except (FileNotFoundError, KeyError, tomllib.TOMLDecodeError) as e:
-    __version__ = "unknown"
-    import warnings
-
-    warnings.warn(f"Could not read version from pyproject.toml: {e}")
+__version__ = version("beatboard")
 
 console = Console()
 
@@ -34,6 +25,39 @@ class VersionAction(argparse.Action):
     ) -> None:
         console.print(f"[bold blue]BeatBoard[/bold blue] [cyan]{__version__}[/cyan]")
         parser.exit()
+
+
+class HardwareAction(argparse.Action):
+    def __call__(
+        self,
+        parser: argparse.ArgumentParser,
+        namespace: argparse.Namespace,
+        values: str | Sequence[Any] | None,
+        option_string: str | None = None,
+    ) -> None:
+        if values is None:
+            values = []
+        elif isinstance(values, str):
+            values = [values]
+
+        keys = list(hardware.keys())
+        invalid = [v for v in values if v not in keys]
+
+        if invalid:
+            console.print(
+                "[red bold]Error:[/red bold] Invalid hardware option(s):",
+                ", ".join(f"'{v}'" for v in invalid),
+            )
+            console.print("\n[bold blue]Available hardware options:[/bold blue]")
+            table = Table(show_header=True, header_style="bold blue")
+            table.add_column("Hardware", style="cyan")
+            table.add_column("Description", style="white")
+            for key in keys:
+                table.add_row(key, f"Controls {key.upper()} keyboard RGB")
+            console.print(table)
+            parser.exit(1)
+
+        setattr(namespace, self.dest, values)
 
 
 class RichArgumentParser(argparse.ArgumentParser):
@@ -73,10 +97,14 @@ parser.add_argument("--follow", action="store_true", help="Follow the music")
 parser.add_argument("--debug", action="store_true", help="Enable debug mode")
 
 # hardware to change the color of
+keys = list(hardware.keys())
 parser.add_argument(
     "--hardware",
-    choices=list(hardware.keys()),
+    action=HardwareAction,
     nargs="+",
-    default=[list(hardware.keys())[0]],
-    help="List of hardware to change the color of",
+    default=[keys[0]],
+    help=(
+        f"List of hardware to change the color of:\n"
+        f"{''.join(', '.join(keys[i : i + 4]) for i in range(0, len(keys), 4))}"
+    ),
 )

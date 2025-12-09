@@ -2,12 +2,49 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.1.0-5] - 2025-12-09
+## [0.1.1] - 2025-12-09
+
+### 🚀 Features
+
+- _(hardware)_ Add support for Razer devices
+- _(cli)_ Rename main.py to beatboard and make executable, update documentation
+- Add Spotify availability check and improve hardware argument validation
+
+### 🐛 Bug Fixes
+
+- Test import
+- Update G213 hardware command to use sys.executable and dynamic path
+- Add command existence check to prevent execution errors
+
+### 🚜 Refactor
+
+- _(args)_ Extract hardware keys variable and improve help text formatting
+- Reorganize project structure into beatboard package
+- Move G213Colors submodule to src/beatboard/
+- Improve error handling in art processing
+
+### 📚 Documentation
+
+- Fix install deps command quotes
+- Update installation and development documentation
+- Add hardware documentation and improve README
+
+### 🎨 Styling
+
+- Format warning message with rich colors
+- Condense AGENTS.md formatting and content
 
 ### ⚙️ Miscellaneous Tasks
 
 - _(publish)_ Simplify changelog extraction to single section and add
   GITHUB_TOKEN env
+- _(publish)_ Fix awk command
+- Add development tools and fix README install command
+- Optimize publish workflow for efficiency
+
+### 🛡️ Security
+
+- Version to 0.1.1
 
 ## [0.1.0-4] - 2025-12-09
 

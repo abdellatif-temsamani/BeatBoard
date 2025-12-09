@@ -1,4 +1,6 @@
 import asyncio
+import os
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -16,6 +18,24 @@ def playerctl(*args: str) -> list[str]:
     Returns: list[str]
     """
     return ["playerctl", "--player=spotify", *args]
+
+
+def check_spotify_available() -> bool:
+    """Check if Spotify player is available via playerctl.
+
+    Returns: bool
+    """
+    try:
+        result = subprocess.run(
+            ["playerctl", "--list-all"], capture_output=True, text=True, timeout=5
+        )
+        return "spotify" in result.stdout
+    except (
+        subprocess.TimeoutExpired,
+        subprocess.CalledProcessError,
+        FileNotFoundError,
+    ):
+        return False
 
 
 async def get_image(
@@ -64,29 +84,41 @@ async def process_art_url(art_url: str | None = None) -> None:
     IMAGE_PATH = "/tmp/album_art.jpg"
 
     # Download or fetch new album art
-    await get_image(IMAGE_PATH, art_url)
+    try:
+        await get_image(IMAGE_PATH, art_url)
+    except Exception as e:
+        print(f"[bold red]Error[/bold red] fetching album art: {e}")
+        return
 
     # Extract palette (CPU-bound, run in thread)
     try:
         image_colors = await get_color_palette(IMAGE_PATH)
     except Exception as e:
-        print(f"Error extracting color palette: {e}")
+        print(f"[bold red]Error[/bold red] extracting color palette: {e}")
         return
 
     if not image_colors:
-        print("No colors extracted from image, using fallback")
+        print(
+            "[bold yellow]Warning:[/bold yellow] No colors extracted from image, using fallback"
+        )
         image_colors = ["ffffff"]  # fallback color
 
     globs = Globs()
     commands = get_command(globs.hardware, image_colors[0])
 
     for command in commands:
+        # Check if the command executable exists
+        if not (shutil.which(command[0]) or os.path.exists(command[0])):
+            print(
+                f"[bold red]Error:[/bold red] Command [bold]'{command[0]}'[/bold] not found. Skipping hardware command."
+            )
+            continue
         if globs.debug:
             print(f"Running command: {command}")
         try:
             await asyncio.to_thread(subprocess.run, command)
         except Exception as e:
-            print(f"Error running hardware command: {e}")
+            print(f"[bold red]Error[/bold red] running hardware command: {e}")
 
 
 async def watch_playerctl(follow: bool = True):
