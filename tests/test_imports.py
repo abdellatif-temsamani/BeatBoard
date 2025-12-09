@@ -31,6 +31,6 @@ def test_beatboard_hardware_import():
 
 def test_main_import():
     """Test that main function can be imported."""
-    from beatboard.__main__ import main
+    from beatboard import main
 
     assert main is not None
