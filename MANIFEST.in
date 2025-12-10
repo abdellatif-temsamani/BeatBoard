@@ -1,0 +1,2 @@
+recursive-include src/beatboard/G213Colors *.py *.pcap LICENSE README.md
+global-exclude src/beatboard/G213Colors/.git*
