@@ -14,9 +14,10 @@ hardware: dict[str, list[str]] = {
         "razer-cli",
         "-c",
     ],
+    "asus": ["asusctl", "aura", "static", "-c"],
 }
 
-hardwareName = Literal["g213", "razer"]
+hardwareName = Literal["g213", "razer", "asus"]
 
 
 def get_command(names: list[hardwareName], color: str) -> list[list[str]]:
