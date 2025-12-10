@@ -1,5 +1,6 @@
 ---
 name: Feature Request
+about: Suggest new features or enhancements for BeatBoard
 description: Suggest a new feature or enhancement
 title: "[FEATURE] "
 labels: ["enhancement", "triage"]

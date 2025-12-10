@@ -1,5 +1,6 @@
 ---
 name: General Issue
+about: General questions, discussions, or other issues
 description: General questions, discussions, or other issues
 title: "[GENERAL] "
 labels: ["question", "triage"]
