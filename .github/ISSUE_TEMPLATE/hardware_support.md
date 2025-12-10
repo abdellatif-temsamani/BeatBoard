@@ -1,5 +1,6 @@
 ---
 name: Hardware Support Request
+about: Request support for a new RGB keyboard or hardware device
 description: Request support for a new RGB keyboard or hardware device
 title: "[HARDWARE] "
 labels: ["hardware", "enhancement", "triage"]

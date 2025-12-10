@@ -1,5 +1,6 @@
 ---
 name: Bug Report
+about: Report bugs and unexpected behavior in BeatBoard
 description: Report a bug or unexpected behavior
 title: "[BUG] "
 labels: ["bug", "triage"]
