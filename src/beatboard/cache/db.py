@@ -51,10 +51,21 @@ def source_migrations():
         for file in migrations_files:
             file_name = Path(file).name
 
-            cursor.execute("SELECT 1 FROM migrations WHERE file_name = ?", (file_name,))
-            exists = cursor.fetchone()
+            # Check if migrations table exists
+            cursor.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='migrations'"
+            )
+            table_exists = cursor.fetchone()
 
-            if not exists:
+            if not table_exists:
+                # migrations table doesn't exist, run the migration
                 source_file(cursor, file, file_name)
+            else:
+                cursor.execute(
+                    "SELECT 1 FROM migrations WHERE file_name = ?", (file_name,)
+                )
+                exists = cursor.fetchone()
+                if not exists:
+                    source_file(cursor, file, file_name)
 
         db.commit()
