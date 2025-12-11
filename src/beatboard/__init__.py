@@ -22,9 +22,10 @@ async def beatboard_main():
         )
         return
 
-    globs = Globs()
-    globs.hardware = args.hardware
-    globs.debug = args.debug
+    Globs.hardware = args.hardware
+    Globs.debug = args.debug
+
+    print(Globs().hardware)
 
     await watch_playerctl(args.follow)
 
