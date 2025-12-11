@@ -35,6 +35,7 @@ class Globs:
         _instance: Holds the singleton instance. Automatically managed internally.
         hardware: the list of hardware devices to be used
         debug: whether to print debug messages
+        cache_path: path to sqlite cache db
     """
 
     __instance: Self | None = None

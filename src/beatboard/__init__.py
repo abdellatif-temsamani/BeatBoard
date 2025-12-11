@@ -2,6 +2,7 @@ import asyncio
 
 from rich import print
 
+from .cache.db import source_migrations
 from .args import parser
 from .globs import Globs
 from .playerctl import check_spotify_available, watch_playerctl
@@ -22,10 +23,11 @@ async def beatboard_main():
         )
         return
 
-    Globs.hardware = args.hardware
-    Globs.debug = args.debug
+    globs = Globs()
+    globs.hardware = args.hardware
+    globs.debug = args.debug
 
-    print(Globs().hardware)
+    source_migrations()
 
     await watch_playerctl(args.follow)
 

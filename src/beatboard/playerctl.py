@@ -103,7 +103,8 @@ async def process_art_url(art_url: str | None = None) -> None:
         )
         image_colors = ["ffffff"]  # fallback color
 
-    commands = get_command(Globs.hardware, image_colors[0])
+    globs = Globs()
+    commands = get_command(globs.hardware, image_colors[0])
 
     for command in commands:
         # Check if the command executable exists
@@ -112,7 +113,7 @@ async def process_art_url(art_url: str | None = None) -> None:
                 f"[bold red]Error:[/bold red] Command [bold]'{command[0]}'[/bold] not found. Skipping hardware command."
             )
             continue
-        if Globs.debug:
+        if globs.debug:
             print(f"Running command: {command}")
         try:
             await asyncio.to_thread(subprocess.run, command)
