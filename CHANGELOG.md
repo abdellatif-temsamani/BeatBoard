@@ -2,7 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.1.1-3] - 2025-12-09
+## [0.1.2] - 2025-12-14
+
+### 🚀 Features
+
+- _(hardware)_ Asusctl support
+- Add caching system
+  ([#15](https://github.com/abdellatif-temsamani/BeatBoard/issues/15))
+- _(cli)_ Add version to help menu and short argument forms
+
+### 🐛 Bug Fixes
+
+- Add missing about fields to issue templates
+- _(cache)_ Name must contain only alphanumeric, underscores, hyphens
+
+### 🚜 Refactor
+
+- Split debug flag into separate command and palette options
+
+### 📚 Documentation
+
+- Add docstrings to core functions and classes
+
+### ⚙️ Miscellaneous Tasks
+
+- Bump version to 0.1.2
+
+## [0.1.1-3] - 2025-12-10
 
 ### ⚙️ Miscellaneous Tasks
 
@@ -10,6 +36,12 @@ All notable changes to this project will be documented in this file.
 - Bump version
 
 ## [0.1.1-2] - 2025-12-09
+
+### ⚙️ Miscellaneous Tasks
+
+- Bump version
+
+## [0.1.1-1] - 2025-12-09
 
 ### 📚 Documentation
 
@@ -58,8 +90,6 @@ All notable changes to this project will be documented in this file.
 
 ### ⚙️ Miscellaneous Tasks
 
-- _(publish)_ Simplify changelog extraction to single section and add
-  GITHUB_TOKEN env
 - _(publish)_ Fix awk command
 - Add development tools and fix README install command
 - Optimize publish workflow for efficiency
@@ -67,6 +97,14 @@ All notable changes to this project will be documented in this file.
 ### 🛡️ Security
 
 - Version to 0.1.1
+
+## [0.1.0-5] - 2025-12-09
+
+### ⚙️ Miscellaneous Tasks
+
+- _(publish)_ Simplify changelog extraction to single section and add
+  GITHUB_TOKEN env
+- _(publish)_ Fix awk command
 
 ## [0.1.0-4] - 2025-12-09
 
