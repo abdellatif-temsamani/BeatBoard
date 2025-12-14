@@ -15,6 +15,11 @@ def get_connection():
 
 
 def get_migrations() -> list[str]:
+    """Get a sorted list of migration SQL file paths.
+
+    Returns:
+        List of file paths to migration SQL files, sorted by version number.
+    """
     from pathlib import Path
 
     migrations_dir = Path(__file__).parent / "migrations"
@@ -31,6 +36,13 @@ def read_sql_file(file_path: str) -> str:
 
 
 def source_file(cursor: Cursor, file: str, file_name: str):
+    """Execute a SQL migration script and record it in the migrations table.
+
+    Args:
+        cursor: Database cursor to execute the script.
+        file: Path to the SQL file.
+        file_name: Name of the migration file for recording.
+    """
     sql_script = read_sql_file(file)
 
     log("cache", f"sourcing '{file_name}'")
@@ -46,6 +58,10 @@ def source_file(cursor: Cursor, file: str, file_name: str):
 
 
 def source_migrations():
+    """Run all pending database migrations.
+
+    Checks which migrations have already been run and executes only the new ones.
+    """
     migrations_files = get_migrations()
 
     with get_connection() as db:

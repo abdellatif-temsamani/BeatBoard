@@ -17,6 +17,8 @@ console = Console()
 
 
 class VersionAction(argparse.Action):
+    """Custom argparse action that prints the version and exits."""
+
     def __call__(
         self,
         parser: argparse.ArgumentParser,
@@ -29,6 +31,8 @@ class VersionAction(argparse.Action):
 
 
 class HardwareAction(argparse.Action):
+    """Custom argparse action that validates hardware options and displays available hardware if invalid."""
+
     def __call__(
         self,
         parser: argparse.ArgumentParser,
@@ -62,6 +66,8 @@ class HardwareAction(argparse.Action):
 
 
 class DebugAction(argparse.Action):
+    """Custom argparse action that validates debug categories and displays available categories if invalid."""
+
     def __call__(
         self,
         parser: argparse.ArgumentParser,
@@ -95,6 +101,8 @@ class DebugAction(argparse.Action):
 
 
 class RichArgumentParser(argparse.ArgumentParser):
+    """Custom ArgumentParser that uses Rich for formatted help output."""
+
     def print_help(self, file=None):
         console.print(
             Panel.fit(
