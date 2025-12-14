@@ -1,17 +1,5 @@
 {
     "$schema": "https://opencode.ai/config.json",
-    "permission": {
-        "bash": {
-            "*": "ask",
-            "git": "allow",
-            "git checkout": "deny",
-            "git add": "deny",
-            "git push": "ask",
-            "npm run build": "allow",
-            "ls": "allow",
-            "pwd": "allow",
-        },
-    },
     "command": {
         "snyk": {
             "template": "Run `snyk test` to check for security vulnerabilities.",
