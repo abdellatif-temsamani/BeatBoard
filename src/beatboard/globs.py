@@ -1,6 +1,6 @@
 import platform
 from pathlib import Path
-from typing import Self
+from typing import Literal, Self
 
 from .hardware import hardwareName
 
@@ -22,6 +22,13 @@ def get_cache_db() -> str:
     return str(final)
 
 
+DebugCategory = Literal[
+    "command",
+    "palette",
+    "cache",
+]
+
+
 class Globs:
     """
     A singleton class used to store shared global data across the application.
@@ -40,7 +47,11 @@ class Globs:
 
     __instance: Self | None = None
     hardware: list[hardwareName] = ["g213"]
-    debug: dict[str, bool] = {"command": False, "palette": False, "cache": False}
+    debug: dict[DebugCategory, bool] = {
+        "command": False,
+        "palette": False,
+        "cache": False,
+    }
     cache_path: str = get_cache_db()
 
     def __new__(cls) -> Self:

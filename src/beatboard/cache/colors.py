@@ -1,5 +1,6 @@
 import base64
 import json
+import re
 import sqlite3
 import zlib
 from typing import List, Optional
@@ -7,7 +8,7 @@ from typing import List, Optional
 from rich import print
 
 from .db import get_connection
-from ..globs import Globs
+from ..logs import log
 
 
 def compress_colors(colors: List[str]) -> str:
@@ -29,14 +30,18 @@ def cache_colors(name: Optional[str], colors: Optional[List[str]] = None) -> Non
     if not name or not name.strip():
         raise ValueError("Cache name must be provided and non-empty")
 
+    # Validate cache name format
+    if not re.match(r"^[a-zA-Z0-9_-]+$", name):
+        raise ValueError(
+            "Cache name must contain only alphanumeric characters, underscores, and hyphens"
+        )
+
     compressed_colors = compress_colors(colors)
 
-    if Globs().debug.get("cache"):
-        print(
-            f"[bold blue]CACHE WRITE[/bold blue] "
-            f"{name} "
-            f"[dim]({len(colors)} colors)[/dim]"
-        )
+    log(
+        "cache",
+        f"[bold blue]CACHE WRITE[/bold blue] {name} [dim]({len(colors)} colors)[/dim]",
+    )
 
     with get_connection() as db:
         try:
@@ -61,8 +66,7 @@ def get_cached_colors(name: Optional[str]) -> Optional[List[str]]:
     if name is None:
         return None
 
-    if Globs().debug.get("cache"):
-        print(f"[cyan]CACHE READ[/cyan] {name}")
+    log("cache", f"[cyan]CACHE READ[/cyan] {name}")
 
     try:
         with get_connection() as db:
@@ -76,24 +80,25 @@ def get_cached_colors(name: Optional[str]) -> Optional[List[str]]:
             )
             row = cursor.fetchone()
     except sqlite3.Error as e:
-        if Globs().debug.get("cache"):
-            print(
-                f"[red bold]Database error while reading cached colors:[/red bold] {e}"
-            )
+        log(
+            "cache",
+            f"[red bold]Database error while reading cached colors:[/red bold] {e}",
+        )
         return None
 
     if row is None:
-        if Globs().debug.get("cache"):
-            print(f"[bold red]CACHE MISS[/bold red] {name}")
+        log("cache", f"[bold red]CACHE MISS[/bold red] {name}")
         return None
 
-    colors = decompress_colors(row[0])
+    try:
+        colors = decompress_colors(row[0])
+    except (ValueError, zlib.error, json.JSONDecodeError):
+        log("cache", f"[red bold]CACHE CORRUPTION[/red bold] {name}")
+        return None
 
-    if Globs().debug.get("cache"):
-        print(
-            f"[bold green]CACHE HIT[/bold green] "
-            f"{name} "
-            f"[dim]({len(colors)} colors)[/dim]"
-        )
+    log(
+        "cache",
+        f"[bold green]CACHE HIT[/bold green] {name} [dim]({len(colors)} colors)[/dim]",
+    )
 
     return colors

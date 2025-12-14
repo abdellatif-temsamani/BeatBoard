@@ -53,7 +53,7 @@ class TestColorsCache:
         self.db.close()
 
     @patch("beatboard.cache.colors.get_connection")
-    @patch("beatboard.cache.colors.Globs")
+    @patch("beatboard.logs.Globs")
     def test_colors_cache_inserts_new_entry(self, mock_globs, mock_get_conn):
         """Test caching colors inserts a new entry."""
         mock_globs.return_value.debug = {"cache": False}
@@ -75,7 +75,7 @@ class TestColorsCache:
         assert decompressed == ["ff0000", "00ff00"]
 
     @patch("beatboard.cache.colors.get_connection")
-    @patch("beatboard.cache.colors.Globs")
+    @patch("beatboard.logs.Globs")
     def test_colors_cache_updates_existing(self, mock_globs, mock_get_conn):
         """Test caching colors updates existing entry."""
         mock_globs.return_value.debug = {"cache": False}
@@ -124,7 +124,7 @@ class TestGetCachedColors:
         self.db.close()
 
     @patch("beatboard.cache.colors.get_connection")
-    @patch("beatboard.cache.colors.Globs")
+    @patch("beatboard.logs.Globs")
     def test_get_cached_colors_hit(self, mock_globs, mock_get_conn):
         """Test retrieving cached colors when entry exists."""
         mock_globs.return_value.debug = {"cache": False}
@@ -145,7 +145,7 @@ class TestGetCachedColors:
         assert result == ["cached_color"]
 
     @patch("beatboard.cache.colors.get_connection")
-    @patch("beatboard.cache.colors.Globs")
+    @patch("beatboard.logs.Globs")
     def test_get_cached_colors_miss(self, mock_globs, mock_get_conn):
         """Test retrieving cached colors when entry does not exist."""
         mock_globs.return_value.debug = {"cache": False}
@@ -158,7 +158,7 @@ class TestGetCachedColors:
         assert result is None
 
     @patch("beatboard.cache.colors.get_connection")
-    @patch("beatboard.cache.colors.Globs")
+    @patch("beatboard.logs.Globs")
     def test_get_cached_colors_none_name(self, mock_globs, mock_get_conn):
         """Test retrieving cached colors with None name."""
         mock_globs.return_value.debug = {"cache": False}

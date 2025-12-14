@@ -25,11 +25,10 @@ async def beatboard_main():
 
     globs = Globs()
     globs.hardware = args.hardware
-    globs.debug = {
-        "command": args.debug_command,
-        "palette": args.debug_palette,
-        "cache": args.debug_cache,
-    }
+
+    # Set debug categories based on --debug arguments
+    for category in args.debug:
+        globs.debug[category] = True
 
     source_migrations()
 

@@ -9,22 +9,32 @@ def test_globs_singleton():
 
 
 @pytest.mark.parametrize(
-    "attr, expected",
+    "attr, value",
     [
         ("hardware", ["g213"]),
         ("debug", {"command": False, "palette": False, "cache": False}),
     ],
 )
-def test_globs_defaults(attr, expected):
+def test_globs_defaults(attr, value):
     g = Globs()
-    assert getattr(g, attr) == expected
+    assert getattr(g, attr) == value
 
 
 @pytest.mark.parametrize(
     "attr, value",
     [
         ("hardware", ["g213"]),
-        ("debug", {"command": True, "palette": False, "cache": False}),
+        (
+            "debug",
+            {
+                "command": True,
+                "palette": False,
+                "cache": False,
+                "playerctl": False,
+                "hardware": False,
+                "color_gen": False,
+            },
+        ),
     ],
 )
 def test_globs_modify(attr, value):
