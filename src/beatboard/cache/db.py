@@ -29,8 +29,8 @@ def source_file(cursor: Cursor, file: str, file_name: str):
     with open(file, "r") as f:
         sql_script = f.read()
 
-    if Globs().debug:
-        print(f"sourcing {file_name}")
+    if Globs().debug["cache"]:
+        print(f"sourcing '{file_name}'")
     cursor.executescript(sql_script)
 
     cursor.execute(

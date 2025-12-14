@@ -109,3 +109,4 @@ parser.add_argument(
 parser.add_argument("--follow", action="store_true", help="Follow the music")
 parser.add_argument("--debug-command", action="store_true", help="Enable debug mode")
 parser.add_argument("--debug-palette", action="store_true", help="Enable debug mode")
+parser.add_argument("--debug-cache", action="store_true", help="Enable debug mode")

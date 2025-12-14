@@ -40,7 +40,7 @@ class Globs:
 
     __instance: Self | None = None
     hardware: list[hardwareName] = ["g213"]
-    debug: dict[str, bool] = {"command": False, "palette": False}
+    debug: dict[str, bool] = {"command": False, "palette": False, "cache": False}
     cache_path: str = get_cache_db()
 
     def __new__(cls) -> Self:

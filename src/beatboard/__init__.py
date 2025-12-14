@@ -28,6 +28,7 @@ async def beatboard_main():
     globs.debug = {
         "command": args.debug_command,
         "palette": args.debug_palette,
+        "cache": args.debug_cache,
     }
 
     source_migrations()
