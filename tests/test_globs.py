@@ -9,22 +9,32 @@ def test_globs_singleton():
 
 
 @pytest.mark.parametrize(
-    "attr, expected",
+    "attr, value",
     [
         ("hardware", ["g213"]),
-        ("debug", False),
+        ("debug", {"command": False, "palette": False, "cache": False}),
     ],
 )
-def test_globs_defaults(attr, expected):
+def test_globs_defaults(attr, value):
     g = Globs()
-    assert getattr(g, attr) == expected
+    assert getattr(g, attr) == value
 
 
 @pytest.mark.parametrize(
     "attr, value",
     [
         ("hardware", ["g213"]),
-        ("debug", True),
+        (
+            "debug",
+            {
+                "command": True,
+                "palette": False,
+                "cache": False,
+                "playerctl": False,
+                "hardware": False,
+                "color_gen": False,
+            },
+        ),
     ],
 )
 def test_globs_modify(attr, value):
@@ -37,5 +47,9 @@ def test_globs_independent_instances():
     # Since it's singleton, instances should be the same
     g1 = Globs()
     g2 = Globs()
-    g1.debug = True
-    assert g2.debug is True  # Shared state
+    g1.debug = {"command": True, "palette": False, "cache": False}
+    assert g2.debug == {
+        "command": True,
+        "palette": False,
+        "cache": False,
+    }  # Shared state
