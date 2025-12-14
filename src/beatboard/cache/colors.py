@@ -7,8 +7,8 @@ from typing import List, Optional
 
 from rich import print
 
-from .db import get_connection
 from ..logs import log
+from .db import get_connection
 
 
 def compress_colors(colors: List[str]) -> str:
