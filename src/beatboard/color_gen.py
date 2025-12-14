@@ -138,7 +138,7 @@ async def get_color_palette(path: str) -> list[str]:
 
     globs = Globs()
 
-    if globs.debug:
+    if globs.debug["palette"]:
         await run_in_main_thread(debug_palette, hex_colors, palette)
 
     return hex_colors

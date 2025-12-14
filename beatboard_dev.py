@@ -1,3 +1,3 @@
-from beatboard import main
+from src.beatboard import main
 
 main()

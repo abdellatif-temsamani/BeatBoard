@@ -8,6 +8,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
+from .globs import Globs
 from .hardware import hardware
 
 __version__ = version("beatboard")
@@ -16,6 +17,8 @@ console = Console()
 
 
 class VersionAction(argparse.Action):
+    """Custom argparse action that prints the version and exits."""
+
     def __call__(
         self,
         parser: argparse.ArgumentParser,
@@ -28,6 +31,8 @@ class VersionAction(argparse.Action):
 
 
 class HardwareAction(argparse.Action):
+    """Custom argparse action that validates hardware options and displays available hardware if invalid."""
+
     def __call__(
         self,
         parser: argparse.ArgumentParser,
@@ -60,11 +65,48 @@ class HardwareAction(argparse.Action):
         setattr(namespace, self.dest, values)
 
 
+class DebugAction(argparse.Action):
+    """Custom argparse action that validates debug categories and displays available categories if invalid."""
+
+    def __call__(
+        self,
+        parser: argparse.ArgumentParser,
+        namespace: argparse.Namespace,
+        values: str | Sequence[Any] | None,
+        option_string: str | None = None,
+    ) -> None:
+        if values is None:
+            values = []
+        elif isinstance(values, str):
+            values = [values]
+
+        valid_categories = {"command", "palette", "cache"}
+        invalid = [v for v in values if v not in valid_categories]
+
+        if invalid:
+            console.print(
+                "[red bold]Error:[/red bold] Invalid debug category(ies):",
+                ", ".join(f"'{v}'" for v in invalid),
+            )
+            console.print("\n[bold yellow]Available debug categories:[/bold yellow]")
+            table = Table(show_header=True, header_style="bold yellow")
+            table.add_column("Category", style="cyan")
+            table.add_column("Description", style="white")
+            for category in sorted(valid_categories):
+                table.add_row(category, f"Enable {category} debug logging")
+            console.print(table)
+            parser.exit(1)
+
+        setattr(namespace, self.dest, values)
+
+
 class RichArgumentParser(argparse.ArgumentParser):
+    """Custom ArgumentParser that uses Rich for formatted help output."""
+
     def print_help(self, file=None):
         console.print(
             Panel.fit(
-                "[bold blue]BeatBoard[/bold blue]\n[white]Change your hardware RGB based on music[/white]",
+                f"[bold blue]BeatBoard[/bold blue] [cyan]v{__version__}[/cyan]\n[white]Change your hardware RGB based on music[/white]",
                 border_style="blue",
             )
         )
@@ -89,22 +131,34 @@ parser = RichArgumentParser(
 )
 
 parser.add_argument(
-    "--version", action=VersionAction, nargs=0, help="Show the version number and exit"
+    "-v",
+    "--version",
+    action=VersionAction,
+    nargs=0,
+    help="Show the version number and exit",
 )
 
-# makes the program running and follow song changes
-parser.add_argument("--follow", action="store_true", help="Follow the music")
-parser.add_argument("--debug", action="store_true", help="Enable debug mode")
+parser.add_argument("-f", "--follow", action="store_true", help="Follow the music")
 
 # hardware to change the color of
-keys = list(hardware.keys())
+hardware_keys = list(hardware.keys())
 parser.add_argument(
+    "-H",
     "--hardware",
     action=HardwareAction,
     nargs="+",
-    default=[keys[0]],
-    help=(
-        f"List of hardware to change the color of:\n"
-        f"{''.join(', '.join(keys[i : i + 4]) for i in range(0, len(keys), 4))}"
-    ),
+    default=[hardware_keys[0]],
+    help=(f"List of hardware to change the color of:\n{', '.join(hardware_keys)}"),
+)
+
+
+debug_keys = list(Globs.debug.keys())
+parser.add_argument(
+    "-d",
+    "--debug",
+    action=DebugAction,
+    nargs="*",
+    metavar="CATEGORY",
+    default=[],
+    help=(f"Enable debug logging for specified categories:\n{', '.join(debug_keys)}"),
 )
