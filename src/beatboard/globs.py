@@ -6,6 +6,11 @@ from .hardware import hardwareName
 
 
 def get_cache_db() -> str:
+    """Get the path to the cache database based on the operating system.
+
+    Returns:
+        The path to the cache database directory as a string.
+    """
     app_name: str | None = "beatboard"
     system = platform.system()
 

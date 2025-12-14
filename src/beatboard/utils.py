@@ -3,6 +3,16 @@ import threading
 
 
 def run_in_main_thread(func, *args, **kwargs):
+    """Run a function in the main thread and return an awaitable future.
+
+    Args:
+        func: The function to run in the main thread.
+        *args: Positional arguments to pass to the function.
+        **kwargs: Keyword arguments to pass to the function.
+
+    Returns:
+        An awaitable future that resolves to the function's return value.
+    """
     loop = asyncio.get_event_loop()
 
     # Always create a future so the caller can await
