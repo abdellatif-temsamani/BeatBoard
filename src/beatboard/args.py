@@ -92,10 +92,6 @@ parser.add_argument(
     "--version", action=VersionAction, nargs=0, help="Show the version number and exit"
 )
 
-# makes the program running and follow song changes
-parser.add_argument("--follow", action="store_true", help="Follow the music")
-parser.add_argument("--debug", action="store_true", help="Enable debug mode")
-
 # hardware to change the color of
 keys = list(hardware.keys())
 parser.add_argument(
@@ -108,3 +104,8 @@ parser.add_argument(
         f"{''.join(', '.join(keys[i : i + 4]) for i in range(0, len(keys), 4))}"
     ),
 )
+
+# makes the program running and follow song changes
+parser.add_argument("--follow", action="store_true", help="Follow the music")
+parser.add_argument("--debug-command", action="store_true", help="Enable debug mode")
+parser.add_argument("--debug-palette", action="store_true", help="Enable debug mode")
