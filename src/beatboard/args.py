@@ -106,7 +106,7 @@ class RichArgumentParser(argparse.ArgumentParser):
     def print_help(self, file=None):
         console.print(
             Panel.fit(
-                "[bold blue]BeatBoard[/bold blue]\n[white]Change your hardware RGB based on music[/white]",
+                f"[bold blue]BeatBoard[/bold blue] [cyan]v{__version__}[/cyan]\n[white]Change your hardware RGB based on music[/white]",
                 border_style="blue",
             )
         )
@@ -131,14 +131,19 @@ parser = RichArgumentParser(
 )
 
 parser.add_argument(
-    "--version", action=VersionAction, nargs=0, help="Show the version number and exit"
+    "-v",
+    "--version",
+    action=VersionAction,
+    nargs=0,
+    help="Show the version number and exit",
 )
 
-parser.add_argument("--follow", action="store_true", help="Follow the music")
+parser.add_argument("-f", "--follow", action="store_true", help="Follow the music")
 
 # hardware to change the color of
 hardware_keys = list(hardware.keys())
 parser.add_argument(
+    "-H",
     "--hardware",
     action=HardwareAction,
     nargs="+",
@@ -149,6 +154,7 @@ parser.add_argument(
 
 debug_keys = list(Globs.debug.keys())
 parser.add_argument(
+    "-d",
     "--debug",
     action=DebugAction,
     nargs="*",
