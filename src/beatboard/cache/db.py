@@ -5,7 +5,7 @@ from sqlite3 import Cursor
 
 from rich import print
 
-from src.beatboard.globs import Globs
+from ..globs import Globs
 
 
 @contextmanager
