@@ -1,4 +1,5 @@
 import asyncio
+import hashlib
 import os
 import shutil
 import subprocess
@@ -6,9 +7,22 @@ from pathlib import Path
 
 from rich import print
 
+from .cache.colors import cache_colors, get_cached_colors
 from .color_gen import get_color_palette
 from .globs import Globs
 from .hardware import get_command
+
+
+def create_cache_key(art_url: str) -> str:
+    """Create a sanitized cache key from an art URL.
+
+    Args:
+        art_url: The art URL to hash.
+
+    Returns:
+        A SHA256 hex digest suitable for use as a cache key.
+    """
+    return hashlib.sha256(art_url.encode("utf-8")).hexdigest()
 
 
 def playerctl(*args: str) -> list[str]:
@@ -83,28 +97,36 @@ async def process_art_url(art_url: str | None = None) -> None:
     """
     IMAGE_PATH = "/tmp/album_art.jpg"
 
-    # Download or fetch new album art
-    try:
-        await get_image(IMAGE_PATH, art_url)
-    except Exception as e:
-        print(f"[bold red]Error:[/bold red] fetching album art: {e}")
+    if art_url is None:
         return
 
-    # Extract palette (CPU-bound, run in thread)
-    try:
-        image_colors = await get_color_palette(IMAGE_PATH)
-    except Exception as e:
-        print(f"[bold red]Error:[/bold red] extracting color palette: {e}")
-        return
+    cache_key = create_cache_key(art_url)
+    hex_colors = get_cached_colors(cache_key)
 
-    if not image_colors:
-        print(
-            "[bold yellow]Warning:[/bold yellow] No colors extracted from image, using fallback"
-        )
-        image_colors = ["ffffff"]  # fallback color
+    if not hex_colors:
+        # Download or fetch new album art
+        try:
+            await get_image(IMAGE_PATH, art_url)
+        except Exception as e:
+            print(f"[bold red]Error:[/bold red] fetching album art: {e}")
+            return
+
+        # Extract palette (CPU-bound, run in thread)
+        try:
+            hex_colors = await get_color_palette(IMAGE_PATH)
+            cache_colors(cache_key, hex_colors)
+        except Exception as e:
+            print(f"[bold red]Error:[/bold red] extracting color palette: {e}")
+            return
+
+        if not hex_colors:
+            print(
+                "[bold yellow]Warning:[/bold yellow] No colors extracted from image, using fallback"
+            )
+            hex_colors = ["ffffff"]  # fallback color
 
     globs = Globs()
-    commands = get_command(globs.hardware, image_colors[0])
+    commands = get_command(globs.hardware, hex_colors[0])
 
     for command in commands:
         # Check if the command executable exists
@@ -113,7 +135,7 @@ async def process_art_url(art_url: str | None = None) -> None:
                 f"[bold red]Error:[/bold red] Command [bold]'{command[0]}'[/bold] not found. Skipping hardware command."
             )
             continue
-        if globs.debug:
+        if globs.debug["command"]:
             print(f"Running command: {command}")
         try:
             await asyncio.to_thread(subprocess.run, command)

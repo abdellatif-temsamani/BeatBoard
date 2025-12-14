@@ -9,6 +9,7 @@
 - Format: `ruff format .`
 - Type check: `mypy src/` (if installed)
 - Build: `python -m build`
+- Build and install globally: `./build_and_install.sh`
 
 ## Code Style
 
