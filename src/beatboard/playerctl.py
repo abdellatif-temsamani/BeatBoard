@@ -1,4 +1,5 @@
 import asyncio
+import hashlib
 import os
 import shutil
 import subprocess
@@ -10,6 +11,18 @@ from .cache.colors import cache_colors, get_cached_colors
 from .color_gen import get_color_palette
 from .globs import Globs
 from .hardware import get_command
+
+
+def create_cache_key(art_url: str) -> str:
+    """Create a sanitized cache key from an art URL.
+
+    Args:
+        art_url: The art URL to hash.
+
+    Returns:
+        A SHA256 hex digest suitable for use as a cache key.
+    """
+    return hashlib.sha256(art_url.encode("utf-8")).hexdigest()
 
 
 def playerctl(*args: str) -> list[str]:
@@ -84,7 +97,11 @@ async def process_art_url(art_url: str | None = None) -> None:
     """
     IMAGE_PATH = "/tmp/album_art.jpg"
 
-    hex_colors = get_cached_colors(art_url)
+    if art_url is None:
+        return
+
+    cache_key = create_cache_key(art_url)
+    hex_colors = get_cached_colors(cache_key)
 
     if not hex_colors:
         # Download or fetch new album art
@@ -97,7 +114,7 @@ async def process_art_url(art_url: str | None = None) -> None:
         # Extract palette (CPU-bound, run in thread)
         try:
             hex_colors = await get_color_palette(IMAGE_PATH)
-            cache_colors(art_url, hex_colors)
+            cache_colors(cache_key, hex_colors)
         except Exception as e:
             print(f"[bold red]Error:[/bold red] extracting color palette: {e}")
             return
