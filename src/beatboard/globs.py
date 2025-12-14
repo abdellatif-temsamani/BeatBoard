@@ -5,7 +5,7 @@ from typing import Self
 from .hardware import hardwareName
 
 
-def get_cache_dir() -> str:
+def get_cache_db() -> str:
     app_name: str | None = "beatboard"
     system = platform.system()
 
@@ -19,7 +19,7 @@ def get_cache_dir() -> str:
         base = Path.cwd() / "cache"
 
     final = base / app_name if app_name else base
-    return str(final)  # 👈 now always a string
+    return str(final)
 
 
 class Globs:
@@ -41,6 +41,7 @@ class Globs:
     __instance: Self | None = None
     hardware: list[hardwareName] = ["g213"]
     debug: dict[str, bool] = {"command": False, "palette": False}
+    cache_path: str = get_cache_db()
 
     def __new__(cls) -> Self:
         """Singleton pattern implementation of the Globs class."""
