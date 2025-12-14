@@ -6,6 +6,7 @@ from pathlib import Path
 
 from rich import print
 
+from .cache.colors import cache_colors, get_cached_colors
 from .color_gen import get_color_palette
 from .globs import Globs
 from .hardware import get_command
@@ -83,28 +84,32 @@ async def process_art_url(art_url: str | None = None) -> None:
     """
     IMAGE_PATH = "/tmp/album_art.jpg"
 
-    # Download or fetch new album art
-    try:
-        await get_image(IMAGE_PATH, art_url)
-    except Exception as e:
-        print(f"[bold red]Error:[/bold red] fetching album art: {e}")
-        return
+    hex_colors = get_cached_colors(art_url)
 
-    # Extract palette (CPU-bound, run in thread)
-    try:
-        image_colors = await get_color_palette(IMAGE_PATH)
-    except Exception as e:
-        print(f"[bold red]Error:[/bold red] extracting color palette: {e}")
-        return
+    if not hex_colors:
+        # Download or fetch new album art
+        try:
+            await get_image(IMAGE_PATH, art_url)
+        except Exception as e:
+            print(f"[bold red]Error:[/bold red] fetching album art: {e}")
+            return
 
-    if not image_colors:
-        print(
-            "[bold yellow]Warning:[/bold yellow] No colors extracted from image, using fallback"
-        )
-        image_colors = ["ffffff"]  # fallback color
+        # Extract palette (CPU-bound, run in thread)
+        try:
+            hex_colors = await get_color_palette(IMAGE_PATH)
+            cache_colors(art_url, hex_colors)
+        except Exception as e:
+            print(f"[bold red]Error:[/bold red] extracting color palette: {e}")
+            return
+
+        if not hex_colors:
+            print(
+                "[bold yellow]Warning:[/bold yellow] No colors extracted from image, using fallback"
+            )
+            hex_colors = ["ffffff"]  # fallback color
 
     globs = Globs()
-    commands = get_command(globs.hardware, image_colors[0])
+    commands = get_command(globs.hardware, hex_colors[0])
 
     for command in commands:
         # Check if the command executable exists
