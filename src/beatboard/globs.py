@@ -40,8 +40,7 @@ class Globs:
 
     __instance: Self | None = None
     hardware: list[hardwareName] = ["g213"]
-    debug: bool = False
-    cache_path: str = get_cache_dir()
+    debug: dict[str, bool] = {"command": False, "palette": False}
 
     def __new__(cls) -> Self:
         """Singleton pattern implementation of the Globs class."""

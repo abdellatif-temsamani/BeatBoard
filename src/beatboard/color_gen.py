@@ -136,7 +136,9 @@ async def get_color_palette(path: str) -> list[str]:
     # Convert to hex
     hex_colors = [f"{r:02x}{g:02x}{b:02x}" for r, g, b in filtered_colors]
 
-    if Globs().debug:
+    globs = Globs()
+
+    if globs.debug["palette"]:
         await run_in_main_thread(debug_palette, hex_colors, palette)
 
     return hex_colors

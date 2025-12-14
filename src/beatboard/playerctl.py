@@ -113,7 +113,7 @@ async def process_art_url(art_url: str | None = None) -> None:
                 f"[bold red]Error:[/bold red] Command [bold]'{command[0]}'[/bold] not found. Skipping hardware command."
             )
             continue
-        if globs.debug:
+        if globs.debug["command"]:
             print(f"Running command: {command}")
         try:
             await asyncio.to_thread(subprocess.run, command)
