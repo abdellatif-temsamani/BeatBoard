@@ -32,7 +32,7 @@ class TestGetMigrations:
 class TestSourceFile:
     @patch("beatboard.cache.db.Globs")
     def test_source_file_executes_script_and_inserts(self, mock_globs, tmp_path):
-        mock_globs.return_value.debug = False
+        mock_globs.return_value.debug = {"cache": False}
         # Create a temp sql file
         sql_file = tmp_path / "test.sql"
         sql_file.write_text("CREATE TABLE test (id INTEGER);")
@@ -73,7 +73,7 @@ class TestSourceMigrations:
         # Set cache_path to temp file
         cache_db = tmp_path / "cache.db"
         mock_globs.return_value.cache_path = str(cache_db)
-        mock_globs.return_value.debug = False
+        mock_globs.return_value.debug = {"cache": False}
 
         # Run source_migrations
         source_migrations()
@@ -87,10 +87,11 @@ class TestSourceMigrations:
         assert cursor.fetchone()
 
         # Check migration ran
-        cursor.execute("SELECT file_name FROM migrations")
+        cursor.execute("SELECT file_name FROM migrations ORDER BY file_name")
         migrations = cursor.fetchall()
-        assert len(migrations) == 1
+        assert len(migrations) == 2
         assert migrations[0][0] == "00_create_migration_table.sql"
+        assert migrations[1][0] == "01_create_colors_cache_table.sql"
 
         conn.close()
 
@@ -98,7 +99,7 @@ class TestSourceMigrations:
     def test_source_migrations_skips_existing(self, mock_globs, tmp_path):
         cache_db = tmp_path / "cache.db"
         mock_globs.return_value.cache_path = str(cache_db)
-        mock_globs.return_value.debug = False
+        mock_globs.return_value.debug = {"cache": False}
 
         # Run twice
         source_migrations()
@@ -108,6 +109,6 @@ class TestSourceMigrations:
         cursor = conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM migrations")
         count = cursor.fetchone()[0]
-        assert count == 1  # Only once
+        assert count == 2  # Two migrations, run only once each
 
         conn.close()
