@@ -143,7 +143,7 @@ async def process_art_url(art_url: str | None = None) -> None:
             print(f"[bold red]Error:[/bold red] running hardware command: {e}")
 
 
-async def watch_playerctl(follow: bool = True):
+async def watch_playerctl(once: bool = False):
     """Stream metadata changes from playerctl --follow.
     We grab both artUrl and title/artist.
 
@@ -183,5 +183,5 @@ async def watch_playerctl(follow: bool = True):
         print("[bold green]Processing done[/bold green].")
         print("")
 
-        if not follow:
+        if once:
             break

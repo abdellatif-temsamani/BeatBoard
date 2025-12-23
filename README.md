@@ -18,6 +18,7 @@ vibrant colors to create an immersive music experience.
 - 🎵 **Spotify Desktop integration** through `playerctl` for seamless music
   control
 - 🎯 **Hardware-agnostic design** for easy expansion to new devices
+- 💾 **Intelligent caching** system for improved performance
 
 ## 📋 Requirements
 
@@ -72,7 +73,7 @@ beatboard --debug
 Extract colors from the current song and apply once:
 
 ```bash
-beatboard
+beatboard --once
 ```
 
 ### Continuous Mode
@@ -80,7 +81,7 @@ beatboard
 Follow the playing song and update colors in real-time:
 
 ```bash
-beatboard --follow
+beatboard
 ```
 
 Press `Ctrl+C` to stop following.
@@ -91,7 +92,7 @@ Press `Ctrl+C` to stop following.
 # Specify hardware
 beatboard --hardware g213
 
-# Debug mode
+# Debug mode (optional categories: command, palette, cache)
 beatboard --debug
 
 # Show version
@@ -119,6 +120,7 @@ python beatboard_dev.py --follow
 
 - **Logitech G213 Prodigy** - single region supported
 - **Razer devices** - via razer-cli (optional, requires razer-cli installation)
+- **Asus devices** - via asusctl (optional, requires asusctl installation)
 
 ### Planned Support
 
