@@ -176,7 +176,7 @@ async def watch_playerctl(once: bool = False):
 
         song_label = f"{title} – {artist}" if artist else title
 
-        print(f'[bold yellow]Processing[/bold yellow] "{song_label}"...')
+        print(f'[bold yellow]Processing[/bold yellow] [bold green]{song_label}[/bold green]...')
 
         await process_art_url(art_url)
 
