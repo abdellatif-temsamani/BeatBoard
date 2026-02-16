@@ -2,18 +2,46 @@ import colorsys
 from typing import List, Optional, Tuple
 
 from colorthief import ColorThief
-from matplotlib.colors import to_rgb
 from PIL import Image
+from rich.color import Color
+from rich.console import Console
+from rich.style import Style
+from rich.text import Text
 
 from .globs import Globs
-from .utils import run_in_main_thread
+
+
+def _to_hex(color: str | tuple[int, int, int]) -> str:
+    if isinstance(color, tuple):
+        r, g, b = color
+        return f"{r:02x}{g:02x}{b:02x}"
+
+    return color.lstrip("#").lower()
+
+
+def _hex_to_rgb(color: str) -> tuple[int, int, int]:
+    value = color.lstrip("#").lower()
+
+    if len(value) == 3:
+        value = "".join(ch * 2 for ch in value)
+
+    if len(value) != 6:
+        raise ValueError(f"Invalid hex color: {color}")
+
+    return (int(value[0:2], 16), int(value[2:4], 16), int(value[4:6], 16))
+
+
+def extract_palette(path: str, color_count: int = 10) -> list[Tuple[int, int, int]]:
+    """Extract a raw RGB palette from an image file."""
+    thief: ColorThief = ColorThief(path)
+    return thief.get_palette(color_count=color_count)
 
 
 def debug_palette(
     hex_colors: Optional[List[str]] = None,
     palette: Optional[List[Tuple[int, int, int]]] = None,
 ) -> None:
-    """Show one or both color palettes in one matplotlib window, with labels.
+    """Print one or both color palettes in terminal, with labels.
 
     Args:
         hex_colors: A list of hex color codes without the # symbol.
@@ -22,66 +50,33 @@ def debug_palette(
     Raises:
         ValueError: If neither `hex_colors` nor `palette` is provided, or if all provided palettes are empty.
     """
-    import matplotlib.pyplot as plt
-
     if hex_colors is None and palette is None:
         raise ValueError("You must pass either `hex_colors` or `palette`.")
 
-    rows: list[list[tuple[float, float, float]]] = []
-    labels: list[str] = []
+    rows: list[tuple[str, list[str]]] = []
 
-    # Hex palette
-    if hex_colors is not None:
-        hex_rgb = [to_rgb("#" + c) for c in hex_colors]
-        if hex_rgb:  # Only add if not empty
-            rows.append(hex_rgb)
-            labels.append("final colors")
+    if hex_colors:
+        rows.append(("final colors", [_to_hex(c) for c in hex_colors]))
 
-    # RGB palette
-    if palette is not None:
-        palette_rgb = [(r / 255, g / 255, b / 255) for r, g, b in palette]
-        if palette_rgb:  # Only add if not empty
-            rows.append(palette_rgb)
-            labels.append("extracted palette")
+    if palette:
+        rows.append(("extracted palette", [_to_hex(c) for c in palette]))
 
-    # Filter out any empty rows (shouldn't happen with the above checks, but being safe)
-    filtered_rows = []
-    filtered_labels = []
-    for row, label in zip(rows, labels):
-        if len(row) > 0:
-            filtered_rows.append(row)
-            filtered_labels.append(label)
-
-    if not filtered_rows:
+    if not rows:
         raise ValueError("At least one non-empty palette must be provided")
 
-    rows = filtered_rows
-    labels = filtered_labels
+    console = Console()
+    console.print("[bold]Palette debug[/bold]")
 
-    # Normalize lengths (trim to shortest)
-    min_len = min(len(row) for row in rows)
-    rows = [row[:min_len] for row in rows]
+    for label, colors in rows:
+        swatches_and_values = Text()
+        for color in colors:
+            r, g, b = _hex_to_rgb(color)
+            swatches_and_values.append(
+                "  ", style=Style(bgcolor=Color.from_rgb(r, g, b))
+            )
+            swatches_and_values.append(f" #{color} ", style="dim")
 
-    # Plot
-    _, ax = plt.subplots(figsize=(min_len * 0.5, len(rows) * 1))
-
-    ax.imshow(rows)
-
-    # Add labels
-    for i, label in enumerate(labels):
-        ax.text(
-            -0.5,  # Slightly left of the first column
-            i,  # Row index
-            label,
-            va="center",
-            ha="right",
-            fontsize=12,
-            fontweight="bold",
-            color="white",
-            backgroundcolor="black",  # Clean contrast
-        )
-
-    plt.show()
+        console.print(f"[bold cyan]{label:17}[/bold cyan]", swatches_and_values)
 
 
 async def get_color_palette(path: str) -> list[str]:
@@ -93,9 +88,7 @@ async def get_color_palette(path: str) -> list[str]:
     Returns:
         list[str]: A list of hex color codes without the # symbol.
     """
-    theif: ColorThief = ColorThief(path)
-
-    palette: list[Tuple[int, int, int]] = theif.get_palette(color_count=10)
+    palette: list[Tuple[int, int, int]] = extract_palette(path, color_count=10)
 
     filtered_colors: list[Tuple[int, int, int]] = []
 
@@ -139,6 +132,6 @@ async def get_color_palette(path: str) -> list[str]:
     globs = Globs()
 
     if globs.debug["palette"]:
-        await run_in_main_thread(debug_palette, hex_colors, palette)
+        debug_palette(hex_colors, palette)
 
     return hex_colors
