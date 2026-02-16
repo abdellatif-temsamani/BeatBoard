@@ -8,7 +8,7 @@ from pathlib import Path
 from rich import print
 
 from .cache.colors import cache_colors, get_cached_colors
-from .color_gen import get_color_palette
+from .color_gen import debug_palette, extract_palette, get_color_palette
 from .globs import Globs
 from .hardware import get_command
 
@@ -102,6 +102,7 @@ async def process_art_url(art_url: str | None = None) -> None:
 
     cache_key = create_cache_key(art_url)
     hex_colors = get_cached_colors(cache_key)
+    from_cache = bool(hex_colors)
 
     if not hex_colors:
         # Download or fetch new album art
@@ -126,6 +127,20 @@ async def process_art_url(art_url: str | None = None) -> None:
             hex_colors = ["ffffff"]  # fallback color
 
     globs = Globs()
+
+    if globs.debug["palette"] and hex_colors and from_cache:
+        extracted_palette = None
+
+        try:
+            await get_image(IMAGE_PATH, art_url)
+            extracted_palette = await asyncio.to_thread(extract_palette, IMAGE_PATH)
+        except Exception as e:
+            print(
+                f"[bold yellow]Warning:[/bold yellow] debug palette extraction failed: {e}"
+            )
+
+        debug_palette(hex_colors=hex_colors, palette=extracted_palette)
+
     commands = get_command(globs.hardware, hex_colors[0])
 
     for command in commands:
@@ -176,7 +191,9 @@ async def watch_playerctl(once: bool = False):
 
         song_label = f"{title} – {artist}" if artist else title
 
-        print(f'[bold yellow]Processing[/bold yellow] [bold green]{song_label}[/bold green]...')
+        print(
+            f"[bold yellow]Processing[/bold yellow] [bold green]{song_label}[/bold green]..."
+        )
 
         await process_art_url(art_url)
 

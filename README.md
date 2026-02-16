@@ -27,6 +27,7 @@ vibrant colors to create an immersive music experience.
 - **Linux operating system** (tested on Ubuntu, Fedora, Arch)
 - **Python 3.11 or higher**
 - **`playerctl`** for media player integration
+- No GUI plotting stack required (palette debug output is terminal-based)
 
 ### optional Requirements
 
@@ -107,6 +108,9 @@ code:
 ```bash
 # Install in development mode
 pip install -e ".[dev]"
+
+# Verify dependencies are healthy
+python -m pytest
 
 # Run with dev script
 python beatboard_dev.py --help
