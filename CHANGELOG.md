@@ -2,23 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.1.2] - 2025-12-14
+## [0.1.3] - 2026-05-31
 
 ### 🚀 Features
 
-- _(hardware)_ Asusctl support
-- Add caching system
-  ([#15](https://github.com/abdellatif-temsamani/BeatBoard/issues/15))
-- _(cli)_ Add version to help menu and short argument forms
+- *(hardware)* Asusctl support
+- Add caching system  ([#15](https://github.com/abdellatif-temsamani/BeatBoard/issues/15))
+- *(cli)* Add version to help menu and short argument forms
 
 ### 🐛 Bug Fixes
 
 - Add missing about fields to issue templates
-- _(cache)_ Name must contain only alphanumeric, underscores, hyphens
+- *(cache)* Name must contain only alphanumeric, underscores, hyphens
+- Logging color
 
 ### 🚜 Refactor
 
 - Split debug flag into separate command and palette options
+- *(cli)* [**breaking**] Change default mode from single to continuous
+- *(debug)* Imporve palette debug
+- *(cache)* Update db path
 
 ### 📚 Documentation
 
@@ -49,7 +52,7 @@ All notable changes to this project will be documented in this file.
 
 ### 🎨 Styling
 
-- _(print)_ Unified messages
+- *(print)* Unified messages
 
 ### ⚙️ Miscellaneous Tasks
 
@@ -60,8 +63,8 @@ All notable changes to this project will be documented in this file.
 
 ### 🚀 Features
 
-- _(hardware)_ Add support for Razer devices
-- _(cli)_ Rename main.py to beatboard and make executable, update documentation
+- *(hardware)* Add support for Razer devices
+- *(cli)* Rename main.py to beatboard and make executable, update documentation
 - Add Spotify availability check and improve hardware argument validation
 
 ### 🐛 Bug Fixes
@@ -72,7 +75,7 @@ All notable changes to this project will be documented in this file.
 
 ### 🚜 Refactor
 
-- _(args)_ Extract hardware keys variable and improve help text formatting
+- *(args)* Extract hardware keys variable and improve help text formatting
 - Reorganize project structure into beatboard package
 - Move G213Colors submodule to src/beatboard/
 - Improve error handling in art processing
@@ -90,7 +93,7 @@ All notable changes to this project will be documented in this file.
 
 ### ⚙️ Miscellaneous Tasks
 
-- _(publish)_ Fix awk command
+- *(publish)* Fix awk command
 - Add development tools and fix README install command
 - Optimize publish workflow for efficiency
 
@@ -102,21 +105,19 @@ All notable changes to this project will be documented in this file.
 
 ### ⚙️ Miscellaneous Tasks
 
-- _(publish)_ Simplify changelog extraction to single section and add
-  GITHUB_TOKEN env
-- _(publish)_ Fix awk command
+- *(publish)* Simplify changelog extraction to single section and add GITHUB_TOKEN env
+- *(publish)* Fix awk command
 
 ## [0.1.0-4] - 2025-12-09
 
 ### 💼 Other
 
-- _(version)_ Bump version to 0.1.0-3
+- *(version)* Bump version to 0.1.0-3
 - Bump version to 0.1.0-4
 
 ### 📚 Documentation
 
-- _(readme)_ Update installation command to use editable install with dev
-  dependencies
+- *(readme)* Update installation command to use editable install with dev dependencies
 
 ### ⚙️ Miscellaneous Tasks
 
@@ -124,8 +125,8 @@ All notable changes to this project will be documented in this file.
 - Update publish workflow to use changelog for release notes
 - Skip changelog header in release notes extraction
 - Enhance publish workflow with proper quoting and permissions
-- _(publish)_ Fix changelog extraction regex and add debug output
-- _(publish)_ Improve release notes extraction and changelog formatting
+- *(publish)* Fix changelog extraction regex and add debug output
+- *(publish)* Improve release notes extraction and changelog formatting
 
 ## [0.1.0-2] - 2025-12-09
 
@@ -134,9 +135,9 @@ All notable changes to this project will be documented in this file.
 - Require Python 3.11+ for contourpy compatibility
 - Add console script entry point for beatboard command
 - Update dependencies for Python 3.8+ support
-- _(config)_ Add OpenCode AI configuration for development tools
-- _(cli)_ Add --version flag and switch to static versioning
-- _(test)_ Add pytest-asyncio for automatic async test support
+- *(config)* Add OpenCode AI configuration for development tools
+- *(cli)* Add --version flag and switch to static versioning
+- *(test)* Add pytest-asyncio for automatic async test support
 
 ### 🐛 Bug Fixes
 
@@ -146,14 +147,14 @@ All notable changes to this project will be documented in this file.
 - Update dependencies for security, improve async handling, and fix docs
 - Plt run on the main thread
 - Prevent matplotlib crashes when empty palettes are passed to debug_palette
-- _(commit-writer)_ Correct wording in commit writer description
+- *(commit-writer)* Correct wording in commit writer description
 
 ### 💼 Other
 
-- _(opencode)_ Add bash permissions and update commit-writer prompt
+- *(opencode)* Add bash permissions and update commit-writer prompt
 - Bump version to 0.1.0-1
-- _(deps)_ Migrate from requirements.txt to pyproject.toml
-- _(version)_ Bump version to 0.1.0-2
+- *(deps)* Migrate from requirements.txt to pyproject.toml
+- *(version)* Bump version to 0.1.0-2
 
 ### 🚜 Refactor
 
@@ -169,15 +170,15 @@ All notable changes to this project will be documented in this file.
 
 ### 🎨 Styling
 
-- Format src/\_version.py with ruff
+- Format src/_version.py with ruff
 
 ### ⚙️ Miscellaneous Tasks
 
 - Use python -m pytest in CI workflow
 - Add pip caching to speed up CI runs
-- _(workflows)_ Add publish workflow and enable reusable CI
-- _(workflows)_ Update GitHub release action to v2
-- _(config)_ Add CodeRabbit configuration to exclude CHANGELOG.md from reviews
+- *(workflows)* Add publish workflow and enable reusable CI
+- *(workflows)* Update GitHub release action to v2
+- *(config)* Add CodeRabbit configuration to exclude CHANGELOG.md from reviews
 - Update workflow to use pyproject.toml for caching and dev dependencies
 
 ### ◀️ Revert
@@ -192,9 +193,9 @@ All notable changes to this project will be documented in this file.
 - Follow spotify
 - Seperators
 - Hardware selector
-- _(hardware)_ Added multiple hardware support args
+- *(hardware)* Added multiple hardware support args
 - Pretty print
-- _(args parser)_ Better help menu
+- *(args parser)* Better help menu
 - Add comprehensive test suite, linting, and CI
 
 ### 🐛 Bug Fixes
@@ -206,18 +207,18 @@ All notable changes to this project will be documented in this file.
 
 ### 🚜 Refactor
 
-- _(core)_ Better code structure
-- _(follow mode)_ Better follow
-- _(playerctl)_ Better command handling
-- _(core)_ Improve structure and cleanup across modules
+- *(core)* Better code structure
+- *(follow mode)* Better follow
+- *(playerctl)* Better command handling
+- *(core)* Improve structure and cleanup across modules
 
 ### 📚 Documentation
 
-- _(core)_ Added doc strings
-- _(playerctl)_ Improved docs
-- _(core)_ Improved doc strings
-- _(core)_ Update and clarify module documentation
-- _(README)_ Improve read me
+- *(core)* Added doc strings
+- *(playerctl)* Improved docs
+- *(core)* Improved doc strings
+- *(core)* Update and clarify module documentation
+- *(README)* Improve read me
 - Update changelog for v0.1.0
 
 ### ⚙️ Miscellaneous Tasks
@@ -225,7 +226,7 @@ All notable changes to this project will be documented in this file.
 - Gitinore
 - Docs
 - Open source data
-- _(issue)_ Create issue template
-- _(repo)_ Getting ready for opensource
+- *(issue)* Create issue template
+- *(repo)* Getting ready for opensource
 
 <!-- generated by git-cliff -->
