@@ -4,13 +4,13 @@ from beatboard.args import parser
 
 
 @pytest.mark.parametrize(
-    "args, expected_follow, expected_debug, expected_hardware",
+    "args, expected_once, expected_debug, expected_hardware",
     [
         ([], False, [], ["g213"]),
-        (["--follow"], True, [], ["g213"]),
+        (["--once"], True, [], ["g213"]),
         (["--debug", "command"], False, ["command"], ["g213"]),
         (
-            ["--follow", "--debug", "command", "cache"],
+            ["--once", "--debug", "command", "cache"],
             True,
             ["command", "cache"],
             ["g213"],
@@ -19,9 +19,9 @@ from beatboard.args import parser
         (["--hardware", "g213", "g213"], False, [], ["g213", "g213"]),
     ],
 )
-def test_parser_various_args(args, expected_follow, expected_debug, expected_hardware):
+def test_parser_various_args(args, expected_once, expected_debug, expected_hardware):
     parsed = parser.parse_args(args)
-    assert parsed.follow == expected_follow
+    assert parsed.once == expected_once
     assert parsed.debug == expected_debug
     assert parsed.hardware == expected_hardware
 
