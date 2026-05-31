@@ -17,6 +17,16 @@ class TestGetConnection:
         with get_connection() as conn:
             assert isinstance(conn, sqlite3.Connection)
 
+    @patch("beatboard.cache.db.Globs")
+    def test_get_connection_creates_parent_directory(self, mock_globs, tmp_path):
+        cache_db = tmp_path / "nested" / "cache.sqlite"
+        mock_globs.return_value.cache_path = str(cache_db)
+
+        with get_connection() as conn:
+            assert isinstance(conn, sqlite3.Connection)
+
+        assert cache_db.exists()
+
 
 class TestGetMigrations:
     def test_get_migrations_returns_sorted_list(self):

@@ -138,7 +138,7 @@ parser.add_argument(
     help="Show the version number and exit",
 )
 
-parser.add_argument("-f", "--follow", action="store_true", help="Follow the music")
+parser.add_argument("-1", "--once", action="store_true", help="run once")
 
 # hardware to change the color of
 hardware_keys = list(hardware.keys())

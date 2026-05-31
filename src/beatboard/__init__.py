@@ -32,7 +32,7 @@ async def beatboard_main():
 
     source_migrations()
 
-    await watch_playerctl(args.follow)
+    await watch_playerctl(args.once)
 
 
 def main():
