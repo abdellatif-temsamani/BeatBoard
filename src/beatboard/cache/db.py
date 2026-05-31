@@ -9,7 +9,11 @@ from ..logs import log
 
 @contextmanager
 def get_connection():
-    db = sqlite3.connect(Globs().cache_path)
+    cache_path = Globs().cache_path
+    if cache_path != ":memory:":
+        Path(cache_path).parent.mkdir(parents=True, exist_ok=True)
+
+    db = sqlite3.connect(cache_path)
     yield db
     db.close()
 

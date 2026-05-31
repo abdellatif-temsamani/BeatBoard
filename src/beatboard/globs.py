@@ -9,21 +9,21 @@ def get_cache_db() -> str:
     """Get the path to the cache database based on the operating system.
 
     Returns:
-        The path to the cache database directory as a string.
+        The path to the cache database file as a string.
     """
     app_name: str | None = "beatboard"
     system = platform.system()
 
     if system == "Linux":
-        base = Path.home() / ".cache"
+        base = Path.home() / ".local" / "share"
     elif system == "Darwin":  # macOS
-        base = Path.home() / "Library" / "Caches"
+        base = Path.home() / "Library" / "Application Support"
     elif system == "Windows":
-        base = Path.home() / "AppData" / "Local"
+        base = Path.home() / "AppData" / "Roaming"
     else:
         base = Path.cwd() / "cache"
 
-    final = base / app_name if app_name else base
+    final = (base / app_name if app_name else base) / "cache.sqlite"
     return str(final)
 
 
