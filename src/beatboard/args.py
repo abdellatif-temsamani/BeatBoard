@@ -80,7 +80,7 @@ class DebugAction(argparse.Action):
         elif isinstance(values, str):
             values = [values]
 
-        valid_categories = {"command", "palette", "cache"}
+        valid_categories = {"command", "palette", "cache", "perf", "all"}
         invalid = [v for v in values if v not in valid_categories]
 
         if invalid:
@@ -92,8 +92,15 @@ class DebugAction(argparse.Action):
             table = Table(show_header=True, header_style="bold yellow")
             table.add_column("Category", style="cyan")
             table.add_column("Description", style="white")
+            descriptions = {
+                "command": "Enable command debug logging",
+                "palette": "Enable palette debug logging",
+                "cache": "Enable cache debug logging",
+                "perf": "Enable performance timing debug logging",
+                "all": "Enable all debug logging",
+            }
             for category in sorted(valid_categories):
-                table.add_row(category, f"Enable {category} debug logging")
+                table.add_row(category, descriptions.get(category, f"Enable {category} debug logging"))
             console.print(table)
             parser.exit(1)
 

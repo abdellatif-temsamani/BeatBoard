@@ -31,6 +31,8 @@ DebugCategory = Literal[
     "command",
     "palette",
     "cache",
+    "perf",
+    "all",
 ]
 
 
@@ -56,6 +58,8 @@ class Globs:
         "command": False,
         "palette": False,
         "cache": False,
+        "perf": False,
+        "all": False,
     }
     cache_path: str = get_cache_db()
 

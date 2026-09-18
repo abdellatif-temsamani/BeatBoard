@@ -12,7 +12,7 @@ def test_globs_singleton():
     "attr, value",
     [
         ("hardware", ["g213"]),
-        ("debug", {"command": False, "palette": False, "cache": False}),
+        ("debug", {"command": False, "palette": False, "cache": False, "perf": False, "all": False}),
     ],
 )
 def test_globs_defaults(attr, value):
@@ -30,9 +30,8 @@ def test_globs_defaults(attr, value):
                 "command": True,
                 "palette": False,
                 "cache": False,
-                "playerctl": False,
-                "hardware": False,
-                "color_gen": False,
+                "perf": False,
+                "all": False,
             },
         ),
     ],
@@ -47,9 +46,11 @@ def test_globs_independent_instances():
     # Since it's singleton, instances should be the same
     g1 = Globs()
     g2 = Globs()
-    g1.debug = {"command": True, "palette": False, "cache": False}
+    g1.debug = {"command": True, "palette": False, "cache": False, "perf": False, "all": False}
     assert g2.debug == {
         "command": True,
         "palette": False,
         "cache": False,
+        "perf": False,
+        "all": False,
     }  # Shared state
