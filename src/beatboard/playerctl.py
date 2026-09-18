@@ -3,6 +3,7 @@ import hashlib
 import os
 import shutil
 import subprocess
+import time
 from pathlib import Path
 
 from rich import print
@@ -96,26 +97,46 @@ async def process_art_url(art_url: str | None = None) -> None:
         art_url: The new album art URL.
     """
     IMAGE_PATH = "/tmp/album_art.jpg"
+    globs = Globs()
+    start_time = time.time()
 
     if art_url is None:
         return
 
+    cache_start = time.time()
     cache_key = create_cache_key(art_url)
     hex_colors = get_cached_colors(cache_key)
     from_cache = bool(hex_colors)
+    cache_time = time.time() - cache_start
+    
+    if globs.debug.get("cache") or globs.debug.get("all"):
+        print(f"[bold cyan]CACHE:[/bold cyan] Lookup: {cache_time:.3f}s (hit: {from_cache})")
+    
+    if globs.debug.get("perf") or globs.debug.get("all"):
+        print(f"[bold cyan]PERF:[/bold cyan] Cache lookup: {cache_time:.3f}s (hit: {from_cache})")
 
     if not hex_colors:
         # Download or fetch new album art
+        download_start = time.time()
         try:
             await get_image(IMAGE_PATH, art_url)
         except Exception as e:
             print(f"[bold red]Error:[/bold red] fetching album art: {e}")
             return
+        download_time = time.time() - download_start
+        
+        if globs.debug.get("perf") or globs.debug.get("all"):
+            print(f"[bold cyan]PERF:[/bold cyan] Image download: {download_time:.3f}s")
 
         # Extract palette (CPU-bound, run in thread)
         try:
             hex_colors = await get_color_palette(IMAGE_PATH)
+            cache_start = time.time()
             cache_colors(cache_key, hex_colors)
+            cache_write_time = time.time() - cache_start
+            
+            if globs.debug.get("cache") or globs.debug.get("all"):
+                print(f"[bold cyan]CACHE:[/bold cyan] Write: {cache_write_time:.3f}s")
         except Exception as e:
             print(f"[bold red]Error:[/bold red] extracting color palette: {e}")
             return
@@ -126,9 +147,7 @@ async def process_art_url(art_url: str | None = None) -> None:
             )
             hex_colors = ["ffffff"]  # fallback color
 
-    globs = Globs()
-
-    if globs.debug["palette"] and hex_colors and from_cache:
+    if globs.debug.get("palette") and hex_colors and from_cache:
         extracted_palette = None
 
         try:
@@ -141,6 +160,7 @@ async def process_art_url(art_url: str | None = None) -> None:
 
         debug_palette(hex_colors=hex_colors, palette=extracted_palette)
 
+    command_start = time.time()
     commands = get_command(globs.hardware, hex_colors[0])
 
     for command in commands:
@@ -150,12 +170,20 @@ async def process_art_url(art_url: str | None = None) -> None:
                 f"[bold red]Error:[/bold red] Command [bold]'{command[0]}'[/bold] not found. Skipping hardware command."
             )
             continue
-        if globs.debug["command"]:
+        if globs.debug.get("command"):
             print(f"Running command: {command}")
         try:
             await asyncio.to_thread(subprocess.run, command)
         except Exception as e:
             print(f"[bold red]Error:[/bold red] running hardware command: {e}")
+    command_time = time.time() - command_start
+    
+    if globs.debug.get("perf") or globs.debug.get("all"):
+        print(f"[bold cyan]PERF:[/bold cyan] Hardware commands: {command_time:.3f}s")
+
+    total_time = time.time() - start_time
+    if globs.debug.get("perf") or globs.debug.get("all"):
+        print(f"[bold cyan]PERF:[/bold cyan] Total processing time: {total_time:.3f}s")
 
 
 async def watch_playerctl(once: bool = False):
