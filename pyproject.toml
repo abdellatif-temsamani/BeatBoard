@@ -39,6 +39,7 @@ dependencies = [
     "setuptools-scm==8.1.0",
     "six==1.17.0",
     "urllib3==2.6.1",
+    "websockets==15.0.1",
 ]
 
 [project.optional-dependencies]

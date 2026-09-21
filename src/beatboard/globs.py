@@ -19,6 +19,7 @@ DebugCategory = Literal[
     "palette",
     "cache",
     "perf",
+    "api",
     "all",
 ]
 
@@ -46,9 +47,19 @@ class Globs:
         "palette": False,
         "cache": False,
         "perf": False,
+        "api": False,
         "all": False,
     }
     cache_path: str = get_cache_db()
+    # Spotify pure-websocket globals
+    api: bool = False
+    spotify: bool = False
+    spotify_token: str | None = None
+    spotify_refresh_token: str | None = None
+    spotify_client_id: str | None = None
+    spotify_client_secret: str | None = None
+    spotify_redirect_uri: str = "http://127.0.0.1:8888/callback"
+    spotify_websocket_url: str = "wss://dealer.spotify.com/?access_token={token}"
 
     def __new__(cls) -> Self:
         """Singleton pattern implementation of the Globs class."""

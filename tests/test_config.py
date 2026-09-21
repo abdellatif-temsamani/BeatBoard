@@ -16,15 +16,37 @@ def test_load_config_creates_default_file(tmp_path: Path) -> None:
     assert yaml.safe_load(config_path.read_text(encoding="utf-8")) == {
         "cache_path": "~/.local/state/beatboard/cache.db",
         "debug": [],
+        "spotify_client_id": None,
+        "spotify_client_secret": None,
+        "spotify_redirect_uri": "http://127.0.0.1:8888/callback",
+        "spotify_refresh_token": None,
+        "spotify_token": None,
+        "spotify_websocket_url": "wss://dealer.spotify.com/?access_token={token}",
     }
     assert config.debug == []
     assert config.cache_path == str(
         Path.home() / ".local" / "state" / "beatboard" / "cache.db"
     )
+    assert config.spotify_token is None
+    assert config.spotify_refresh_token is None
+    assert config.spotify_client_id is None
+    assert config.spotify_client_secret is None
+    assert config.spotify_redirect_uri == "http://127.0.0.1:8888/callback"
+    assert (
+        config.spotify_websocket_url == "wss://dealer.spotify.com/?access_token={token}"
+    )
+    # pure websocket mode – poll_interval is legacy and not in default config
+    assert (
+        not hasattr(config, "spotify_poll_interval")
+        or getattr(config, "spotify_poll_interval", None) is None
+        or "spotify_poll_interval"
+        not in yaml.safe_load(config_path.read_text(encoding="utf-8"))
+    )
     # hardware is no longer stored in config - should not be present
     assert not hasattr(config, "hardware")
     raw = yaml.safe_load(config_path.read_text(encoding="utf-8"))
     assert "hardware" not in raw
+    assert "spotify_poll_interval" not in raw
 
 
 def test_get_config_path_uses_home_config_directory(

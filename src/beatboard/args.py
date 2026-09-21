@@ -80,7 +80,7 @@ class DebugAction(argparse.Action):
         elif isinstance(values, str):
             values = [values]
 
-        valid_categories = {"command", "palette", "cache", "perf", "all"}
+        valid_categories = {"command", "palette", "cache", "perf", "api", "all"}
         invalid = [v for v in values if v not in valid_categories]
 
         if invalid:
@@ -97,6 +97,7 @@ class DebugAction(argparse.Action):
                 "palette": "Enable palette debug logging",
                 "cache": "Enable cache debug logging",
                 "perf": "Enable performance timing debug logging",
+                "api": "Enable Spotify API debug logging",
                 "all": "Enable all debug logging",
             }
             for category in sorted(valid_categories):
@@ -183,4 +184,11 @@ parser.add_argument(
     metavar="CATEGORY",
     default=[],
     help=(f"Enable debug logging for specified categories:\n{', '.join(debug_keys)}"),
+)
+
+parser.add_argument(
+    "--api",
+    action="store_true",
+    default=False,
+    help="Use Spotify WebSocket instead of playerctl",
 )
