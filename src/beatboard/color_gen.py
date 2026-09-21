@@ -29,7 +29,7 @@ RGBA = tuple[int, int, int, int]
 _SIG_BITS = 5
 _RSHIFT = 8 - _SIG_BITS
 _FRACTION_BY_POPULATION = 0.75
-COLOR_CACHE_VERSION = 'node-vibrant-v1'
+COLOR_CACHE_VERSION = "node-vibrant-v1"
 
 
 @dataclass(eq=False, frozen=True)
@@ -144,12 +144,12 @@ class _VBox:
         histogram: _Histogram,
     ) -> None:
         self.dimension = {
-            'r1': r1,
-            'r2': r2,
-            'g1': g1,
-            'g2': g2,
-            'b1': b1,
-            'b2': b2,
+            "r1": r1,
+            "r2": r2,
+            "g1": g1,
+            "g2": g2,
+            "b1": b1,
+            "b2": b2,
         }
         self.histogram = histogram
         self._volume: int | None = None
@@ -171,16 +171,16 @@ class _VBox:
     def clone(self) -> _VBox:
         d = self.dimension
         return _VBox(
-            d['r1'], d['r2'], d['g1'], d['g2'], d['b1'], d['b2'], self.histogram
+            d["r1"], d["r2"], d["g1"], d["g2"], d["b1"], d["b2"], self.histogram
         )
 
     def volume(self) -> int:
         if self._volume is None:
             d = self.dimension
             self._volume = (
-                (d['r2'] - d['r1'] + 1)
-                * (d['g2'] - d['g1'] + 1)
-                * (d['b2'] - d['b1'] + 1)
+                (d["r2"] - d["r1"] + 1)
+                * (d["g2"] - d["g1"] + 1)
+                * (d["b2"] - d["b1"] + 1)
             )
         return self._volume
 
@@ -191,9 +191,9 @@ class _VBox:
             index = self.histogram.index
             self._count = sum(
                 values[index(red, green, blue)]
-                for red in range(d['r1'], d['r2'] + 1)
-                for green in range(d['g1'], d['g2'] + 1)
-                for blue in range(d['b1'], d['b2'] + 1)
+                for red in range(d["r1"], d["r2"] + 1)
+                for green in range(d["g1"], d["g2"] + 1)
+                for blue in range(d["b1"], d["b2"] + 1)
             )
         return self._count
 
@@ -207,9 +207,9 @@ class _VBox:
         multiplier = 1 << _RSHIFT
         total = red_sum = green_sum = blue_sum = 0
 
-        for red in range(d['r1'], d['r2'] + 1):
-            for green in range(d['g1'], d['g2'] + 1):
-                for blue in range(d['b1'], d['b2'] + 1):
+        for red in range(d["r1"], d["r2"] + 1):
+            for green in range(d["g1"], d["g2"] + 1):
+                for blue in range(d["b1"], d["b2"] + 1):
                     population = values[index(red, green, blue)]
                     if not population:
                         continue
@@ -226,9 +226,9 @@ class _VBox:
             )
         else:
             self._average = (
-                multiplier * (d['r1'] + d['r2'] + 1) // 2,
-                multiplier * (d['g1'] + d['g2'] + 1) // 2,
-                multiplier * (d['b1'] + d['b2'] + 1) // 2,
+                multiplier * (d["r1"] + d["r2"] + 1) // 2,
+                multiplier * (d["g1"] + d["g2"] + 1) // 2,
+                multiplier * (d["b1"] + d["b2"] + 1) // 2,
             )
         return self._average
 
@@ -241,14 +241,14 @@ class _VBox:
 
         d = self.dimension
         widths = {
-            'r': d['r2'] - d['r1'] + 1,
-            'g': d['g2'] - d['g1'] + 1,
-            'b': d['b2'] - d['b1'] + 1,
+            "r": d["r2"] - d["r1"] + 1,
+            "g": d["g2"] - d["g1"] + 1,
+            "b": d["b2"] - d["b1"] + 1,
         }
         # JavaScript's Math.max branch order resolves ties as red, green, blue.
-        channel = max(widths, key=lambda name: (widths[name], -'rgb'.index(name)))
-        lower = d[f'{channel}1']
-        upper = d[f'{channel}2']
+        channel = max(widths, key=lambda name: (widths[name], -"rgb".index(name)))
+        lower = d[f"{channel}1"]
+        upper = d[f"{channel}2"]
         cumulative = [0] * (upper + 1)
         total = 0
 
@@ -283,8 +283,8 @@ class _VBox:
 
         first = self.clone()
         second = self.clone()
-        first.dimension[f'{channel}2'] = cut
-        second.dimension[f'{channel}1'] = cut + 1
+        first.dimension[f"{channel}2"] = cut
+        second.dimension[f"{channel}1"] = cut + 1
         return first, second
 
     def _slice_count(self, channel: str, value: int) -> int:
@@ -292,16 +292,16 @@ class _VBox:
         values = self.histogram.values
         index = self.histogram.index
         ranges = {
-            'r': range(d['r1'], d['r2'] + 1),
-            'g': range(d['g1'], d['g2'] + 1),
-            'b': range(d['b1'], d['b2'] + 1),
+            "r": range(d["r1"], d["r2"] + 1),
+            "g": range(d["g1"], d["g2"] + 1),
+            "b": range(d["b1"], d["b2"] + 1),
         }
         ranges[channel] = range(value, value + 1)
         return sum(
             values[index(red, green, blue)]
-            for red in ranges['r']
-            for green in ranges['g']
-            for blue in ranges['b']
+            for red in ranges["r"]
+            for green in ranges["g"]
+            for blue in ranges["b"]
         )
 
 
@@ -326,16 +326,16 @@ class _PriorityQueue:
 def _to_hex(color: str | RGB) -> str:
     if isinstance(color, tuple):
         red, green, blue = color
-        return f'{red:02x}{green:02x}{blue:02x}'
-    return color.lstrip('#').lower()
+        return f"{red:02x}{green:02x}{blue:02x}"
+    return color.lstrip("#").lower()
 
 
 def _hex_to_rgb(color: str) -> RGB:
-    value = color.lstrip('#').lower()
+    value = color.lstrip("#").lower()
     if len(value) == 3:
-        value = ''.join(character * 2 for character in value)
+        value = "".join(character * 2 for character in value)
     if len(value) != 6:
-        raise ValueError(f'Invalid hex color: {color}')
+        raise ValueError(f"Invalid hex color: {color}")
     return int(value[0:2], 16), int(value[2:4], 16), int(value[4:6], 16)
 
 
@@ -366,7 +366,7 @@ def _split_boxes(queue: _PriorityQueue, target: float) -> None:
 def quantize(pixels: Iterable[RGBA], color_count: int = 64) -> list[Swatch]:
     """Quantize RGBA pixels using node-vibrant's MMCQ implementation."""
     if color_count < 2 or color_count > 256:
-        raise ValueError('color_count must be between 2 and 256')
+        raise ValueError("color_count must be between 2 and 256")
 
     histogram = _Histogram(pixels)
     if histogram.color_count == 0:
@@ -571,10 +571,10 @@ def _load_pixels(
     path: str | Path, quality: int = 5
 ) -> tuple[list[RGBA], tuple[int, int]]:
     if quality < 1:
-        raise ValueError('quality must be at least 1')
+        raise ValueError("quality must be at least 1")
 
     with Image.open(path) as source:
-        image = ImageOps.exif_transpose(source).convert('RGBA')
+        image = ImageOps.exif_transpose(source).convert("RGBA")
         if quality > 1:
             width = max(1, image.width // quality)
             height = max(1, image.height // quality)
@@ -602,30 +602,30 @@ def debug_palette(
 ) -> None:
     """Print one or both color palettes in the terminal, with labels."""
     if hex_colors is None and palette is None:
-        raise ValueError('You must pass either `hex_colors` or `palette`.')
+        raise ValueError("You must pass either `hex_colors` or `palette`.")
 
     rows: list[tuple[str, list[str]]] = []
     if hex_colors:
-        rows.append(('final colors', [_to_hex(color) for color in hex_colors]))
+        rows.append(("final colors", [_to_hex(color) for color in hex_colors]))
     if palette:
-        rows.append(('quantized colors', [_to_hex(color) for color in palette]))
+        rows.append(("quantized colors", [_to_hex(color) for color in palette]))
     if not rows:
-        raise ValueError('At least one non-empty palette must be provided')
+        raise ValueError("At least one non-empty palette must be provided")
 
     console = Console()
-    console.print('[bold]Palette debug[/bold]')
+    console.print("[bold]Palette debug[/bold]")
     for label, colors in rows:
         swatches_and_values = Text()
         for color in colors:
             try:
                 red, green, blue = _hex_to_rgb(color)
                 swatches_and_values.append(
-                    '  ', style=Style(bgcolor=Color.from_rgb(red, green, blue))
+                    "  ", style=Style(bgcolor=Color.from_rgb(red, green, blue))
                 )
             except (TypeError, ValueError):
                 pass
-            swatches_and_values.append(f' #{color} ', style='dim')
-        console.print(f'[bold cyan]{label:17}[/bold cyan]', swatches_and_values)
+            swatches_and_values.append(f" #{color} ", style="dim")
+        console.print(f"[bold cyan]{label:17}[/bold cyan]", swatches_and_values)
 
 
 async def get_color_palette(path: str) -> list[str]:
@@ -640,16 +640,16 @@ async def get_color_palette(path: str) -> list[str]:
     palette, raw_swatches, size = _extract_vibrant(path)
     hex_colors = [swatch.hex for swatch in palette.swatches()]
 
-    if globs.debug.get('perf') or globs.debug.get('all'):
+    if globs.debug.get("perf") or globs.debug.get("all"):
         total_ms = (time.perf_counter() - start_time) * 1000
         print(
-            f'[cyan]perf[/cyan] [dim]·[/dim] palette '
-            f'[cyan]{total_ms:.0f}ms[/cyan] [dim]·[/dim] '
-            f'{len(raw_swatches)}→{len(hex_colors)} colors [dim]·[/dim] '
-            f'{size[0]}×{size[1]}'
+            f"[cyan]perf[/cyan] [dim]·[/dim] palette "
+            f"[cyan]{total_ms:.0f}ms[/cyan] [dim]·[/dim] "
+            f"{len(raw_swatches)}→{len(hex_colors)} colors [dim]·[/dim] "
+            f"{size[0]}×{size[1]}"
         )
 
-    if globs.debug.get('palette') or globs.debug.get('all'):
+    if globs.debug.get("palette") or globs.debug.get("all"):
         debug_palette(hex_colors, [swatch.rgb for swatch in raw_swatches])
 
     return hex_colors

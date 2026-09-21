@@ -19,8 +19,8 @@ from beatboard.color_gen import (
 @pytest.fixture
 def sample_image(tmp_path: Path) -> Path:
     """Create a lossless image with red, green, and blue regions."""
-    path = tmp_path / 'sample.png'
-    image = Image.new('RGB', (100, 100), 'blue')
+    path = tmp_path / "sample.png"
+    image = Image.new("RGB", (100, 100), "blue")
     for x in range(50):
         for y in range(50):
             image.putpixel((x, y), (255, 0, 0))
@@ -56,9 +56,9 @@ def test_quantize_tracks_population() -> None:
     }
 
 
-@pytest.mark.parametrize('color_count', [0, 1, 257])
+@pytest.mark.parametrize("color_count", [0, 1, 257])
 def test_quantize_validates_color_count(color_count: int) -> None:
-    with pytest.raises(ValueError, match='between 2 and 256'):
+    with pytest.raises(ValueError, match="between 2 and 256"):
         quantize([(255, 0, 0, 255)], color_count=color_count)
 
 
@@ -118,15 +118,15 @@ async def test_get_color_palette_returns_vibrant_role_first(
     colors = await get_color_palette(str(sample_image))
 
     assert colors
-    assert colors[0] in {'fc0404', '04fc04', '0404fc'}
+    assert colors[0] in {"fc0404", "04fc04", "0404fc"}
     assert len(colors) == len(set(colors))
     assert all(len(color) == 6 for color in colors)
-    assert all(set(color) <= set('0123456789abcdef') for color in colors)
+    assert all(set(color) <= set("0123456789abcdef") for color in colors)
 
 
 @pytest.mark.asyncio
 async def test_get_color_palette_ignores_all_white_image(tmp_path: Path) -> None:
-    path = tmp_path / 'white.png'
-    Image.new('RGB', (20, 20), 'white').save(path)
+    path = tmp_path / "white.png"
+    Image.new("RGB", (20, 20), "white").save(path)
 
     assert await get_color_palette(str(path)) == []
