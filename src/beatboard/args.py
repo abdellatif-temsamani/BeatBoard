@@ -58,7 +58,7 @@ class HardwareAction(argparse.Action):
             table.add_column("Hardware", style="cyan")
             table.add_column("Description", style="white")
             for key in keys:
-                table.add_row(key, f"Controls {key.upper()} keyboard RGB")
+                table.add_row(key, f"Controls {key.upper()} keyboard RGB (Linux/Windows)")
             console.print(table)
             parser.exit(1)
 
@@ -97,7 +97,7 @@ class DebugAction(argparse.Action):
                 "palette": "Enable palette debug logging",
                 "cache": "Enable cache debug logging",
                 "perf": "Enable performance timing debug logging",
-                "api": "Enable Spotify API debug logging",
+                "api": "Enable Spotify API debug logging (used when playerctl unavailable)",
                 "all": "Enable all debug logging",
             }
             for category in sorted(valid_categories):
@@ -133,12 +133,12 @@ class RichArgumentParser(argparse.ArgumentParser):
                 table.add_row(opts, action.help or "")
 
         console.print(table)
-        console.print()  # newlin
+        console.print()  # newline
 
 
 # Create the parser
 parser = RichArgumentParser(
-    description="BeatBoard change your keyboard rgb based on music",
+    description="BeatBoard change your keyboard RGB based on music (Linux & Windows)",
 )
 
 parser.add_argument(
@@ -161,7 +161,8 @@ parser.add_argument(
     default=None,
     help=(
         "List of hardware to change the color of. "
-        "Automatically detected when omitted:\n"
+        "Automatically detected on Linux when omitted. "
+        "On macOS/Windows, manual specification recommended:\n"
         f"{', '.join(hardware_keys)}"
     ),
 )
@@ -188,5 +189,5 @@ parser.add_argument(
     "--api",
     action="store_true",
     default=False,
-    help="Use Spotify WebSocket instead of playerctl",
+    help="Use Spotify WebSocket API (required on platforms without playerctl)",
 )

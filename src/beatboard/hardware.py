@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import platform
 import shutil
 import sys
 from collections.abc import Callable, Iterable
@@ -34,6 +35,16 @@ _SYSTEM_VENDOR_PATHS = (
     Path("/sys/class/dmi/id/sys_vendor"),
     Path("/sys/devices/virtual/dmi/id/sys_vendor"),
 )
+
+
+def is_windows() -> bool:
+    """Check if the current platform is Windows."""
+    return platform.system() == "Windows"
+
+
+def is_linux() -> bool:
+    """Check if the current platform is Linux."""
+    return platform.system() == "Linux"
 
 
 class USBDevice(Protocol):
@@ -76,24 +87,40 @@ def detect_hardware(
     Asus hardware is identified through USB or the Linux system vendor and
     requires ``asusctl``.
 
+    On Windows, USB detection may be limited and system vendor detection is not
+    available. Manual hardware specification with ``--hardware`` is recommended.
+
     Args:
         devices: Optional USB device collection. When omitted, connected USB
-            devices are enumerated with PyUSB.
+            devices are enumerated with PyUSB (Linux only).
         executable_finder: Function used to locate optional controller tools.
         system_vendor: Optional system vendor override. When omitted, Linux DMI
-            information is used.
+            information is used (Linux only).
 
     Returns:
         Supported hardware names in stable registry order.
     """
 
     finder = executable_finder or shutil.which
+    detected: list[hardwareName] = []
+
+    # On Windows, USB detection is limited - rely on executable detection
+    if is_windows():
+        # Check for available tools on Windows
+        if finder("razer-cli"):
+            detected.append("razer")
+        if finder("asusctl"):
+            detected.append("asus")
+        # G213 may not work on Windows without special handling
+        # Skip G213 detection on Windows for now
+        return detected
+
+    # Linux: Use USB detection
     connected_devices = devices if devices is not None else _connected_usb_devices()
     try:
         usb_ids = {(device.idVendor, device.idProduct) for device in connected_devices}
     except (usb.core.NoBackendError, usb.core.USBError):
         usb_ids = set()
-    detected: list[hardwareName] = []
 
     if (_LOGITECH_VENDOR_ID, _G213_PRODUCT_ID) in usb_ids:
         detected.append("g213")

@@ -7,8 +7,9 @@ If you need help with BeatBoard, here are the best ways to get assistance:
 ### Documentation
 
 - [README.md](../README.md) - Installation, usage, and troubleshooting guide
-- [Contributing Guide](./.github/CONTRIBUTING.md) - For development and contribution
+- [Contributing Guide](../.github/CONTRIBUTING.md) - For development and contribution
   questions
+- [Hardware Documentation](../docs/hardware.md) - Hardware support and integration guide
 
 ### Community Support
 
@@ -28,10 +29,36 @@ Please check the following first:
 
 When asking for help, please provide:
 
-- Your operating system and version
+- Your operating system and version (Linux/Windows)
 - Python version
-- `playerctl` version
+- Platform-specific info:
+  - Linux: `playerctl` version
+  - Windows: Spotify API configuration status
 - Steps to reproduce the issue
 - Any error messages or logs
+- Command used (include `--api` flag if applicable)
+
+## Platform-Specific Support
+
+### Linux Support
+
+For Linux-specific issues:
+- Ensure `playerctl` is installed and working
+- Check USB permissions for hardware access
+- Verify hardware detection with `--debug` flag
+- Check system logs for USB/driver issues
+
+### When using `--api` flag (any platform)
+
+For issues when using the `--api` flag (Linux/Mac/Windows):
+- Verify Spotify Developer credentials are configured
+- Check firewall settings for OAuth callback (port 8888)
+- Verify hardware tool availability (razer-cli, asusctl)
+- Check firewall/antivirus isn't blocking BeatBoard
+
+### Platform-Specific Notes
+
+**Linux:** Can use either `playerctl` (default) or `--api` flag
+**macOS/Windows:** Must use `--api` flag since `playerctl` is not available
 
 Thank you for using BeatBoard! 🎵💡

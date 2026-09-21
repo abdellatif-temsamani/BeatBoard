@@ -23,11 +23,18 @@ assignees: []
 
 **Driver/Protocol:** [if known, e.g., HID, proprietary]
 
-**Linux Compatibility:** [e.g., works with OpenRGB, requires custom driver]
+**Platform Support:**
+- **Linux Compatibility:** [e.g., works with OpenRGB, requires custom driver]
+- **Mac Compatibility:** [e.g., works with manufacturer software, CLI tool available]
+- **Windows Compatibility:** [e.g., works with manufacturer software, CLI tool available]
 
 ## Current Status
 - [ ] Device is detected by Linux
-- [ ] Basic RGB control works (via other software)
+- [ ] Device is detected by Mac
+- [ ] Device is detected by Windows
+- [ ] Basic RGB control works on Linux (via other software)
+- [ ] Basic RGB control works on Mac (via other software)
+- [ ] Basic RGB control works on Windows (via other software)
 - [ ] Device uses standard protocols
 - [ ] Custom implementation needed
 
@@ -43,9 +50,12 @@ If you have technical knowledge:
 - Preferred approach (extend existing drivers, new module)
 - Similar devices already supported
 - Potential challenges or requirements
+- Platform-specific considerations (Linux vs Windows)
 
 ## Checklist
 - [ ] This device is RGB-capable
 - [ ] Device works on Linux
+- [ ] Device works on Mac (if applicable)
+- [ ] Device works on Windows (if applicable)
 - [ ] No existing support in BeatBoard
-- [ ] Willing to help test implementations
+- [ ] Willing to help test implementations on affected platforms

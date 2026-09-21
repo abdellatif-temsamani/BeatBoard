@@ -2,11 +2,12 @@ import os
 import sys
 from collections.abc import Callable
 from types import SimpleNamespace
+from unittest.mock import patch
 
 import pytest
 
 from beatboard import hardware
-from beatboard.hardware import detect_hardware, get_command
+from beatboard.hardware import detect_hardware, get_command, is_windows, is_linux
 
 _g213_script = os.path.join(
     os.path.dirname(hardware.__file__), "G213Colors", "G213Colors.py"
@@ -106,3 +107,37 @@ def test_detect_hardware_finds_asus_system_without_usb_device() -> None:
     )
 
     assert detected == ["asus"]
+
+
+def test_is_windows():
+    with patch("beatboard.hardware.platform.system", return_value="Windows"):
+        assert is_windows() is True
+        assert is_linux() is False
+
+
+def test_is_linux():
+    with patch("beatboard.hardware.platform.system", return_value="Linux"):
+        assert is_linux() is True
+        assert is_windows() is False
+
+
+def test_detect_hardware_on_windows():
+    with patch("beatboard.hardware.is_windows", return_value=True):
+        # On Windows, should only detect based on available executables
+        detected = detect_hardware(
+            executable_finder=make_executable_finder("razer-cli", "asusctl"),
+        )
+        # Should not include g213 on Windows
+        assert "g213" not in detected
+        # Should include tools that are available
+        assert "razer" in detected
+        assert "asus" in detected
+
+
+def test_detect_hardware_on_windows_no_tools():
+    with patch("beatboard.hardware.is_windows", return_value=True):
+        detected = detect_hardware(
+            executable_finder=make_executable_finder(),
+        )
+        # Should return empty list when no tools available on Windows
+        assert detected == []

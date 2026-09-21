@@ -39,7 +39,7 @@ If you then still feel the need to ask a question and need clarification, we rec
 
 - Open an [Issue](https://github.com/abdellatif-temsamani/BeatBoard/issues/new).
 - Provide as much context as you can about what you're running into.
-- Provide project and platform versions (Python, playerctl, etc), depending on what seems relevant.
+- Provide project and platform versions (Python, OS: Linux/Mac/Windows, playerctl for Linux or `--api` flag usage for others), depending on what seems relevant.
 
 We will then take care of the issue as soon as possible.
 

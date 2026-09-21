@@ -7,6 +7,30 @@ layer that allows for easy extension to new devices. The system uses a
 command-based approach where each hardware type defines executable commands that
 accept hex color values.
 
+## Platform Support
+
+### Linux
+On Linux, BeatBoard uses direct USB access and system tools for hardware control:
+- Direct USB communication via libusb (G213)
+- System tools like `razer-cli` and `asusctl`
+- USB device detection via PyUSB
+- Linux DMI for system vendor detection
+- Default Spotify integration via `playerctl`
+- Optional Spotify API integration via `--api` flag
+
+### macOS/Windows
+On macOS and Windows, hardware support depends on the availability of platform-specific
+control tools:
+- Platform-compatible versions of `razer-cli` (if available)
+- Platform-compatible versions of `asusctl` (if available)
+- Alternative RGB control software integration
+- Manual hardware specification may be required
+- Spotify integration via `--api` flag (required since `playerctl` is unavailable)
+
+**Note:** macOS/Windows support for RGB hardware is evolving. Not all Linux tools have
+macOS/Windows equivalents. You may need to use manufacturer-provided software or
+specify hardware manually with the `--hardware` flag.
+
 ### Architecture Overview
 
 The hardware abstraction layer consists of three main components:
@@ -21,9 +45,16 @@ The hardware abstraction layer consists of three main components:
 When `--hardware` is omitted, BeatBoard automatically detects controllable
 hardware. An explicit `--hardware` selection always takes precedence.
 
+**Linux:**
 - Logitech G213 keyboards are matched by USB IDs `046d:c336`.
 - Razer USB devices are matched by vendor ID `1532` and require `razer-cli`.
 - Asus USB devices or Asus systems are detected when `asusctl` is available.
+
+**macOS/Windows:**
+- Hardware detection is limited by tool availability and USB access
+- Razer devices require platform-compatible `razer-cli`
+- Asus devices require platform-compatible `asusctl`
+- Manual hardware specification with `--hardware` is recommended
 
 If no supported hardware is detected, BeatBoard exits with guidance to connect a
 device or use `--hardware` explicitly.
@@ -273,6 +304,13 @@ sudo usermod -a -G input $USER
 sudo beatboard
 ```
 
+**Windows Hardware Access:** Windows hardware access typically uses manufacturer
+drivers and control software:
+- Ensure manufacturer drivers are installed
+- Run BeatBoard with appropriate permissions if needed
+- Some RGB control software may require administrator privileges
+- Check Windows Device Manager for hardware recognition
+
 **Razer Driver Setup:** For Razer devices, ensure the appropriate drivers are
 installed:
 
@@ -324,7 +362,11 @@ sudo systemctl start razer-daemon
 **Enable Debug Mode:**
 
 ```bash
+# Linux
 beatboard --debug --hardware g213
+
+# Windows
+beatboard --api --debug --hardware g213
 ```
 
 **Verbose Hardware Logging:** The debug flag shows:
@@ -337,15 +379,76 @@ beatboard --debug --hardware g213
 **Manual Hardware Testing:**
 
 ```bash
-# Test G213 directly
+# Linux: Test G213 directly
 cd src/beatboard/G213Colors
 python G213Colors.py -c ff0000
 
-# Test Razer devices
+# Linux: Test Razer devices
 razer-cli --help
 razer-cli -l  # List devices
 razer-cli -c ff0000
+
+# Mac/Windows: Test with manufacturer software
+# Use manufacturer-provided RGB control tools
+# Verify device recognition in Device Manager/System Information
 ```
+
+## Mac/Windows Hardware Integration
+
+### Platform-Specific Considerations
+
+Mac and Windows hardware support differs from Linux in several key ways:
+
+**Driver Model:**
+- Mac/Windows use manufacturer-provided drivers
+- Direct USB access may require special permissions
+- Hardware abstraction is different from Linux
+
+**Tool Availability:**
+- Not all Linux RGB tools have Mac/Windows equivalents
+- Manufacturer software may be required
+- Command-line integration may be limited
+
+**Detection Limitations:**
+- USB device detection may be restricted
+- System vendor detection is not available
+- Manual hardware specification is often required
+
+### Recommended Mac/Windows Setup
+
+**For Razer Devices:**
+1. Install Razer Synapse (manufacturer software)
+2. Check for platform-compatible `razer-cli` alternatives
+3. Use `--hardware razer` with manual specification if needed
+
+**For Asus Devices:**
+1. Install Armoury Crate (manufacturer software)
+2. Check for platform-compatible `asusctl` alternatives
+3. Use `--hardware asus` with manual specification if needed
+
+**For Logitech G213:**
+1. Install Logitech G Hub (manufacturer software)
+2. The G213 script may not work directly on Mac/Windows
+3. Consider alternative RGB control methods
+
+### Platform-Specific Hardware Integration Pattern
+
+When adding Mac/Windows support for a device, consider:
+
+1. **Identify platform-compatible control tools:**
+   - Check if manufacturer provides CLI tools
+   - Look for open-source platform alternatives
+   - Consider API integrations if available
+
+2. **Test detection limitations:**
+   - USB detection may not work on Mac/Windows
+   - Plan for manual hardware specification
+   - Provide clear setup instructions
+
+3. **Document platform differences:**
+   - Clearly note platform-specific requirements
+   - Provide alternative setup methods
+   - Include troubleshooting for platform-specific issues
 
 ## Contributing Hardware Support
 
@@ -366,7 +469,7 @@ razer-cli -c ff0000
    - Unit tests for command generation
    - Integration tests with color pipeline
    - Manual testing on real hardware
-   - Cross-platform compatibility checks
+   - Cross-platform compatibility checks (Linux/Mac/Windows)
 
 4. **Documentation Phase:**
    - Update hardware documentation
@@ -406,12 +509,14 @@ razer-cli -c ff0000
 
 - Driver/software dependencies
 - System permissions needed
+- Platform-specific requirements (Linux/Mac/Windows)
 
 **Implementation Notes:**
 
 - Control method used
 - Known limitations
 - Performance characteristics
+- Platform support status (Linux/Mac/Windows/All)
 ```
 
 **Code Documentation:**

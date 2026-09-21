@@ -23,18 +23,21 @@ A clear and concise description of what you expected to happen.
 What actually happened instead.
 
 ## Environment
-- OS: [e.g., Ubuntu 22.04, Fedora 38]
-- Python Version: [e.g., 3.8, 3.9]
-- BeatBoard Version: [e.g., 1.0.0]
-- Hardware: [e.g., Logitech G213 Prodigy]
+- OS: [e.g., Ubuntu 22.04, Fedora 38, macOS 14, Windows 10/11]
+- Python Version: [e.g., 3.11, 3.12]
+- BeatBoard Version: [e.g., 0.3.0]
+- Hardware: [e.g., Logitech G213 Prodigy, Razer BlackWidow]
 - Spotify Desktop Version: [e.g., 1.2.8.923]
+- Command used: [e.g., `beatboard` (Linux with playerctl) or `beatboard --api` (any platform)]
 
 ## Logs/Output
 If applicable, add logs or command output to help explain your problem.
 
 ```bash
-# Command used
-python main.py --follow --verbose
+# Command used (use --api flag if playerctl is unavailable on your platform)
+beatboard --debug
+# or if using Spotify API:
+beatboard --api --debug
 
 # Output/Error
 ```
