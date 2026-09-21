@@ -1335,6 +1335,7 @@ async def watch_spotify_websocket(
                     f"[blue]ws[/blue] [dim]·[/dim] initial [green]{song_label}[/green] [dim]·[/dim] [cyan]{init_dt:.0f}ms[/cyan]",
                 )
                 print("[bold green]Processing done[/bold green].")
+                print("[dim]" + "─" * 50 + "[/dim]")
                 print("")
                 if once:
                     return
@@ -1436,6 +1437,7 @@ async def watch_spotify_websocket(
                                     f"[blue]ws[/blue] [dim]·[/dim] [green]{song_label}[/green] [dim]·[/dim] [cyan]{proc_dt:.0f}ms[/cyan]",
                                 )
                                 print("[bold green]Processing done[/bold green].")
+                                print("[dim]" + "─" * 50 + "[/dim]")
                                 print("")
                                 last_art_url = art_url_ws or track_key
                                 last_track_id = track_id
@@ -1556,6 +1558,7 @@ async def watch_spotify_websocket(
                         f"[blue]ws[/blue] [dim]·[/dim] [green]{song_label}[/green] [dim]·[/dim] [cyan]{proc_dt:.0f}ms[/cyan]",
                     )
                     print("[bold green]Processing done[/bold green].")
+                    print("[dim]" + "─" * 50 + "[/dim]")
                     print("")
                     last_art_url = art_url
                     if _pending_track_id and hex_colors:

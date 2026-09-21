@@ -242,6 +242,7 @@ async def watch_playerctl(once: bool = False):
         await process_art_url(art_url)
 
         print("[bold green]Processing done[/bold green].")
+        print("[dim]" + "─" * 50 + "[/dim]")
         print("")
 
         if once:
