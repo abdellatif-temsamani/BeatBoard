@@ -91,7 +91,7 @@ def get_spotify_token() -> str | None:
         if token:
             token = token.strip()
             if token:
-                log("api", f"[dim][api][/dim] token source=env:{env_var}")
+                log("api", f"[dim]api[/dim] · token from env:{env_var}")
                 return token
 
     # 2. Config file via Globs (populated from ~/.config/beatboard/config.yaml)
@@ -102,7 +102,7 @@ def get_spotify_token() -> str | None:
             token = token.strip()
             return token
 
-    log("api", "[dim][api][/dim] no token in env/config")
+    log("api", "[dim]api[/dim] · no token found")
     return None
 
 
@@ -171,7 +171,6 @@ def exchange_code_for_token(
 ) -> dict:
     """Exchange authorization code for access/refresh tokens."""
     t0 = time.perf_counter()
-    log("api", "[dim][api][/dim] POST token exchange grant=authorization_code")
     resp = requests.post(
         SPOTIFY_TOKEN_URL,
         data={
@@ -184,18 +183,15 @@ def exchange_code_for_token(
         timeout=10,
     )
     dt = (time.perf_counter() - t0) * 1000
-    log(
-        "api",
-        f"[dim][api][/dim] token exchange status={resp.status_code} took={dt:.0f}ms",
-    )
     if not resp.ok:
+        log("api", f"[dim]api[/dim] · token exchange {resp.status_code} · {dt:.0f}ms")
         raise RuntimeError(
             f"Spotify token exchange failed {resp.status_code}: {resp.text[:500]}"
         )
     data = resp.json()
     log(
         "api",
-        f"[dim][api][/dim] token exchange ok expires_in={data.get('expires_in')} took={dt:.0f}ms",
+        f"[dim]api[/dim] · token exchange {resp.status_code} · {dt:.0f}ms [dim](expires {data.get('expires_in')}s)[/dim]",
     )
     return data
 
@@ -207,7 +203,6 @@ def refresh_access_token(
 ) -> dict:
     """Refresh an access token using a refresh token."""
     t0 = time.perf_counter()
-    log("api", "[dim][api][/dim] POST token refresh grant=refresh_token")
     resp = requests.post(
         SPOTIFY_TOKEN_URL,
         data={
@@ -219,15 +214,15 @@ def refresh_access_token(
         timeout=10,
     )
     dt = (time.perf_counter() - t0) * 1000
-    log("api", f"[dim][api][/dim] refresh status={resp.status_code} took={dt:.0f}ms")
     if not resp.ok:
+        log("api", f"[dim]api[/dim] · refresh {resp.status_code} · {dt:.0f}ms")
         raise RuntimeError(
             f"Spotify refresh failed {resp.status_code}: {resp.text[:500]}"
         )
     data = resp.json()
     log(
         "api",
-        f"[dim][api][/dim] refresh ok expires_in={data.get('expires_in')} took={dt:.0f}ms",
+        f"[dim]api[/dim] · refresh {resp.status_code} · {dt:.0f}ms [dim](expires {data.get('expires_in')}s)[/dim]",
     )
     return data
 
@@ -260,10 +255,6 @@ def save_spotify_tokens(
     if refresh_token is not None:
         globs.spotify_refresh_token = refresh_token
     t0 = time.perf_counter()
-    log(
-        "api",
-        f"[dim][api][/dim] save tokens to {config_path} refresh={'yes' if refresh_token else 'no'}",
-    )
 
     # Update file on disk – preserve other keys
     try:
@@ -292,10 +283,7 @@ def save_spotify_tokens(
         config_path.parent.mkdir(parents=True, exist_ok=True)
         config_path.write_text(yaml.safe_dump(data, sort_keys=True), encoding="utf-8")
         dt = (time.perf_counter() - t0) * 1000
-        log(
-            "api",
-            f"[dim][api][/dim] config write done took={dt:.0f}ms path={config_path}",
-        )
+        log("api", f"[dim]api[/dim] · token saved · {dt:.0f}ms")
     except OSError as exc:
         print(
             f"[yellow]Warning:[/yellow] could not save Spotify token to {config_path}: {exc}"
@@ -420,10 +408,7 @@ def _run_local_server(
     """Run a temporary HTTP server to capture OAuth callback."""
     code_queue: queue.Queue = queue.Queue()
     t0 = time.perf_counter()
-    log(
-        "api",
-        f"[dim][api][/dim] callback server start http://{host}:{port}/callback timeout={timeout}s",
-    )
+    log("api", f"[dim]api[/dim] · callback listening on http://{host}:{port}/callback · {timeout}s")
 
     # Allow address reuse
     class ReusableTCPServer(socketserver.TCPServer):
@@ -440,20 +425,15 @@ def _run_local_server(
         try:
             code, state, error = code_queue.get(timeout=timeout)
             dt = (time.perf_counter() - t0) * 1000
-            log(
-                "api",
-                f"[dim][api][/dim] callback received ok={bool(code)} error={error} wait={dt:.0f}ms",
-            )
+            log("api", f"[dim]api[/dim] · callback {'ok' if code else 'error'} · {dt:.0f}ms" + (f" [dim]({error})[/dim]" if error else ""))
             return code, state, error
         except queue.Empty:
             dt = (time.perf_counter() - t0) * 1000
-            log("api", f"[dim][api][/dim] callback timeout wait={dt:.0f}ms")
+            log("api", f"[dim]api[/dim] · callback timeout · {dt:.0f}ms")
             return None, None, "timeout"
         finally:
             httpd.shutdown()
             thread.join(timeout=2)
-            dt = (time.perf_counter() - t0) * 1000
-            log("api", f"[dim][api][/dim] callback server stopped total={dt:.0f}ms")
 
 
 def run_oauth_flow(
@@ -507,10 +487,7 @@ def run_oauth_flow(
     port = parsed.port or 8888
 
     oauth_t0 = time.perf_counter()
-    log(
-        "api",
-        f"[dim][api][/dim] oauth flow start redirect={redirect_uri} scope={scope}",
-    )
+    log("api", f"[dim]api[/dim] · oauth start · {redirect_uri}")
 
     auth_url, state = build_auth_url(client_id, redirect_uri, scope)
     # State is returned as tuple (url, state) by our helper; handle both signatures
@@ -530,9 +507,8 @@ def run_oauth_flow(
 
     code, returned_state, error = _run_local_server(host, port, timeout)
     dt_cb = (time.perf_counter() - oauth_t0) * 1000
-    log(
-        "api", f"[dim][api][/dim] oauth callback phase took={dt_cb:.0f}ms error={error}"
-    )
+    if error and error != "timeout":
+        log("api", f"[dim]api[/dim] · oauth callback error · {dt_cb:.0f}ms [dim]({error})[/dim]")
 
     if error == "timeout":
         print("[red bold]Error:[/red bold] Authentication timed out. Please try again.")
@@ -566,10 +542,7 @@ def run_oauth_flow(
         access_token, refresh_token, expires_in, config_path=config_path
     )
     dt_total = (time.perf_counter() - oauth_t0) * 1000
-    log(
-        "api",
-        f"[dim][api][/dim] oauth flow done took={dt_total:.0f}ms expires_in={expires_in}",
-    )
+    log("api", f"[dim]api[/dim] · oauth done · {dt_total:.0f}ms [dim](expires {expires_in}s)[/dim]")
     print(
         "[green bold]Spotify authentication successful![/green bold] Token saved to config."
     )
@@ -585,11 +558,6 @@ def ensure_valid_token(config_path: Path | None = None) -> str | None:
     t0 = time.perf_counter()
     token = get_spotify_token()
     if token:
-        log(
-            "api",
-            f"[dim][api][/dim] ensure_valid_token hit existing took={(time.perf_counter() - t0) * 1000:.0f}ms",
-        )
-        # Quick validation: try a cheap request? We just return it; 401 handling will refresh.
         return token
 
     globs = Globs()
@@ -598,7 +566,7 @@ def ensure_valid_token(config_path: Path | None = None) -> str | None:
         "SPOTIFY_REFRESH_TOKEN"
     )
     if refresh_token:
-        log("api", "[dim][api][/dim] ensure_valid_token trying refresh")
+        log("api", "[dim]api[/dim] · refreshing token…")
         client_id = (
             os.getenv("SPOTIFY_CLIENT_ID")
             or getattr(globs, "spotify_client_id", None)
@@ -618,23 +586,16 @@ def ensure_valid_token(config_path: Path | None = None) -> str | None:
                 save_spotify_tokens(
                     new_token, new_refresh, expires_in, config_path=config_path
                 )
-                log(
-                    "api",
-                    f"[dim][api][/dim] ensure_valid_token refresh ok took={(time.perf_counter() - t0) * 1000:.0f}ms",
-                )
+                dt = (time.perf_counter() - t0) * 1000
+                log("api", f"[dim]api[/dim] · refresh ok · {dt:.0f}ms")
                 return new_token
         except RuntimeError as exc:
-            log(
-                "api",
-                f"[dim][api][/dim] ensure_valid_token refresh failed took={(time.perf_counter() - t0) * 1000:.0f}ms",
-            )
+            dt = (time.perf_counter() - t0) * 1000
+            log("api", f"[dim]api[/dim] · refresh failed · {dt:.0f}ms")
             print(f"[yellow]Warning:[/yellow] Token refresh failed: {exc}")
 
     # Fall back to full OAuth flow
-    log(
-        "api",
-        f"[dim][api][/dim] ensure_valid_token falling back to oauth took={(time.perf_counter() - t0) * 1000:.0f}ms",
-    )
+    log("api", "[dim]api[/dim] · no token, starting oauth…")
     return run_oauth_flow(config_path=config_path)
 
 
@@ -653,10 +614,8 @@ def check_spotify_api_available() -> bool:
     t0 = time.perf_counter()
     token = get_spotify_token()
     if token:
-        log(
-            "api",
-            f"[dim][api][/dim] check available token=yes took={(time.perf_counter() - t0) * 1000:.0f}ms",
-        )
+        dt = (time.perf_counter() - t0) * 1000
+        log("api", f"[dim]api[/dim] · token ok · {dt:.0f}ms")
         return True
 
     # No token – see if OAuth is possible (needs both id and secret)
@@ -668,10 +627,8 @@ def check_spotify_api_available() -> bool:
         globs, "spotify_client_secret", None
     )
     has_oauth = bool(client_id and client_secret)
-    log(
-        "api",
-        f"[dim][api][/dim] check available token=no oauth={has_oauth} took={(time.perf_counter() - t0) * 1000:.0f}ms",
-    )
+    dt = (time.perf_counter() - t0) * 1000
+    log("api", f"[dim]api[/dim] · no token · oauth={'yes' if has_oauth else 'no'} · {dt:.0f}ms")
     if has_oauth:
         # Token missing but we can authenticate via browser flow.
         # Let watch_spotify_api handle run_oauth_flow / ensure_valid_token.
@@ -968,7 +925,6 @@ def _fetch_track_sync(track_id: str, token: str) -> Tuple[str | None, str | None
     artwork. This is a single GET triggered by the WebSocket event, not a poll loop.
     """
     t0 = time.perf_counter()
-    log("api", f"[dim][api][/dim] fetch track {track_id} via API (push-triggered)")
     try:
         resp = requests.get(
             f"https://api.spotify.com/v1/tracks/{track_id}",
@@ -976,7 +932,7 @@ def _fetch_track_sync(track_id: str, token: str) -> Tuple[str | None, str | None
             timeout=5,
         )
         dt = (time.perf_counter() - t0) * 1000
-        log("api", f"[dim][api][/dim] fetch track status={resp.status_code} took={dt:.0f}ms")
+        log("api", f"[dim]api[/dim] · track {track_id[:8]}… {resp.status_code} · {dt:.0f}ms")
         if resp.status_code == 401:
             return (None, None, None)
         if not resp.ok:
@@ -997,7 +953,7 @@ def _fetch_track_sync(track_id: str, token: str) -> Tuple[str | None, str | None
         return (art_url, title, artist)
     except requests.RequestException as exc:
         dt = (time.perf_counter() - t0) * 1000
-        log("api", f"[dim][api][/dim] fetch track error took={dt:.0f}ms err={exc}")
+        log("api", f"[dim]api[/dim] · track {track_id[:8]}… error · {dt:.0f}ms [dim]{exc}[/dim]")
         return (None, None, None)
 
 
@@ -1013,7 +969,7 @@ def _fetch_current_playback_sync(
     401 is signalled by returning None so caller can try refresh.
     """
     t0 = time.perf_counter()
-    log("api", "[dim][api][/dim] fetch currently-playing (initial hydration)")
+    log("api", "[dim]api[/dim] · fetching now playing…")
     try:
         resp = requests.get(
             SPOTIFY_CURRENTLY_PLAYING_URL,
@@ -1021,7 +977,7 @@ def _fetch_current_playback_sync(
             timeout=5,
         )
         dt = (time.perf_counter() - t0) * 1000
-        log("api", f"[dim][api][/dim] currently-playing status={resp.status_code} took={dt:.0f}ms")
+        log("api", f"[dim]api[/dim] · now playing {resp.status_code} · {dt:.0f}ms")
         if resp.status_code == 401:
             return None
         if resp.status_code == 204:
@@ -1048,7 +1004,7 @@ def _fetch_current_playback_sync(
         return None
     except requests.RequestException as exc:
         dt = (time.perf_counter() - t0) * 1000
-        log("api", f"[dim][api][/dim] currently-playing error took={dt:.0f}ms err={exc}")
+        log("api", f"[dim]api[/dim] · now playing error · {dt:.0f}ms [dim]{exc}[/dim]")
         return None
 
 
@@ -1125,15 +1081,11 @@ async def watch_spotify_websocket(
             websocket_url = custom_cfg
 
     last_art_url: str | None = None
-    watch_t0 = time.perf_counter()
     delay = reconnect_delay
     max_delay = 30.0
     msg_count = 0
 
-    log(
-        "api",
-        f"[dim][api][/dim] websocket watch start url={'custom' if websocket_url else 'dealer'} once={once} reconnect_delay={reconnect_delay}s",
-    )
+    log("api", f"[dim]api[/dim] · ws watch start · {'custom' if websocket_url else 'dealer'} · reconnect {reconnect_delay:.1f}s" + (" · once" if once else ""))
 
     # Initial hydration: single REST call so first track shows immediately
     # before any Dealer push arrives (e.g. app launched while track already playing).
@@ -1166,21 +1118,17 @@ async def watch_spotify_websocket(
                 init_t0 = time.perf_counter()
                 await process_art_url(art_url)
                 init_dt = (time.perf_counter() - init_t0) * 1000
-                total_dt = (time.perf_counter() - watch_t0) * 1000
-                log(
-                    "api",
-                    f"[dim][api][/dim] initial currently-playing processed art took={init_dt:.0f}ms total={total_dt:.0f}ms",
-                )
+                log("api", f"[dim]ws · initial {song_label} · {init_dt:.0f}ms[/dim]")
                 print("[bold green]Processing done[/bold green].")
                 print("")
                 if once:
                     return
             else:
-                log("api", "[dim][api][/dim] initial currently-playing no artwork skip")
+                log("api", "[dim]ws · initial no artwork, skip[/dim]")
         else:
-            log("api", "[dim][api][/dim] initial currently-playing nothing playing")
+            log("api", "[dim]ws · initial nothing playing[/dim]")
     except Exception as exc:
-        log("api", f"[dim][api][/dim] initial currently-playing error err={exc}")
+        log("api", f"[dim]ws · initial error: {exc}[/dim]")
 
     while True:
         # Build URL with current token (token may have been refreshed)
@@ -1201,10 +1149,10 @@ async def watch_spotify_websocket(
         else:
             ws_url = _build_websocket_url(token)
 
-        log(
-            "api",
-            f"[dim][api][/dim] websocket connect attempt delay={delay:.1f}s",
-        )
+        if delay != reconnect_delay:
+            log("api", f"[dim]ws · connecting… (retry in {delay:.1f}s)[/dim]")
+        else:
+            log("api", "[dim]ws · connecting…[/dim]")
         try:
             # Dealer expects browser-like Origin; helps avoid 403 on some networks
             dealer_headers = {
@@ -1229,46 +1177,23 @@ async def watch_spotify_websocket(
                     extra_headers=dealer_headers,  # type: ignore[call-arg]
                 )
             async with ws_ctx as ws:
-                log(
-                    "api",
-                    f"[dim][api][/dim] websocket connected total={(time.perf_counter() - watch_t0) * 1000:.0f}ms",
-                )
+                log("api", "[dim]ws · connected[/dim]")
                 delay = reconnect_delay  # reset on successful connect
                 async for raw_msg in ws:
                     msg_count += 1
-                    iter_t0 = time.perf_counter()
-                    try:
-                        preview = (
-                            raw_msg
-                            if isinstance(raw_msg, str)
-                            else raw_msg.decode("utf-8", errors="ignore")  # type: ignore[union-attr]
-                        )
-                    except Exception:
-                        preview = str(raw_msg)[:500]
-                    # Always show raw frame when api/all debug is on – truncated to keep logs readable
-                    log(
-                        "api",
-                        f"[dim][api][/dim] websocket raw #{msg_count} {preview[:800]!r}",
-                    )
                     parsed = _parse_ws_message(raw_msg)  # type: ignore[arg-type]
                     if parsed is None:
                         # Dealer play-history messages carry track uri as base64 protobuf
                         # with no artwork – fetch single track via API (push-triggered, not polling)
                         track_id = _extract_track_id_from_ws_raw(raw_msg)  # type: ignore[arg-type]
                         if track_id:
-                            log(
-                                "api",
-                                f"[dim][api][/dim] websocket msg #{msg_count} play-history track={track_id} → fetch track",
-                            )
+                            log("api", f"[dim]ws · track {track_id} → fetch[/dim]")
                             try:
                                 fetched = await asyncio.to_thread(
                                     _fetch_track_sync, track_id, token
                                 )
                             except Exception as exc:
-                                log(
-                                    "api",
-                                    f"[dim][api][/dim] websocket msg #{msg_count} fetch error err={exc} iter={(time.perf_counter() - iter_t0) * 1000:.0f}ms",
-                                )
+                                log("api", f"[dim]ws · fetch failed: {exc}[/dim]")
                                 continue
                             art_fetched, title_fetched, artist_fetched = fetched
                             # handle 401 – try token refresh once
@@ -1287,10 +1212,7 @@ async def watch_spotify_websocket(
                                 except Exception:
                                     pass
                             if not art_fetched:
-                                log(
-                                    "api",
-                                    f"[dim][api][/dim] websocket msg #{msg_count} fetch no artwork skip iter={(time.perf_counter() - iter_t0) * 1000:.0f}ms",
-                                )
+                                log("api", "[dim]ws · no artwork, skip[/dim]")
                                 continue
                             parsed = (art_fetched, title_fetched, artist_fetched)
                         else:
@@ -1304,28 +1226,19 @@ async def watch_spotify_websocket(
                                 )
                                 if isinstance(maybe, dict) and maybe.get("type") == "ping":
                                     await ws.send(json.dumps({"type": "pong"}))
-                                    log("api", "[dim][api][/dim] websocket ping→pong")
+                                    log("api", "[dim]ws · ping↔pong[/dim]")
                                     continue
                             except Exception:
                                 pass
-                            log(
-                                "api",
-                                f"[dim][api][/dim] websocket msg #{msg_count} unparsed/heartbeat skip iter={(time.perf_counter() - iter_t0) * 1000:.0f}ms",
-                            )
+                            log("api", "[dim]ws · heartbeat[/dim]")
                             continue
 
                     art_url, title, artist = parsed
                     if not art_url:
-                        log(
-                            "api",
-                            f"[dim][api][/dim] websocket msg #{msg_count} no artwork skip",
-                        )
+                        log("api", "[dim]ws · no artwork, skip[/dim]")
                         continue
                     if art_url == last_art_url:
-                        log(
-                            "api",
-                            f"[dim][api][/dim] websocket msg #{msg_count} unchanged art skip iter={(time.perf_counter() - iter_t0) * 1000:.0f}ms",
-                        )
+                        log("api", "[dim]ws · unchanged, skip[/dim]")
                         continue
 
                     song_label = ""
@@ -1344,12 +1257,7 @@ async def watch_spotify_websocket(
                     proc_t0 = time.perf_counter()
                     await process_art_url(art_url)
                     proc_dt = (time.perf_counter() - proc_t0) * 1000
-                    iter_dt = (time.perf_counter() - iter_t0) * 1000
-                    total_dt = (time.perf_counter() - watch_t0) * 1000
-                    log(
-                        "api",
-                        f"[dim][api][/dim] websocket msg #{msg_count} processed art took={proc_dt:.0f}ms iter={iter_dt:.0f}ms total={total_dt:.0f}ms",
-                    )
+                    log("api", f"[dim]ws · {song_label} · {proc_dt:.0f}ms[/dim]")
                     print("[bold green]Processing done[/bold green].")
                     print("")
                     last_art_url = art_url
@@ -1362,11 +1270,7 @@ async def watch_spotify_websocket(
             OSError,
             asyncio.TimeoutError,
         ) as exc:  # type: ignore[attr-defined]
-            dt = (time.perf_counter() - watch_t0) * 1000
-            log(
-                "api",
-                f"[dim][api][/dim] websocket disconnected total={dt:.0f}ms err={exc} reconnect in {delay:.1f}s",
-            )
+            log("api", f"[dim]ws · disconnected ({exc}) · retry in {delay:.1f}s[/dim]")
             # Auth errors – try token refresh before reconnect
             if (
                 "401" in str(exc)
@@ -1387,19 +1291,11 @@ async def watch_spotify_websocket(
                         continue
                 except Exception as refresh_exc:  # pragma: no cover
                     print(f"[bold red]Error:[/bold red] Refresh failed: {refresh_exc}")
-            # Quiet in normal run – use --debug api to see reconnects
-            log(
-                "api",
-                f"[dim][api][/dim] websocket reconnect scheduled in {delay:.1f}s",
-            )
             await asyncio.sleep(delay)
             delay = min(delay * 1.5, max_delay)
             continue
         except Exception as exc:  # pragma: no cover
-            log(
-                "api",
-                f"[dim][api][/dim] websocket unexpected error total={(time.perf_counter() - watch_t0) * 1000:.0f}ms err={exc}",
-            )
+            log("api", f"[dim]ws · error: {exc} · retry in {delay:.1f}s[/dim]")
             # websocket-only – just reconnect, no polling fallback
             await asyncio.sleep(delay)
             delay = min(delay * 1.5, max_delay)

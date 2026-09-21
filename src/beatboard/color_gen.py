@@ -248,16 +248,10 @@ async def get_color_palette(path: str) -> list[str]:
     start_time = time.time()
 
     # Use ColorThief for fast color extraction
-    thief_start = time.time()
     thief = ColorThief(path)
     palette = thief.get_palette(color_count=8)
-    thief_time = time.time() - thief_start
-
-    if globs.debug.get("perf") or globs.debug.get("all"):
-        print(f"[bold cyan]PERF:[/bold cyan] ColorThief extraction: {thief_time:.3f}s")
 
     # Load image for pixel analysis
-    img_load_start = time.time()
     img = Image.open(path).convert("RGB")
 
     # Resize to max 64x64 for faster processing
@@ -266,15 +260,8 @@ async def get_color_palette(path: str) -> list[str]:
 
     img_array = np.array(img)
     pixels = img_array.reshape(-1, 3)
-    img_load_time = time.time() - img_load_start
-
-    if globs.debug.get("perf") or globs.debug.get("all"):
-        print(
-            f"[bold cyan]PERF:[/bold cyan] Image loading for analysis: {img_load_time:.3f}s"
-        )
 
     # Calculate scores for each color
-    scoring_start = time.time()
     scored_colors = []
 
     for color in palette:
@@ -294,21 +281,10 @@ async def get_color_palette(path: str) -> list[str]:
 
         scored_colors.append((rgb_tuple, score, colorfulness, lightness, percentage))
 
-    scoring_time = time.time() - scoring_start
-
-    if globs.debug.get("perf") or globs.debug.get("all"):
-        print(f"[bold cyan]PERF:[/bold cyan] Color scoring: {scoring_time:.3f}s")
-
     # Sort by score (descending)
-    sort_start = time.time()
     scored_colors.sort(key=lambda x: x[1], reverse=True)
-    sort_time = time.time() - sort_start
-
-    if globs.debug.get("perf") or globs.debug.get("all"):
-        print(f"[bold cyan]PERF:[/bold cyan] Sorting: {sort_time:.3f}s")
 
     # Filter out colors that are too neutral or too bright
-    filter_start = time.time()
     filtered_colors = []
     for rgb_tuple, score, colorfulness, lightness, percentage in scored_colors:
         _, _, saturation = colorsys.rgb_to_hls(
@@ -320,30 +296,18 @@ async def get_color_palette(path: str) -> list[str]:
             continue
 
         filtered_colors.append(rgb_tuple)
-    filter_time = time.time() - filter_start
-
-    if globs.debug.get("perf") or globs.debug.get("all"):
-        print(f"[bold cyan]PERF:[/bold cyan] Color filtering: {filter_time:.3f}s")
 
     # Fallback if all colors are filtered
     if not filtered_colors:
         filtered_colors = [rgb_tuple for rgb_tuple, _, _, _, _ in scored_colors[:3]]
 
     # Convert to hex
-    hex_start = time.time()
     hex_colors = [f"{r:02x}{g:02x}{b:02x}" for r, g, b in filtered_colors]
-    hex_time = time.time() - hex_start
 
     if globs.debug.get("perf") or globs.debug.get("all"):
-        print(f"[bold cyan]PERF:[/bold cyan] Hex conversion: {hex_time:.3f}s")
-
-    total_time = time.time() - start_time
-    if globs.debug.get("perf") or globs.debug.get("all"):
-        print(f"[bold cyan]PERF:[/bold cyan] Total time: {total_time:.3f}s")
-        print(f"[bold cyan]PERF:[/bold cyan] Image dimensions: {img_array.shape}")
-        print(f"[bold cyan]PERF:[/bold cyan] Colors found: {len(palette)}")
+        total_ms = (time.time() - start_time) * 1000
         print(
-            f"[bold cyan]PERF:[/bold cyan] Colors after filtering: {len(filtered_colors)}"
+            f"[dim]perf[/dim] · palette {total_ms:.0f}ms · {len(palette)}→{len(filtered_colors)} colors · {img_array.shape[1]}×{img_array.shape[0]}"
         )
 
     if globs.debug.get("palette") or globs.debug.get("all"):

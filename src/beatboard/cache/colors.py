@@ -67,19 +67,8 @@ def cache_colors(name: Optional[str], colors: Optional[List[str]] = None) -> Non
             "Cache name must contain only alphanumeric characters, underscores, and hyphens"
         )
 
-    compress_start = time.time()
     compressed_colors = compress_colors(colors)
-    compress_time = time.time() - compress_start
 
-    if globs.debug.get("perf") or globs.debug.get("all"):
-        print(f"[bold cyan]PERF:[/bold cyan] Color compression: {compress_time:.3f}s")
-
-    log(
-        "cache",
-        f"[bold blue]CACHE WRITE[/bold blue] {name} [dim]({len(colors)} colors)[/dim]",
-    )
-
-    db_start = time.time()
     with get_connection() as db:
         try:
             cursor = db.cursor()
@@ -97,14 +86,11 @@ def cache_colors(name: Optional[str], colors: Optional[List[str]] = None) -> Non
         except sqlite3.Error as e:
             print(f"[red bold]Database error while caching colors:[/red bold] {e}")
             raise
-    db_time = time.time() - db_start
-
+    total_ms = (time.time() - start_time) * 1000
+    short = name[:8] + "…" if len(name) > 8 else name
+    log("cache", f"[dim]cache[/dim] · write {short} [dim]({len(colors)} colors)[/dim] · {total_ms:.0f}ms")
     if globs.debug.get("perf") or globs.debug.get("all"):
-        print(f"[bold cyan]PERF:[/bold cyan] Database write: {db_time:.3f}s")
-
-    total_time = time.time() - start_time
-    if globs.debug.get("perf") or globs.debug.get("all"):
-        print(f"[bold cyan]PERF:[/bold cyan] Total cache write: {total_time:.3f}s")
+        print(f"[dim]cache[/dim] · write {short} [dim]({len(colors)} colors)[/dim] · {total_ms:.0f}ms")
 
 
 def get_cached_colors(name: Optional[str]) -> Optional[List[str]]:
@@ -122,9 +108,7 @@ def get_cached_colors(name: Optional[str]) -> Optional[List[str]]:
     if name is None:
         return None
 
-    log("cache", f"[cyan]CACHE READ[/cyan] {name}")
-
-    db_start = time.time()
+    short = name[:8] + "…" if len(name) > 8 else name
     try:
         with get_connection() as db:
             cursor = db.execute(
@@ -139,38 +123,28 @@ def get_cached_colors(name: Optional[str]) -> Optional[List[str]]:
     except sqlite3.Error as e:
         log(
             "cache",
-            f"[red bold]Database error while reading cached colors:[/red bold] {e}",
+            f"[red bold]cache · error[/red bold] {short} {e}",
         )
         return None
-    db_time = time.time() - db_start
-
-    if globs.debug.get("perf") or globs.debug.get("all"):
-        print(f"[bold cyan]PERF:[/bold cyan] Database read: {db_time:.3f}s")
 
     if row is None:
-        log("cache", f"[bold red]CACHE MISS[/bold red] {name}")
+        total_ms = (time.time() - start_time) * 1000
+        msg = f"[dim]cache[/dim] · miss {short} · {total_ms:.0f}ms"
+        log("cache", msg)
+        if globs.debug.get("perf") or globs.debug.get("all"):
+            print(msg)
         return None
 
-    decompress_start = time.time()
     try:
         colors = decompress_colors(row[0])
     except (ValueError, zlib.error, json.JSONDecodeError):
-        log("cache", f"[red bold]CACHE CORRUPTION[/red bold] {name}")
+        log("cache", f"[red bold]cache · corrupt[/red bold] {short}")
         return None
-    decompress_time = time.time() - decompress_start
 
+    total_ms = (time.time() - start_time) * 1000
+    msg = f"[dim]cache[/dim] · hit {short} [dim]({len(colors)} colors)[/dim] · {total_ms:.0f}ms"
+    log("cache", msg)
     if globs.debug.get("perf") or globs.debug.get("all"):
-        print(
-            f"[bold cyan]PERF:[/bold cyan] Color decompression: {decompress_time:.3f}s"
-        )
-
-    log(
-        "cache",
-        f"[bold green]CACHE HIT[/bold green] {name} [dim]({len(colors)} colors)[/dim]",
-    )
-
-    total_time = time.time() - start_time
-    if globs.debug.get("perf") or globs.debug.get("all"):
-        print(f"[bold cyan]PERF:[/bold cyan] Total cache read: {total_time:.3f}s")
+        print(msg)
 
     return colors

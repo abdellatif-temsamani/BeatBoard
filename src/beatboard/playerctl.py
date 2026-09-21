@@ -103,44 +103,22 @@ async def process_art_url(art_url: str | None = None) -> None:
     if art_url is None:
         return
 
-    cache_start = time.time()
     cache_key = create_cache_key(art_url)
     hex_colors = get_cached_colors(cache_key)
     from_cache = bool(hex_colors)
-    cache_time = time.time() - cache_start
-
-    if globs.debug.get("cache") or globs.debug.get("all"):
-        print(
-            f"[bold cyan]CACHE:[/bold cyan] Lookup: {cache_time:.3f}s (hit: {from_cache})"
-        )
-
-    if globs.debug.get("perf") or globs.debug.get("all"):
-        print(
-            f"[bold cyan]PERF:[/bold cyan] Cache lookup: {cache_time:.3f}s (hit: {from_cache})"
-        )
 
     if not hex_colors:
         # Download or fetch new album art
-        download_start = time.time()
         try:
             await get_image(IMAGE_PATH, art_url)
         except Exception as e:
             print(f"[bold red]Error:[/bold red] fetching album art: {e}")
             return
-        download_time = time.time() - download_start
-
-        if globs.debug.get("perf") or globs.debug.get("all"):
-            print(f"[bold cyan]PERF:[/bold cyan] Image download: {download_time:.3f}s")
 
         # Extract palette (CPU-bound, run in thread)
         try:
             hex_colors = await get_color_palette(IMAGE_PATH)
-            cache_start = time.time()
             cache_colors(cache_key, hex_colors)
-            cache_write_time = time.time() - cache_start
-
-            if globs.debug.get("cache") or globs.debug.get("all"):
-                print(f"[bold cyan]CACHE:[/bold cyan] Write: {cache_write_time:.3f}s")
         except Exception as e:
             print(f"[bold red]Error:[/bold red] extracting color palette: {e}")
             return
@@ -174,8 +152,10 @@ async def process_art_url(art_url: str | None = None) -> None:
                 f"[bold red]Error:[/bold red] Command [bold]'{command[0]}'[/bold] not found. Skipping hardware command."
             )
             continue
-        if globs.debug.get("command"):
-            print(f"Running command: {command}")
+        if globs.debug.get("command") or globs.debug.get("all"):
+            # human-readable: hw · razer #6d9db4
+            cmd_str = " ".join(command)
+            print(f"[dim]hw[/dim] · {cmd_str}")
         try:
             await asyncio.to_thread(subprocess.run, command)
         except Exception as e:
@@ -183,11 +163,9 @@ async def process_art_url(art_url: str | None = None) -> None:
     command_time = time.time() - command_start
 
     if globs.debug.get("perf") or globs.debug.get("all"):
-        print(f"[bold cyan]PERF:[/bold cyan] Hardware commands: {command_time:.3f}s")
-
-    total_time = time.time() - start_time
-    if globs.debug.get("perf") or globs.debug.get("all"):
-        print(f"[bold cyan]PERF:[/bold cyan] Total processing time: {total_time:.3f}s")
+        total_ms = (time.time() - start_time) * 1000
+        hw_ms = command_time * 1000
+        print(f"[dim]perf[/dim] · total {total_ms:.0f}ms · hw {hw_ms:.0f}ms")
 
 
 async def watch_playerctl(once: bool = False):
