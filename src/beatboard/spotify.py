@@ -864,6 +864,99 @@ def _parse_ws_message(
 
 
 _TRACK_URI_RE = re.compile(r"spotify:track:([A-Za-z0-9]{22})")
+_ART_URL_RE = re.compile(r"https://i\.scdn\.co/image/[A-Za-z0-9]+")
+_SCDN_RE = re.compile(r"https://[^\s\"']*scdn\.co[^\s\"']*")
+
+
+def _extract_track_and_art_from_ws_raw(
+    raw: str | bytes,
+) -> tuple[str | None, str | None]:
+    """Extract (track_id, art_url) from Dealer base64 payload if possible.
+
+    Dealer play-history/cluster payloads are base64 protobuf containing
+    ascii ``spotify:track:<id>`` and often ``https://i.scdn.co/image/...``.
+    Decoding saves a REST fetch and reduces switch latency.
+    Returns (track_id, art_url) where either may be None.
+    """
+    if isinstance(raw, bytes):
+        try:
+            raw = raw.decode("utf-8", errors="ignore")
+        except Exception:
+            return (None, None)
+    raw = raw.strip()
+    if not raw:
+        return (None, None)
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError:
+        m = _TRACK_URI_RE.search(raw)
+        m_art = _ART_URL_RE.search(raw) or _SCDN_RE.search(raw)
+        art = None
+        if m_art:
+            art = m_art.group(0).strip().rstrip("\x00")
+            # trim at first non-url char (protobuf framing)
+            # keep only up to image id
+            m2 = _ART_URL_RE.search(art)
+            if m2:
+                art = m2.group(0)
+        return (m.group(1) if m else None, art)
+    if not isinstance(data, dict):
+        return (None, None)
+    payloads = data.get("payloads")
+    track_id: str | None = None
+    art_url: str | None = None
+    if isinstance(payloads, list):
+        for p in payloads:
+            if isinstance(p, str):
+                m = _TRACK_URI_RE.search(p)
+                if m and not track_id:
+                    track_id = m.group(1)
+                m_art = _ART_URL_RE.search(p) or _SCDN_RE.search(p)
+                if m_art and not art_url:
+                    art = m_art.group(0)
+                    m2 = _ART_URL_RE.search(art)
+                    art_url = m2.group(0) if m2 else art
+                if track_id and art_url:
+                    return (track_id, art_url)
+                try:
+                    padded = p + "=" * (-len(p) % 4)
+                    decoded = base64.b64decode(padded, validate=False)
+                    text = decoded.decode("utf-8", errors="ignore")
+                    if not track_id:
+                        m2 = _TRACK_URI_RE.search(text)
+                        if m2:
+                            track_id = m2.group(1)
+                        else:
+                            m3 = _TRACK_URI_RE.search(decoded.decode("latin1", errors="ignore"))
+                            if m3:
+                                track_id = m3.group(1)
+                    if not art_url:
+                        m_a = _ART_URL_RE.search(text) or _SCDN_RE.search(text)
+                        if m_a:
+                            art = m_a.group(0)
+                            m2 = _ART_URL_RE.search(art)
+                            art_url = m2.group(0) if m2 else art
+                        else:
+                            # also try latin1 decoded
+                            m_a2 = _ART_URL_RE.search(decoded.decode("latin1", errors="ignore")) or _SCDN_RE.search(decoded.decode("latin1", errors="ignore"))
+                            if m_a2:
+                                art = m_a2.group(0)
+                                m2 = _ART_URL_RE.search(art)
+                                art_url = m2.group(0) if m2 else art
+                    if track_id and art_url:
+                        return (track_id, art_url)
+                except Exception:
+                    continue
+        if track_id or art_url:
+            return (track_id, art_url)
+    m = _TRACK_URI_RE.search(raw)
+    m_art = _ART_URL_RE.search(raw) or _SCDN_RE.search(raw)
+    art = None
+    if m_art:
+        art = m_art.group(0)
+        m2 = _ART_URL_RE.search(art)
+        art = m2.group(0) if m2 else art
+    return (m.group(1) if m else None, art)
 
 
 def _extract_track_id_from_ws_raw(raw: str | bytes) -> str | None:
@@ -1081,6 +1174,7 @@ async def watch_spotify_websocket(
             websocket_url = custom_cfg
 
     last_art_url: str | None = None
+    last_track_id: str | None = None
     delay = reconnect_delay
     max_delay = 30.0
     msg_count = 0
@@ -1182,42 +1276,70 @@ async def watch_spotify_websocket(
                 async for raw_msg in ws:
                     msg_count += 1
                     parsed = _parse_ws_message(raw_msg)  # type: ignore[arg-type]
+                    _pending_track_id: str | None = None
                     if parsed is None:
-                        # Dealer play-history messages carry track uri as base64 protobuf
-                        # with no artwork – fetch single track via API (push-triggered, not polling)
-                        track_id = _extract_track_id_from_ws_raw(raw_msg)  # type: ignore[arg-type]
+                        track_id, art_url_ws = _extract_track_and_art_from_ws_raw(raw_msg)  # type: ignore[arg-type]
+                        _pending_track_id = track_id
+                        # Fast path: track cache hit → no API, no image download
                         if track_id:
-                            log("api", f"[dim]ws · track {track_id} → fetch[/dim]")
-                            try:
-                                fetched = await asyncio.to_thread(
-                                    _fetch_track_sync, track_id, token
-                                )
-                            except Exception as exc:
-                                log("api", f"[dim]ws · fetch failed: {exc}[/dim]")
+                            if track_id == last_track_id:
+                                log("api", "[dim]ws · unchanged, skip[/dim]")
                                 continue
-                            art_fetched, title_fetched, artist_fetched = fetched
-                            # handle 401 – try token refresh once
-                            if art_fetched is None and title_fetched is None:
-                                # check if token refresh helps (fetch returned 401)
+                            track_key = f"track_{track_id}"
+                            from .cache.colors import get_cached_colors as _track_get
+                            from .playerctl import apply_colors as _apply_colors
+
+                            cached = _track_get(track_key)
+                            if cached:
+                                log("api", f"[dim]ws · track {track_id[:8]}… cache hit[/dim]")
+                                song_label = f"{track_id[:8]}… (cache)"
+                                print(f"[bold yellow]Processing[/bold yellow] [bold green]{song_label}[/bold green]...")
+                                proc_t0 = time.perf_counter()
+                                await _apply_colors(cached)
+                                proc_dt = (time.perf_counter() - proc_t0) * 1000
+                                log("api", f"[dim]ws · {song_label} · {proc_dt:.0f}ms[/dim]")
+                                print("[bold green]Processing done[/bold green].")
+                                print("")
+                                last_art_url = art_url_ws or track_key
+                                last_track_id = track_id
+                                if once:
+                                    return
+                                continue
+                            # Prefer art_url directly from WS payload over API fetch
+                            if art_url_ws:
+                                if art_url_ws == last_art_url:
+                                    log("api", "[dim]ws · unchanged, skip[/dim]")
+                                    continue
+                                parsed = (art_url_ws, None, None)
+                            else:
+                                log("api", f"[dim]ws · track {track_id} → fetch[/dim]")
                                 try:
-                                    refreshed = ensure_valid_token(
-                                        config_path=getattr(globs, "config_path", None)
+                                    fetched = await asyncio.to_thread(
+                                        _fetch_track_sync, track_id, token
                                     )
-                                    if refreshed and refreshed != token:
-                                        token = refreshed
-                                        fetched = await asyncio.to_thread(
-                                            _fetch_track_sync, track_id, token
+                                except Exception as exc:
+                                    log("api", f"[dim]ws · fetch failed: {exc}[/dim]")
+                                    continue
+                                art_fetched, title_fetched, artist_fetched = fetched
+                                if art_fetched is None and title_fetched is None:
+                                    try:
+                                        refreshed = ensure_valid_token(
+                                            config_path=getattr(globs, "config_path", None)
                                         )
-                                        art_fetched, title_fetched, artist_fetched = fetched
-                                except Exception:
-                                    pass
-                            if not art_fetched:
-                                log("api", "[dim]ws · no artwork, skip[/dim]")
-                                continue
-                            parsed = (art_fetched, title_fetched, artist_fetched)
+                                        if refreshed and refreshed != token:
+                                            token = refreshed
+                                            fetched = await asyncio.to_thread(
+                                                _fetch_track_sync, track_id, token
+                                            )
+                                            art_fetched, title_fetched, artist_fetched = fetched
+                                    except Exception:
+                                        pass
+                                if not art_fetched:
+                                    log("api", "[dim]ws · no artwork, skip[/dim]")
+                                    continue
+                                parsed = (art_fetched, title_fetched, artist_fetched)
                         else:
-                            # Check for dealer ping/heartbeat that isn't JSON track data
-                            # Dealer sends {"type":"ping"} – reply with pong
+                            # No track id – heartbeat / ping or bare art_url
                             try:
                                 maybe = (
                                     json.loads(raw_msg)
@@ -1230,8 +1352,14 @@ async def watch_spotify_websocket(
                                     continue
                             except Exception:
                                 pass
-                            log("api", "[dim]ws · heartbeat[/dim]")
-                            continue
+                            if art_url_ws:
+                                if art_url_ws == last_art_url:
+                                    log("api", "[dim]ws · unchanged, skip[/dim]")
+                                    continue
+                                parsed = (art_url_ws, None, None)
+                            else:
+                                log("api", "[dim]ws · heartbeat[/dim]")
+                                continue
 
                     art_url, title, artist = parsed
                     if not art_url:
@@ -1250,17 +1378,27 @@ async def watch_spotify_websocket(
                         song_label = artist
                     else:
                         song_label = "Unknown track"
+                        if _pending_track_id:
+                            song_label = f"{_pending_track_id[:8]}…"
 
                     print(
                         f"[bold yellow]Processing[/bold yellow] [bold green]{song_label}[/bold green]..."
                     )
                     proc_t0 = time.perf_counter()
-                    await process_art_url(art_url)
+                    hex_colors = await process_art_url(art_url)
                     proc_dt = (time.perf_counter() - proc_t0) * 1000
                     log("api", f"[dim]ws · {song_label} · {proc_dt:.0f}ms[/dim]")
                     print("[bold green]Processing done[/bold green].")
                     print("")
                     last_art_url = art_url
+                    if _pending_track_id and hex_colors:
+                        try:
+                            from .cache.colors import cache_colors as _track_cache2
+
+                            _track_cache2(f"track_{_pending_track_id}", hex_colors)
+                        except Exception:
+                            pass
+                        last_track_id = _pending_track_id
                     if once:
                         return
 

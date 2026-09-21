@@ -88,9 +88,9 @@ def cache_colors(name: Optional[str], colors: Optional[List[str]] = None) -> Non
             raise
     total_ms = (time.time() - start_time) * 1000
     short = name[:8] + "…" if len(name) > 8 else name
-    log("cache", f"[dim]cache[/dim] · write {short} [dim]({len(colors)} colors)[/dim] · {total_ms:.0f}ms")
-    if globs.debug.get("perf") or globs.debug.get("all"):
-        print(f"[dim]cache[/dim] · write {short} [dim]({len(colors)} colors)[/dim] · {total_ms:.0f}ms")
+    msg = f"[dim]cache[/dim] · write {short} [dim]({len(colors)} colors)[/dim] · {total_ms:.0f}ms"
+    if globs.debug.get("cache") or globs.debug.get("perf") or globs.debug.get("all"):
+        print(msg)
 
 
 def get_cached_colors(name: Optional[str]) -> Optional[List[str]]:
@@ -130,8 +130,7 @@ def get_cached_colors(name: Optional[str]) -> Optional[List[str]]:
     if row is None:
         total_ms = (time.time() - start_time) * 1000
         msg = f"[dim]cache[/dim] · miss {short} · {total_ms:.0f}ms"
-        log("cache", msg)
-        if globs.debug.get("perf") or globs.debug.get("all"):
+        if globs.debug.get("cache") or globs.debug.get("perf") or globs.debug.get("all"):
             print(msg)
         return None
 
@@ -143,8 +142,7 @@ def get_cached_colors(name: Optional[str]) -> Optional[List[str]]:
 
     total_ms = (time.time() - start_time) * 1000
     msg = f"[dim]cache[/dim] · hit {short} [dim]({len(colors)} colors)[/dim] · {total_ms:.0f}ms"
-    log("cache", msg)
-    if globs.debug.get("perf") or globs.debug.get("all"):
+    if globs.debug.get("cache") or globs.debug.get("perf") or globs.debug.get("all"):
         print(msg)
 
     return colors
