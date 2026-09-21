@@ -307,7 +307,7 @@ async def get_color_palette(path: str) -> list[str]:
     if globs.debug.get("perf") or globs.debug.get("all"):
         total_ms = (time.time() - start_time) * 1000
         print(
-            f"[dim]perf[/dim] · palette {total_ms:.0f}ms · {len(palette)}→{len(filtered_colors)} colors · {img_array.shape[1]}×{img_array.shape[0]}"
+            f"[cyan]perf[/cyan] [dim]·[/dim] palette [cyan]{total_ms:.0f}ms[/cyan] [dim]·[/dim] {len(palette)}→{len(filtered_colors)} colors [dim]·[/dim] {img_array.shape[1]}×{img_array.shape[0]}"
         )
 
     if globs.debug.get("palette") or globs.debug.get("all"):

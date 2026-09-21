@@ -108,14 +108,14 @@ async def apply_colors(hex_colors: list[str]) -> None:
             continue
         if globs.debug.get("command") or globs.debug.get("all"):
             cmd_str = " ".join(command)
-            print(f"[dim]hw[/dim] · {cmd_str}")
+            print(f"[magenta]hw[/magenta] [dim]·[/dim] {cmd_str}")
         try:
             await asyncio.to_thread(subprocess.run, command)
         except Exception as e:
             print(f"[bold red]Error:[/bold red] running hardware command: {e}")
     if globs.debug.get("perf") or globs.debug.get("all"):
         hw_ms = (time.time() - start_hw) * 1000
-        print(f"[dim]perf[/dim] · hw {hw_ms:.0f}ms")
+        print(f"[cyan]perf[/cyan] [dim]·[/dim] hw [cyan]{hw_ms:.0f}ms[/cyan]")
 
 
 async def process_art_url(art_url: str | None = None) -> list[str] | None:
@@ -171,7 +171,7 @@ async def process_art_url(art_url: str | None = None) -> list[str] | None:
             continue
         if globs.debug.get("command") or globs.debug.get("all"):
             cmd_str = " ".join(command)
-            print(f"[dim]hw[/dim] · {cmd_str}")
+            print(f"[magenta]hw[/magenta] [dim]·[/dim] {cmd_str}")
         try:
             await asyncio.to_thread(subprocess.run, command)
         except Exception as e:
@@ -181,7 +181,9 @@ async def process_art_url(art_url: str | None = None) -> list[str] | None:
     if globs.debug.get("perf") or globs.debug.get("all"):
         total_ms = (time.time() - start_time) * 1000
         hw_ms = command_time * 1000
-        print(f"[dim]perf[/dim] · total {total_ms:.0f}ms · hw {hw_ms:.0f}ms")
+        print(
+            f"[cyan]perf[/cyan] [dim]·[/dim] total [cyan]{total_ms:.0f}ms[/cyan] [dim]·[/dim] hw [magenta]{hw_ms:.0f}ms[/magenta]"
+        )
 
     # Palette debug after hardware so it doesn't block lighting update
     if globs.debug.get("palette") or globs.debug.get("all"):

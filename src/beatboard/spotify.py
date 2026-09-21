@@ -91,7 +91,10 @@ def get_spotify_token() -> str | None:
         if token:
             token = token.strip()
             if token:
-                log("api", f"[dim]api[/dim] · token from env:{env_var}")
+                log(
+                    "api",
+                    f"[cyan]api[/cyan] [dim]·[/dim] token from env:[green]{env_var}[/green]",
+                )
                 return token
 
     # 2. Config file via Globs (populated from ~/.config/beatboard/config.yaml)
@@ -102,7 +105,7 @@ def get_spotify_token() -> str | None:
             token = token.strip()
             return token
 
-    log("api", "[dim]api[/dim] · no token found")
+    log("api", "[yellow]api[/yellow] [dim]·[/dim] no token found")
     return None
 
 
@@ -184,14 +187,17 @@ def exchange_code_for_token(
     )
     dt = (time.perf_counter() - t0) * 1000
     if not resp.ok:
-        log("api", f"[dim]api[/dim] · token exchange {resp.status_code} · {dt:.0f}ms")
+        log(
+            "api",
+            f"[red]api[/red] [dim]·[/dim] token exchange [red]{resp.status_code}[/red] [dim]·[/dim] [red]{dt:.0f}ms[/red]",
+        )
         raise RuntimeError(
             f"Spotify token exchange failed {resp.status_code}: {resp.text[:500]}"
         )
     data = resp.json()
     log(
         "api",
-        f"[dim]api[/dim] · token exchange {resp.status_code} · {dt:.0f}ms [dim](expires {data.get('expires_in')}s)[/dim]",
+        f"[green]api[/green] [dim]·[/dim] token exchange [green]{resp.status_code}[/green] [dim]·[/dim] [green]{dt:.0f}ms[/green] [dim](expires {data.get('expires_in')}s)[/dim]",
     )
     return data
 
@@ -215,14 +221,17 @@ def refresh_access_token(
     )
     dt = (time.perf_counter() - t0) * 1000
     if not resp.ok:
-        log("api", f"[dim]api[/dim] · refresh {resp.status_code} · {dt:.0f}ms")
+        log(
+            "api",
+            f"[red]api[/red] [dim]·[/dim] refresh [red]{resp.status_code}[/red] [dim]·[/dim] [red]{dt:.0f}ms[/red]",
+        )
         raise RuntimeError(
             f"Spotify refresh failed {resp.status_code}: {resp.text[:500]}"
         )
     data = resp.json()
     log(
         "api",
-        f"[dim]api[/dim] · refresh {resp.status_code} · {dt:.0f}ms [dim](expires {data.get('expires_in')}s)[/dim]",
+        f"[green]api[/green] [dim]·[/dim] refresh [green]{resp.status_code}[/green] [dim]·[/dim] [green]{dt:.0f}ms[/green] [dim](expires {data.get('expires_in')}s)[/dim]",
     )
     return data
 
@@ -283,7 +292,10 @@ def save_spotify_tokens(
         config_path.parent.mkdir(parents=True, exist_ok=True)
         config_path.write_text(yaml.safe_dump(data, sort_keys=True), encoding="utf-8")
         dt = (time.perf_counter() - t0) * 1000
-        log("api", f"[dim]api[/dim] · token saved · {dt:.0f}ms")
+        log(
+            "api",
+            f"[green]api[/green] [dim]·[/dim] token saved [dim]·[/dim] [green]{dt:.0f}ms[/green]",
+        )
     except OSError as exc:
         print(
             f"[yellow]Warning:[/yellow] could not save Spotify token to {config_path}: {exc}"
@@ -326,7 +338,7 @@ code{background:rgba(255,255,255,.08);padding:2px 6px;border-radius:6px;font-siz
 <body>
   <div class="card">
     <div class="logo">♫ BeatBoard</div>
-    <div class="icon {icon}">{'✓' if icon=='success' else '✕' if icon=='error' else '!'}</div>
+    <div class="icon {icon}">{"✓" if icon == "success" else "✕" if icon == "error" else "!"}</div>
     <h1>{html_lib.escape(title)}</h1>
     {body}
     {footer}
@@ -408,7 +420,10 @@ def _run_local_server(
     """Run a temporary HTTP server to capture OAuth callback."""
     code_queue: queue.Queue = queue.Queue()
     t0 = time.perf_counter()
-    log("api", f"[dim]api[/dim] · callback listening on http://{host}:{port}/callback · {timeout}s")
+    log(
+        "api",
+        f"[cyan]api[/cyan] [dim]·[/dim] callback listening on [cyan]http://{host}:{port}/callback[/cyan] [dim]·[/dim] [cyan]{timeout}s[/cyan]",
+    )
 
     # Allow address reuse
     class ReusableTCPServer(socketserver.TCPServer):
@@ -425,11 +440,18 @@ def _run_local_server(
         try:
             code, state, error = code_queue.get(timeout=timeout)
             dt = (time.perf_counter() - t0) * 1000
-            log("api", f"[dim]api[/dim] · callback {'ok' if code else 'error'} · {dt:.0f}ms" + (f" [dim]({error})[/dim]" if error else ""))
+            log(
+                "api",
+                f"[cyan]api[/cyan] [dim]·[/dim] callback {'[green]ok[/green]' if code else '[red]error[/red]'} [dim]·[/dim] [cyan]{dt:.0f}ms[/cyan]"
+                + (f" [dim]({error})[/dim]" if error else ""),
+            )
             return code, state, error
         except queue.Empty:
             dt = (time.perf_counter() - t0) * 1000
-            log("api", f"[dim]api[/dim] · callback timeout · {dt:.0f}ms")
+            log(
+                "api",
+                f"[yellow]api[/yellow] [dim]·[/dim] callback timeout [dim]·[/dim] [yellow]{dt:.0f}ms[/yellow]",
+            )
             return None, None, "timeout"
         finally:
             httpd.shutdown()
@@ -487,7 +509,10 @@ def run_oauth_flow(
     port = parsed.port or 8888
 
     oauth_t0 = time.perf_counter()
-    log("api", f"[dim]api[/dim] · oauth start · {redirect_uri}")
+    log(
+        "api",
+        f"[cyan]api[/cyan] [dim]·[/dim] oauth start [dim]·[/dim] [cyan]{redirect_uri}[/cyan]",
+    )
 
     auth_url, state = build_auth_url(client_id, redirect_uri, scope)
     # State is returned as tuple (url, state) by our helper; handle both signatures
@@ -508,7 +533,10 @@ def run_oauth_flow(
     code, returned_state, error = _run_local_server(host, port, timeout)
     dt_cb = (time.perf_counter() - oauth_t0) * 1000
     if error and error != "timeout":
-        log("api", f"[dim]api[/dim] · oauth callback error · {dt_cb:.0f}ms [dim]({error})[/dim]")
+        log(
+            "api",
+            f"[red]api[/red] [dim]·[/dim] oauth callback error [dim]·[/dim] [red]{dt_cb:.0f}ms[/red] [dim]({error})[/dim]",
+        )
 
     if error == "timeout":
         print("[red bold]Error:[/red bold] Authentication timed out. Please try again.")
@@ -542,7 +570,10 @@ def run_oauth_flow(
         access_token, refresh_token, expires_in, config_path=config_path
     )
     dt_total = (time.perf_counter() - oauth_t0) * 1000
-    log("api", f"[dim]api[/dim] · oauth done · {dt_total:.0f}ms [dim](expires {expires_in}s)[/dim]")
+    log(
+        "api",
+        f"[green]api[/green] [dim]·[/dim] oauth done [dim]·[/dim] [green]{dt_total:.0f}ms[/green] [dim](expires {expires_in}s)[/dim]",
+    )
     print(
         "[green bold]Spotify authentication successful![/green bold] Token saved to config."
     )
@@ -566,7 +597,7 @@ def ensure_valid_token(config_path: Path | None = None) -> str | None:
         "SPOTIFY_REFRESH_TOKEN"
     )
     if refresh_token:
-        log("api", "[dim]api[/dim] · refreshing token…")
+        log("api", "[cyan]api[/cyan] [dim]·[/dim] [yellow]refreshing token…[/yellow]")
         client_id = (
             os.getenv("SPOTIFY_CLIENT_ID")
             or getattr(globs, "spotify_client_id", None)
@@ -587,15 +618,21 @@ def ensure_valid_token(config_path: Path | None = None) -> str | None:
                     new_token, new_refresh, expires_in, config_path=config_path
                 )
                 dt = (time.perf_counter() - t0) * 1000
-                log("api", f"[dim]api[/dim] · refresh ok · {dt:.0f}ms")
+                log(
+                    "api",
+                    f"[green]api[/green] [dim]·[/dim] refresh ok [dim]·[/dim] [green]{dt:.0f}ms[/green]",
+                )
                 return new_token
         except RuntimeError as exc:
             dt = (time.perf_counter() - t0) * 1000
-            log("api", f"[dim]api[/dim] · refresh failed · {dt:.0f}ms")
+            log(
+                "api",
+                f"[red]api[/red] [dim]·[/dim] refresh failed [dim]·[/dim] [red]{dt:.0f}ms[/red]",
+            )
             print(f"[yellow]Warning:[/yellow] Token refresh failed: {exc}")
 
     # Fall back to full OAuth flow
-    log("api", "[dim]api[/dim] · no token, starting oauth…")
+    log("api", "[yellow]api[/yellow] [dim]·[/dim] no token, starting oauth…")
     return run_oauth_flow(config_path=config_path)
 
 
@@ -615,7 +652,10 @@ def check_spotify_api_available() -> bool:
     token = get_spotify_token()
     if token:
         dt = (time.perf_counter() - t0) * 1000
-        log("api", f"[dim]api[/dim] · token ok · {dt:.0f}ms")
+        log(
+            "api",
+            f"[green]api[/green] [dim]·[/dim] token ok [dim]·[/dim] [green]{dt:.0f}ms[/green]",
+        )
         return True
 
     # No token – see if OAuth is possible (needs both id and secret)
@@ -628,7 +668,10 @@ def check_spotify_api_available() -> bool:
     )
     has_oauth = bool(client_id and client_secret)
     dt = (time.perf_counter() - t0) * 1000
-    log("api", f"[dim]api[/dim] · no token · oauth={'yes' if has_oauth else 'no'} · {dt:.0f}ms")
+    log(
+        "api",
+        f"[yellow]api[/yellow] [dim]·[/dim] no token [dim]·[/dim] oauth={'[green]yes[/green]' if has_oauth else '[red]no[/red]'} [dim]·[/dim] [cyan]{dt:.0f}ms[/cyan]",
+    )
     if has_oauth:
         # Token missing but we can authenticate via browser flow.
         # Let watch_spotify_api handle run_oauth_flow / ensure_valid_token.
@@ -705,26 +748,35 @@ def _extract_track_from_payload(
     # We try to be very tolerant because dealer payloads are undocumented and
     # vary between Spotify Web Player versions. REST uses {"item":{"name", "artists", "album":{"images"}}}
     # while Dealer Connect-State uses {"cluster":{"player_state":{"track":{"uri":"spotify:track:", "metadata":{"image_xlarge_url":...}}}}
-    def _from_track_dict(track: dict) -> Tuple[str | None, str | None, str | None] | None:
+    def _from_track_dict(
+        track: dict,
+    ) -> Tuple[str | None, str | None, str | None] | None:
         if not isinstance(track, dict):
             return None
-        metadata = track.get("metadata") if isinstance(track.get("metadata"), dict) else {}
+        metadata = (
+            track.get("metadata") if isinstance(track.get("metadata"), dict) else {}
+        )
         # title
         title = track.get("name") or metadata.get("title") or track.get("title")
         # artist – dealer uses artist_name / metadata.artist_name / artists array
         artist: str | None = None
         if isinstance(track.get("artist_name"), str) and track.get("artist_name"):
             artist = track.get("artist_name")  # type: ignore[assignment]
-        elif isinstance(metadata.get("artist_name"), str) and metadata.get("artist_name"):
+        elif isinstance(metadata.get("artist_name"), str) and metadata.get(
+            "artist_name"
+        ):
             artist = metadata.get("artist_name")
         elif isinstance(track.get("artists"), list):
             names = [
                 a.get("name", "") if isinstance(a, dict) else str(a)
                 for a in track.get("artists", [])  # type: ignore[union-attr]
-                if isinstance(a, (dict, str)) and (a.get("name") if isinstance(a, dict) else a)
+                if isinstance(a, (dict, str))
+                and (a.get("name") if isinstance(a, dict) else a)
             ]
             artist = ", ".join(n for n in names if n) if names else None
-        elif isinstance(track.get("artist"), dict) and track.get("artist", {}).get("name"):
+        elif isinstance(track.get("artist"), dict) and track.get("artist", {}).get(
+            "name"
+        ):
             artist = track["artist"]["name"]  # type: ignore[index]
         # art – try album.images first, then metadata image_*_url, then direct fields
         art_url: str | None = None
@@ -734,13 +786,24 @@ def _extract_track_from_payload(
             if images and isinstance(images[0], dict) and images[0].get("url"):
                 art_url = images[0].get("url")
         if not art_url and metadata:
-            for key in ("image_xlarge_url", "image_large_url", "image_url", "image_small_url"):
+            for key in (
+                "image_xlarge_url",
+                "image_large_url",
+                "image_url",
+                "image_small_url",
+            ):
                 val = metadata.get(key)
                 if isinstance(val, str) and val.strip():
                     art_url = val.strip()
                     break
         if not art_url:
-            for key in ("image_xlarge_url", "image_large_url", "image_url", "cover_url", "cover"):
+            for key in (
+                "image_xlarge_url",
+                "image_large_url",
+                "image_url",
+                "cover_url",
+                "cover",
+            ):
                 val = track.get(key)
                 if isinstance(val, str) and val.strip():
                     art_url = val.strip()
@@ -749,7 +812,12 @@ def _extract_track_from_payload(
         if not art_url:
             for key in ("images",):
                 val = track.get(key) or metadata.get(key)
-                if isinstance(val, list) and val and isinstance(val[0], dict) and val[0].get("url"):
+                if (
+                    isinstance(val, list)
+                    and val
+                    and isinstance(val[0], dict)
+                    and val[0].get("url")
+                ):
                     art_url = val[0].get("url")
                     break
         if art_url or title or artist:
@@ -792,7 +860,9 @@ def _extract_track_from_payload(
                     return extracted
 
             # Bare track dict (itself looks like a track with uri + metadata)
-            if isinstance(cur.get("uri"), str) and cur["uri"].startswith("spotify:track:"):
+            if isinstance(cur.get("uri"), str) and cur["uri"].startswith(
+                "spotify:track:"
+            ):
                 extracted = _from_track_dict(cur)
                 if extracted:
                     return extracted
@@ -927,7 +997,9 @@ def _extract_track_and_art_from_ws_raw(
                         if m2:
                             track_id = m2.group(1)
                         else:
-                            m3 = _TRACK_URI_RE.search(decoded.decode("latin1", errors="ignore"))
+                            m3 = _TRACK_URI_RE.search(
+                                decoded.decode("latin1", errors="ignore")
+                            )
                             if m3:
                                 track_id = m3.group(1)
                     if not art_url:
@@ -938,7 +1010,11 @@ def _extract_track_and_art_from_ws_raw(
                             art_url = m2.group(0) if m2 else art
                         else:
                             # also try latin1 decoded
-                            m_a2 = _ART_URL_RE.search(decoded.decode("latin1", errors="ignore")) or _SCDN_RE.search(decoded.decode("latin1", errors="ignore"))
+                            m_a2 = _ART_URL_RE.search(
+                                decoded.decode("latin1", errors="ignore")
+                            ) or _SCDN_RE.search(
+                                decoded.decode("latin1", errors="ignore")
+                            )
                             if m_a2:
                                 art = m_a2.group(0)
                                 m2 = _ART_URL_RE.search(art)
@@ -1011,7 +1087,9 @@ def _extract_track_id_from_ws_raw(raw: str | bytes) -> str | None:
     return m.group(1) if m else None
 
 
-def _fetch_track_sync(track_id: str, token: str) -> Tuple[str | None, str | None, str | None]:
+def _fetch_track_sync(
+    track_id: str, token: str
+) -> Tuple[str | None, str | None, str | None]:
     """Fetch a single track's (art_url, title, artist) via Spotify API – event-driven, not polling.
 
     Called only when Dealer push gives us a track id (e.g. play-history base64) but no
@@ -1025,7 +1103,17 @@ def _fetch_track_sync(track_id: str, token: str) -> Tuple[str | None, str | None
             timeout=5,
         )
         dt = (time.perf_counter() - t0) * 1000
-        log("api", f"[dim]api[/dim] · track {track_id[:8]}… {resp.status_code} · {dt:.0f}ms")
+        _c = (
+            "green"
+            if resp.ok
+            else "yellow"
+            if resp.status_code in (204, 404)
+            else "red"
+        )
+        log(
+            "api",
+            f"[cyan]api[/cyan] [dim]·[/dim] track [white]{track_id[:8]}…[/white] [{_c}]{resp.status_code}[/] [dim]·[/dim] [cyan]{dt:.0f}ms[/cyan]",
+        )
         if resp.status_code == 401:
             return (None, None, None)
         if not resp.ok:
@@ -1035,7 +1123,11 @@ def _fetch_track_sync(track_id: str, token: str) -> Tuple[str | None, str | None
         artists = data.get("artists") or []
         artist: str | None = None
         if artists:
-            names = [a.get("name", "") for a in artists if isinstance(a, dict) and a.get("name")]
+            names = [
+                a.get("name", "")
+                for a in artists
+                if isinstance(a, dict) and a.get("name")
+            ]
             artist = ", ".join(n for n in names if n) if names else None
         art_url: str | None = None
         album = data.get("album") or {}
@@ -1046,7 +1138,10 @@ def _fetch_track_sync(track_id: str, token: str) -> Tuple[str | None, str | None
         return (art_url, title, artist)
     except requests.RequestException as exc:
         dt = (time.perf_counter() - t0) * 1000
-        log("api", f"[dim]api[/dim] · track {track_id[:8]}… error · {dt:.0f}ms [dim]{exc}[/dim]")
+        log(
+            "api",
+            f"[red]api[/red] [dim]·[/dim] track [white]{track_id[:8]}…[/white] [red]error[/red] [dim]·[/dim] [red]{dt:.0f}ms[/red] [dim]{exc}[/dim]",
+        )
         return (None, None, None)
 
 
@@ -1062,7 +1157,7 @@ def _fetch_current_playback_sync(
     401 is signalled by returning None so caller can try refresh.
     """
     t0 = time.perf_counter()
-    log("api", "[dim]api[/dim] · fetching now playing…")
+    log("api", "[cyan]api[/cyan] [dim]·[/dim] fetching now playing…")
     try:
         resp = requests.get(
             SPOTIFY_CURRENTLY_PLAYING_URL,
@@ -1070,7 +1165,17 @@ def _fetch_current_playback_sync(
             timeout=5,
         )
         dt = (time.perf_counter() - t0) * 1000
-        log("api", f"[dim]api[/dim] · now playing {resp.status_code} · {dt:.0f}ms")
+        _c2 = (
+            "green"
+            if resp.status_code == 200
+            else "yellow"
+            if resp.status_code in (204, 404)
+            else "red"
+        )
+        log(
+            "api",
+            f"[cyan]api[/cyan] [dim]·[/dim] now playing [{_c2}]{resp.status_code}[/] [dim]·[/dim] [cyan]{dt:.0f}ms[/cyan]",
+        )
         if resp.status_code == 401:
             return None
         if resp.status_code == 204:
@@ -1097,7 +1202,10 @@ def _fetch_current_playback_sync(
         return None
     except requests.RequestException as exc:
         dt = (time.perf_counter() - t0) * 1000
-        log("api", f"[dim]api[/dim] · now playing error · {dt:.0f}ms [dim]{exc}[/dim]")
+        log(
+            "api",
+            f"[red]api[/red] [dim]·[/dim] now playing [red]error[/red] [dim]·[/dim] [red]{dt:.0f}ms[/red] [dim]{exc}[/dim]",
+        )
         return None
 
 
@@ -1179,7 +1287,11 @@ async def watch_spotify_websocket(
     max_delay = 30.0
     msg_count = 0
 
-    log("api", f"[dim]api[/dim] · ws watch start · {'custom' if websocket_url else 'dealer'} · reconnect {reconnect_delay:.1f}s" + (" · once" if once else ""))
+    log(
+        "api",
+        f"[cyan]api[/cyan] [dim]·[/dim] [blue]ws[/blue] watch start [dim]·[/dim] {'[magenta]custom[/magenta]' if websocket_url else '[green]dealer[/green]'} [dim]·[/dim] reconnect [cyan]{reconnect_delay:.1f}s[/cyan]"
+        + (" [dim]·[/dim] [yellow]once[/yellow]" if once else ""),
+    )
 
     # Initial hydration: single REST call so first track shows immediately
     # before any Dealer push arrives (e.g. app launched while track already playing).
@@ -1189,10 +1301,14 @@ async def watch_spotify_websocket(
         if current is None:
             # Possible 401 – try token refresh once then retry
             try:
-                refreshed = ensure_valid_token(config_path=getattr(globs, "config_path", None))
+                refreshed = ensure_valid_token(
+                    config_path=getattr(globs, "config_path", None)
+                )
                 if refreshed and refreshed != token:
                     token = refreshed
-                    current = await asyncio.to_thread(_fetch_current_playback_sync, token)
+                    current = await asyncio.to_thread(
+                        _fetch_current_playback_sync, token
+                    )
             except Exception:
                 pass
         if current is not None:
@@ -1208,21 +1324,26 @@ async def watch_spotify_websocket(
                     song_label = artist
                 else:
                     song_label = "Unknown track"
-                print(f"[bold yellow]Processing[/bold yellow] [bold green]{song_label}[/bold green]...")
+                print(
+                    f"[bold yellow]Processing[/bold yellow] [bold green]{song_label}[/bold green]..."
+                )
                 init_t0 = time.perf_counter()
                 await process_art_url(art_url)
                 init_dt = (time.perf_counter() - init_t0) * 1000
-                log("api", f"[dim]ws · initial {song_label} · {init_dt:.0f}ms[/dim]")
+                log(
+                    "api",
+                    f"[blue]ws[/blue] [dim]·[/dim] initial [green]{song_label}[/green] [dim]·[/dim] [cyan]{init_dt:.0f}ms[/cyan]",
+                )
                 print("[bold green]Processing done[/bold green].")
                 print("")
                 if once:
                     return
             else:
-                log("api", "[dim]ws · initial no artwork, skip[/dim]")
+                log("api", "[yellow]ws[/yellow] [dim]·[/dim] initial no artwork, skip")
         else:
-            log("api", "[dim]ws · initial nothing playing[/dim]")
+            log("api", "[blue]ws[/blue] [dim]·[/dim] initial nothing playing")
     except Exception as exc:
-        log("api", f"[dim]ws · initial error: {exc}[/dim]")
+        log("api", f"[red]ws[/red] [dim]·[/dim] initial error: {exc}")
 
     while True:
         # Build URL with current token (token may have been refreshed)
@@ -1244,9 +1365,12 @@ async def watch_spotify_websocket(
             ws_url = _build_websocket_url(token)
 
         if delay != reconnect_delay:
-            log("api", f"[dim]ws · connecting… (retry in {delay:.1f}s)[/dim]")
+            log(
+                "api",
+                f"[yellow]ws[/yellow] [dim]·[/dim] connecting… [dim](retry in [yellow]{delay:.1f}s[/yellow])[/dim]",
+            )
         else:
-            log("api", "[dim]ws · connecting…[/dim]")
+            log("api", "[blue]ws[/blue] [dim]·[/dim] connecting…")
         try:
             # Dealer expects browser-like Origin; helps avoid 403 on some networks
             dealer_headers = {
@@ -1271,19 +1395,24 @@ async def watch_spotify_websocket(
                     extra_headers=dealer_headers,  # type: ignore[call-arg]
                 )
             async with ws_ctx as ws:
-                log("api", "[dim]ws · connected[/dim]")
+                log("api", "[green]ws[/green] [dim]·[/dim] [green]connected[/green]")
                 delay = reconnect_delay  # reset on successful connect
                 async for raw_msg in ws:
                     msg_count += 1
                     parsed = _parse_ws_message(raw_msg)  # type: ignore[arg-type]
                     _pending_track_id: str | None = None
                     if parsed is None:
-                        track_id, art_url_ws = _extract_track_and_art_from_ws_raw(raw_msg)  # type: ignore[arg-type]
+                        track_id, art_url_ws = _extract_track_and_art_from_ws_raw(
+                            raw_msg
+                        )  # type: ignore[arg-type]
                         _pending_track_id = track_id
                         # Fast path: track cache hit → no API, no image download
                         if track_id:
                             if track_id == last_track_id:
-                                log("api", "[dim]ws · unchanged, skip[/dim]")
+                                log(
+                                    "api",
+                                    "[blue]ws[/blue] [dim]· unchanged, skip[/dim]",
+                                )
                                 continue
                             track_key = f"track_{track_id}"
                             from .cache.colors import get_cached_colors as _track_get
@@ -1291,13 +1420,21 @@ async def watch_spotify_websocket(
 
                             cached = _track_get(track_key)
                             if cached:
-                                log("api", f"[dim]ws · track {track_id[:8]}… cache hit[/dim]")
+                                log(
+                                    "api",
+                                    f"[green]ws[/green] [dim]·[/dim] track [white]{track_id[:8]}…[/white] [green]cache hit[/green]",
+                                )
                                 song_label = f"{track_id[:8]}… (cache)"
-                                print(f"[bold yellow]Processing[/bold yellow] [bold green]{song_label}[/bold green]...")
+                                print(
+                                    f"[bold yellow]Processing[/bold yellow] [bold green]{song_label}[/bold green]..."
+                                )
                                 proc_t0 = time.perf_counter()
                                 await _apply_colors(cached)
                                 proc_dt = (time.perf_counter() - proc_t0) * 1000
-                                log("api", f"[dim]ws · {song_label} · {proc_dt:.0f}ms[/dim]")
+                                log(
+                                    "api",
+                                    f"[blue]ws[/blue] [dim]·[/dim] [green]{song_label}[/green] [dim]·[/dim] [cyan]{proc_dt:.0f}ms[/cyan]",
+                                )
                                 print("[bold green]Processing done[/bold green].")
                                 print("")
                                 last_art_url = art_url_ws or track_key
@@ -1308,34 +1445,52 @@ async def watch_spotify_websocket(
                             # Prefer art_url directly from WS payload over API fetch
                             if art_url_ws:
                                 if art_url_ws == last_art_url:
-                                    log("api", "[dim]ws · unchanged, skip[/dim]")
+                                    log(
+                                        "api",
+                                        "[blue]ws[/blue] [dim]· unchanged, skip[/dim]",
+                                    )
                                     continue
                                 parsed = (art_url_ws, None, None)
                             else:
-                                log("api", f"[dim]ws · track {track_id} → fetch[/dim]")
+                                log(
+                                    "api",
+                                    f"[blue]ws[/blue] [dim]·[/dim] track [white]{track_id[:8]}…[/white] [dim]→[/dim] [yellow]fetch[/yellow]",
+                                )
                                 try:
                                     fetched = await asyncio.to_thread(
                                         _fetch_track_sync, track_id, token
                                     )
                                 except Exception as exc:
-                                    log("api", f"[dim]ws · fetch failed: {exc}[/dim]")
+                                    log(
+                                        "api",
+                                        f"[red]ws[/red] [dim]·[/dim] fetch failed: [red]{exc}[/red]",
+                                    )
                                     continue
                                 art_fetched, title_fetched, artist_fetched = fetched
                                 if art_fetched is None and title_fetched is None:
                                     try:
                                         refreshed = ensure_valid_token(
-                                            config_path=getattr(globs, "config_path", None)
+                                            config_path=getattr(
+                                                globs, "config_path", None
+                                            )
                                         )
                                         if refreshed and refreshed != token:
                                             token = refreshed
                                             fetched = await asyncio.to_thread(
                                                 _fetch_track_sync, track_id, token
                                             )
-                                            art_fetched, title_fetched, artist_fetched = fetched
+                                            (
+                                                art_fetched,
+                                                title_fetched,
+                                                artist_fetched,
+                                            ) = fetched
                                     except Exception:
                                         pass
                                 if not art_fetched:
-                                    log("api", "[dim]ws · no artwork, skip[/dim]")
+                                    log(
+                                        "api",
+                                        "[yellow]ws[/yellow] [dim]·[/dim] no artwork, skip",
+                                    )
                                     continue
                                 parsed = (art_fetched, title_fetched, artist_fetched)
                         else:
@@ -1346,27 +1501,36 @@ async def watch_spotify_websocket(
                                     if isinstance(raw_msg, (str, bytes))
                                     else None
                                 )
-                                if isinstance(maybe, dict) and maybe.get("type") == "ping":
+                                if (
+                                    isinstance(maybe, dict)
+                                    and maybe.get("type") == "ping"
+                                ):
                                     await ws.send(json.dumps({"type": "pong"}))
-                                    log("api", "[dim]ws · ping↔pong[/dim]")
+                                    log(
+                                        "api",
+                                        "[cyan]ws[/cyan] [dim]·[/dim] ping[dim]↔[/dim]pong",
+                                    )
                                     continue
                             except Exception:
                                 pass
                             if art_url_ws:
                                 if art_url_ws == last_art_url:
-                                    log("api", "[dim]ws · unchanged, skip[/dim]")
+                                    log(
+                                        "api",
+                                        "[blue]ws[/blue] [dim]· unchanged, skip[/dim]",
+                                    )
                                     continue
                                 parsed = (art_url_ws, None, None)
                             else:
-                                log("api", "[dim]ws · heartbeat[/dim]")
+                                log("api", "[blue]ws[/blue] [dim]· heartbeat[/dim]")
                                 continue
 
                     art_url, title, artist = parsed
                     if not art_url:
-                        log("api", "[dim]ws · no artwork, skip[/dim]")
+                        log("api", "[yellow]ws[/yellow] [dim]·[/dim] no artwork, skip")
                         continue
                     if art_url == last_art_url:
-                        log("api", "[dim]ws · unchanged, skip[/dim]")
+                        log("api", "[blue]ws[/blue] [dim]· unchanged, skip[/dim]")
                         continue
 
                     song_label = ""
@@ -1387,7 +1551,10 @@ async def watch_spotify_websocket(
                     proc_t0 = time.perf_counter()
                     hex_colors = await process_art_url(art_url)
                     proc_dt = (time.perf_counter() - proc_t0) * 1000
-                    log("api", f"[dim]ws · {song_label} · {proc_dt:.0f}ms[/dim]")
+                    log(
+                        "api",
+                        f"[blue]ws[/blue] [dim]·[/dim] [green]{song_label}[/green] [dim]·[/dim] [cyan]{proc_dt:.0f}ms[/cyan]",
+                    )
                     print("[bold green]Processing done[/bold green].")
                     print("")
                     last_art_url = art_url
@@ -1408,7 +1575,10 @@ async def watch_spotify_websocket(
             OSError,
             asyncio.TimeoutError,
         ) as exc:  # type: ignore[attr-defined]
-            log("api", f"[dim]ws · disconnected ({exc}) · retry in {delay:.1f}s[/dim]")
+            log(
+                "api",
+                f"[yellow]ws[/yellow] [dim]·[/dim] disconnected [dim]({exc})[/dim] [dim]·[/dim] retry in [yellow]{delay:.1f}s[/yellow]",
+            )
             # Auth errors – try token refresh before reconnect
             if (
                 "401" in str(exc)
@@ -1433,7 +1603,10 @@ async def watch_spotify_websocket(
             delay = min(delay * 1.5, max_delay)
             continue
         except Exception as exc:  # pragma: no cover
-            log("api", f"[dim]ws · error: {exc} · retry in {delay:.1f}s[/dim]")
+            log(
+                "api",
+                f"[red]ws[/red] [dim]·[/dim] [red]error[/red]: {exc} [dim]·[/dim] retry in [yellow]{delay:.1f}s[/yellow]",
+            )
             # websocket-only – just reconnect, no polling fallback
             await asyncio.sleep(delay)
             delay = min(delay * 1.5, max_delay)
