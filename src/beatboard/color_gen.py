@@ -83,19 +83,33 @@ def kmeans_colors(pixels: np.ndarray, n_clusters: int = 8) -> np.ndarray:
     Returns:
         np.ndarray: Array of cluster centers (RGB values)
     """
-    from sklearn.cluster import KMeans
+    try:
+        from sklearn.cluster import KMeans
 
-    # Reshape pixels for sklearn
-    pixels_reshaped = pixels.reshape(-1, 3)
+        # Reshape pixels for sklearn
+        pixels_reshaped = pixels.reshape(-1, 3)
 
-    # Perform K-means clustering with fewer iterations for speed
-    kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init=3, max_iter=50)
-    kmeans.fit(pixels_reshaped)
+        # Perform K-means clustering with fewer iterations for speed
+        kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init=3, max_iter=50)
+        kmeans.fit(pixels_reshaped)
 
-    # Get cluster centers (dominant colors)
-    colors = kmeans.cluster_centers_.astype(int)
+        # Get cluster centers (dominant colors)
+        colors = kmeans.cluster_centers_.astype(int)
 
-    return colors
+        return colors
+    except ImportError:
+        # Fallback when scikit-learn is not installed: use unique colors.
+        pixels_reshaped = pixels.reshape(-1, 3)
+        unique = np.unique(pixels_reshaped, axis=0)
+        if len(unique) >= n_clusters:
+            return unique[:n_clusters].astype(int)
+        # Pad with last unique color if not enough distinct colors
+        result = np.zeros((n_clusters, 3), dtype=int)
+        if len(unique):
+            result[: len(unique)] = unique
+            for i in range(len(unique), n_clusters):
+                result[i] = unique[-1]
+        return result
 
 
 def calculate_color_percentage(
