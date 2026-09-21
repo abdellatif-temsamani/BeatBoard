@@ -117,9 +117,7 @@ class RichArgumentParser(argparse.ArgumentParser):
     def print_help(self, file=None):
         console.print(
             Panel.fit(
-                f"[bold blue]BeatBoard[/bold blue] [cyan]v{
-                    __version__
-                }[/cyan]\n[white]Change your hardware RGB based on music[/white]",
+                f"[bold blue]BeatBoard[/bold blue] [cyan]v{__version__}[/cyan]\n[white]Change your hardware RGB based on music[/white]",
                 border_style="blue",
             )
         )
