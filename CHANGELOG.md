@@ -2,6 +2,40 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.0] - 2026-09-21
+
+### 🚀 Features
+
+- Implement Spotify-style color extraction with performance optimization
+- *(hardware)* Add automatic detection
+- *(hardware)* Move hardware list from config to cache db and add --refresh-hardware
+- Add --api flag for Spotify API support
+- *(logs)* Add color coding to debug logs
+- *(logs)* Add separators between each song
+
+### 🐛 Bug Fixes
+
+- *(color)* Handle missing sklearn in kmeans_colors fallback
+- *(cache, spotify)* Deduplicate cache logs and add track fast-path
+- *(spotify)* Eliminate ws head-of-line blocking and broaden Dealer art URL extraction
+
+### 🚜 Refactor
+
+- *(logs)* Make debug logs minimal and human readable
+
+### 📚 Documentation
+
+- *(legal)* Clarify node-vibrant as inspiration not adaptation
+
+### ⚡ Performance
+
+- *(cache,spotify)* Fast track_id cache path and 401 auto-refresh
+
+### ⚙️ Miscellaneous Tasks
+
+- Update GitHub Actions to Node 24-compatible versions
+- Git-ignore
+
 ## [0.1.3] - 2026-05-31
 
 ### 🚀 Features
@@ -15,6 +49,7 @@ All notable changes to this project will be documented in this file.
 - Add missing about fields to issue templates
 - *(cache)* Name must contain only alphanumeric, underscores, hyphens
 - Logging color
+- Test
 
 ### 🚜 Refactor
 

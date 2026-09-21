@@ -19,6 +19,7 @@ vibrant colors to create an immersive music experience.
   control
 - 🎯 **Hardware-agnostic design** for easy expansion to new devices
 - 💾 **Intelligent caching** system for improved performance
+- 🔌 **Automatic hardware detection** when `--hardware` is omitted
 
 ## 📋 Requirements
 
@@ -92,6 +93,9 @@ Press `Ctrl+C` to stop following.
 ```bash
 # Specify hardware
 beatboard --hardware g213
+
+# Or omit --hardware to detect supported connected devices automatically
+beatboard
 
 # Debug mode (optional categories: command, palette, cache)
 beatboard --debug

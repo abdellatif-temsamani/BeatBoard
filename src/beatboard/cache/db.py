@@ -9,13 +9,25 @@ from ..logs import log
 
 @contextmanager
 def get_connection():
-    cache_path = Globs().cache_path
-    if cache_path != ":memory:":
-        Path(cache_path).parent.mkdir(parents=True, exist_ok=True)
-
-    db = sqlite3.connect(cache_path)
-    yield db
-    db.close()
+    # Always use the path from config via Globs (no :memory: fallback).
+    cache_path = Path(Globs().cache_path).expanduser()
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    # check_same_thread=False allows use via asyncio.to_thread
+    db = sqlite3.connect(str(cache_path), check_same_thread=False, timeout=5.0)
+    # Perf pragmas – safe for cache workload (WAL + NORMAL gives ~3x write throughput)
+    try:
+        db.execute("PRAGMA journal_mode=WAL")
+        db.execute("PRAGMA synchronous=NORMAL")
+        db.execute("PRAGMA temp_store=MEMORY")
+        db.execute("PRAGMA cache_size=-20000")  # ~20MB
+        db.execute("PRAGMA busy_timeout=5000")
+        db.execute("PRAGMA foreign_keys=ON")
+    except sqlite3.Error:
+        pass
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 def get_migrations() -> list[str]:
@@ -91,4 +103,44 @@ def source_migrations():
                 if not exists:
                     source_file(cursor, file, file_name)
 
+        db.commit()
+
+
+def get_cached_hardware() -> list[str]:
+    """Return hardware list cached in the database.
+
+    Returns:
+        List of hardware names stored in the ``hardware`` table,
+        ordered by insertion. Empty list if table missing or no rows.
+    """
+    with get_connection() as db:
+        cursor = db.cursor()
+        cursor.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='hardware'"
+        )
+        if not cursor.fetchone():
+            return []
+        cursor.execute("SELECT name FROM hardware ORDER BY id")
+        rows = cursor.fetchall()
+        return [row[0] for row in rows]
+
+
+def set_cached_hardware(hardware: list[str]) -> None:
+    """Persist ``hardware`` list to the cache database.
+
+    Replaces any previously cached hardware. Creates the table if
+    migrations have not yet created it.
+    """
+    with get_connection() as db:
+        cursor = db.cursor()
+        cursor.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='hardware'"
+        )
+        if not cursor.fetchone():
+            cursor.execute(
+                "CREATE TABLE IF NOT EXISTS hardware (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE)"
+            )
+        cursor.execute("DELETE FROM hardware")
+        for name in hardware:
+            cursor.execute("INSERT INTO hardware (name) VALUES (?)", (name,))
         db.commit()

@@ -1,4 +1,3 @@
-import platform
 from pathlib import Path
 from typing import Literal, Self
 
@@ -6,31 +5,22 @@ from .hardware import hardwareName
 
 
 def get_cache_db() -> str:
-    """Get the path to the cache database based on the operating system.
+    """Get the path to the cache database.
 
     Returns:
-        The path to the cache database file as a string.
+        The path to the cache database file as a string, always in the
+        user-state directory: ~/.local/state/beatboard/cache.db
     """
-    app_name: str | None = "beatboard"
-    system = platform.system()
-
-    if system == "Linux":
-        base = Path.home() / ".local" / "share"
-    elif system == "Darwin":  # macOS
-        base = Path.home() / "Library" / "Application Support"
-    elif system == "Windows":
-        base = Path.home() / "AppData" / "Roaming"
-    else:
-        base = Path.cwd() / "cache"
-
-    final = (base / app_name if app_name else base) / "cache.sqlite"
-    return str(final)
+    return str(Path.home() / ".local" / "state" / "beatboard" / "cache.db")
 
 
 DebugCategory = Literal[
     "command",
     "palette",
     "cache",
+    "perf",
+    "api",
+    "all",
 ]
 
 
@@ -56,8 +46,20 @@ class Globs:
         "command": False,
         "palette": False,
         "cache": False,
+        "perf": False,
+        "api": False,
+        "all": False,
     }
     cache_path: str = get_cache_db()
+    # Spotify pure-websocket globals
+    api: bool = False
+    spotify: bool = False
+    spotify_token: str | None = None
+    spotify_refresh_token: str | None = None
+    spotify_client_id: str | None = None
+    spotify_client_secret: str | None = None
+    spotify_redirect_uri: str = "http://127.0.0.1:8888/callback"
+    spotify_websocket_url: str = "wss://dealer.spotify.com/?access_token={token}"
 
     def __new__(cls) -> Self:
         """Singleton pattern implementation of the Globs class."""

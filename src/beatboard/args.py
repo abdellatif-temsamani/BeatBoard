@@ -80,7 +80,7 @@ class DebugAction(argparse.Action):
         elif isinstance(values, str):
             values = [values]
 
-        valid_categories = {"command", "palette", "cache"}
+        valid_categories = {"command", "palette", "cache", "perf", "api", "all"}
         invalid = [v for v in values if v not in valid_categories]
 
         if invalid:
@@ -92,8 +92,19 @@ class DebugAction(argparse.Action):
             table = Table(show_header=True, header_style="bold yellow")
             table.add_column("Category", style="cyan")
             table.add_column("Description", style="white")
+            descriptions = {
+                "command": "Enable command debug logging",
+                "palette": "Enable palette debug logging",
+                "cache": "Enable cache debug logging",
+                "perf": "Enable performance timing debug logging",
+                "api": "Enable Spotify API debug logging",
+                "all": "Enable all debug logging",
+            }
             for category in sorted(valid_categories):
-                table.add_row(category, f"Enable {category} debug logging")
+                table.add_row(
+                    category,
+                    descriptions.get(category, f"Enable {category} debug logging"),
+                )
             console.print(table)
             parser.exit(1)
 
@@ -106,7 +117,9 @@ class RichArgumentParser(argparse.ArgumentParser):
     def print_help(self, file=None):
         console.print(
             Panel.fit(
-                f"[bold blue]BeatBoard[/bold blue] [cyan]v{__version__}[/cyan]\n[white]Change your hardware RGB based on music[/white]",
+                f"[bold blue]BeatBoard[/bold blue] [cyan]v{
+                    __version__
+                }[/cyan]\n[white]Change your hardware RGB based on music[/white]",
                 border_style="blue",
             )
         )
@@ -147,10 +160,20 @@ parser.add_argument(
     "--hardware",
     action=HardwareAction,
     nargs="+",
-    default=[hardware_keys[0]],
-    help=(f"List of hardware to change the color of:\n{', '.join(hardware_keys)}"),
+    default=None,
+    help=(
+        "List of hardware to change the color of. "
+        "Automatically detected when omitted:\n"
+        f"{', '.join(hardware_keys)}"
+    ),
 )
 
+parser.add_argument(
+    "--refresh-hardware",
+    action="store_true",
+    default=False,
+    help="Force re-detection of hardware and refresh cache",
+)
 
 debug_keys = list(Globs.debug.keys())
 parser.add_argument(
@@ -161,4 +184,11 @@ parser.add_argument(
     metavar="CATEGORY",
     default=[],
     help=(f"Enable debug logging for specified categories:\n{', '.join(debug_keys)}"),
+)
+
+parser.add_argument(
+    "--api",
+    action="store_true",
+    default=False,
+    help="Use Spotify WebSocket instead of playerctl",
 )

@@ -18,6 +18,16 @@ The hardware abstraction layer consists of three main components:
 3. **Execution Layer**: Asynchronous subprocess execution of hardware control
    commands
 
+When `--hardware` is omitted, BeatBoard automatically detects controllable
+hardware. An explicit `--hardware` selection always takes precedence.
+
+- Logitech G213 keyboards are matched by USB IDs `046d:c336`.
+- Razer USB devices are matched by vendor ID `1532` and require `razer-cli`.
+- Asus USB devices or Asus systems are detected when `asusctl` is available.
+
+If no supported hardware is detected, BeatBoard exits with guidance to connect a
+device or use `--hardware` explicitly.
+
 ```python
 # Example hardware registry structure
 hardware: dict[str, list[str]] = {

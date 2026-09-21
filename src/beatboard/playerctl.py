@@ -3,18 +3,43 @@ import hashlib
 import os
 import shutil
 import subprocess
+import time
 from pathlib import Path
 
 from rich import print
 
 from .cache.colors import cache_colors, get_cached_colors
-from .color_gen import debug_palette, extract_palette, get_color_palette
+from .color_gen import (
+    COLOR_CACHE_VERSION,
+    debug_palette,
+    extract_palette,
+    get_color_palette,
+)
 from .globs import Globs
 from .hardware import get_command
 
+# Shared HTTP session for image downloads (keep-alive saves 50-100ms per track)
+_IMAGE_SESSION = None
+
+
+def _get_image_session():
+    global _IMAGE_SESSION
+    if _IMAGE_SESSION is None:
+        import requests
+
+        s = requests.Session()
+        adapter = requests.adapters.HTTPAdapter(
+            pool_connections=10, pool_maxsize=10, max_retries=1
+        )
+        s.mount("https://", adapter)
+        s.mount("http://", adapter)
+        s.headers.update({"User-Agent": "BeatBoard/0.1.3"})
+        _IMAGE_SESSION = s
+    return _IMAGE_SESSION
+
 
 def create_cache_key(art_url: str) -> str:
-    """Create a sanitized cache key from an art URL.
+    """Create a versioned cache key from an art URL.
 
     Args:
         art_url: The art URL to hash.
@@ -22,7 +47,13 @@ def create_cache_key(art_url: str) -> str:
     Returns:
         A SHA256 hex digest suitable for use as a cache key.
     """
-    return hashlib.sha256(art_url.encode("utf-8")).hexdigest()
+    value = f"{COLOR_CACHE_VERSION}\0{art_url}"
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+
+def create_track_cache_key(track_id: str) -> str:
+    """Namespace a Spotify track id by the active palette algorithm."""
+    return f"{COLOR_CACHE_VERSION}:{track_id}"
 
 
 def playerctl(*args: str) -> list[str]:
@@ -63,8 +94,6 @@ async def get_image(
         art_url: The URL to the image. If not provided, it will be fetched from playerctl
     """
 
-    import requests
-
     if not art_url:
         url = await asyncio.to_thread(
             subprocess.run,
@@ -80,25 +109,135 @@ async def get_image(
         file_path = art_url[7:]
         image_data = await asyncio.to_thread(Path(file_path).read_bytes)
     else:
-        # requests.get is blocking → run it in a thread
-        response = await asyncio.to_thread(requests.get, art_url)
-        response.raise_for_status()
-        image_data = response.content
+        # Use shared session with keep-alive – saves TCP+TLS handshake per track
+        def _fetch():
+            sess = _get_image_session()
+            resp = sess.get(art_url, timeout=5)
+            resp.raise_for_status()
+            return resp.content
+
+        image_data = await asyncio.to_thread(_fetch)
 
     # Write file asynchronously (thread)
     await asyncio.to_thread(Path(path).write_bytes, image_data)
 
 
-async def process_art_url(art_url: str | None = None) -> None:
+async def apply_colors(hex_colors: list[str]) -> None:
+    """Apply given colors to hardware (no image fetch).
+
+    Used for fast cache-hit path (e.g. track cache) to skip palette extraction.
+    Hardware commands are run concurrently when multiple devices are present.
+    """
+    globs = Globs()
+    start_hw = time.time()
+    if not hex_colors:
+        hex_colors = ["ffffff"]
+    commands = get_command(globs.hardware, hex_colors[0])
+    # Filter to available commands first
+    runnable: list[list[str]] = []
+    for command in commands:
+        if not (shutil.which(command[0]) or os.path.exists(command[0])):
+            print(
+                f"[bold red]Error:[/bold red] Command [bold]'{command[0]}'[/bold] not found. Skipping hardware command."
+            )
+            continue
+        if globs.debug.get("command") or globs.debug.get("all"):
+            cmd_str = " ".join(command)
+            print(f"[magenta]hw[/magenta] [dim]·[/dim] {cmd_str}")
+        runnable.append(command)
+
+    if runnable:
+        # Run concurrently – saves ~200ms when multiple hardware present, and keeps
+        # single-device case identical (one task).
+        async def _run(cmd: list[str]):
+            try:
+                await asyncio.to_thread(subprocess.run, cmd)
+            except Exception as e:
+                print(f"[bold red]Error:[/bold red] running hardware command: {e}")
+
+        if len(runnable) == 1:
+            await _run(runnable[0])
+        else:
+            await asyncio.gather(*(_run(c) for c in runnable))
+    if globs.debug.get("perf") or globs.debug.get("all"):
+        hw_ms = (time.time() - start_hw) * 1000
+        print(f"[cyan]perf[/cyan] [dim]·[/dim] hw [cyan]{hw_ms:.0f}ms[/cyan]")
+
+
+async def process_art_url(
+    art_url: str | None = None, track_id: str | None = None
+) -> list[str] | None:
     """process art work of the current song
 
     Args:
         art_url: The new album art URL.
+        track_id: Optional Spotify track id – when provided the resulting
+                  palette is also indexed by track_id so the websocket
+                  fast-path (``get_cached_colors_by_track_id``) can hit
+                  without a second DB write.
+
+    Returns:
+        Extracted hex colors or None on failure.
     """
     IMAGE_PATH = "/tmp/album_art.jpg"
+    globs = Globs()
+    start_time = time.time()
 
     if art_url is None:
-        return
+        return None
+
+    # If we have a track_id, try indexed cache first – avoids art-hash compute + DB round-trip
+    if track_id:
+        from .cache.colors import get_cached_colors_by_track_id
+
+        hex_colors_track = get_cached_colors_by_track_id(
+            create_track_cache_key(track_id)
+        )
+        if hex_colors_track:
+            hex_colors = hex_colors_track
+            from_cache = True
+            # Fast path: skip download/palette, go straight to hardware
+            command_start = time.time()
+            commands = get_command(globs.hardware, hex_colors[0])
+            # concurrent hardware
+            runnable = []
+            for command in commands:
+                if not (shutil.which(command[0]) or os.path.exists(command[0])):
+                    print(
+                        f"[bold red]Error:[/bold red] Command [bold]'{command[0]}'[/bold] not found. Skipping hardware command."
+                    )
+                    continue
+                if globs.debug.get("command") or globs.debug.get("all"):
+                    cmd_str = " ".join(command)
+                    print(f"[magenta]hw[/magenta] [dim]·[/dim] {cmd_str}")
+                runnable.append(command)
+            if runnable:
+                if len(runnable) == 1:
+                    try:
+                        await asyncio.to_thread(subprocess.run, runnable[0])
+                    except Exception as e:
+                        print(
+                            f"[bold red]Error:[/bold red] running hardware command: {e}"
+                        )
+                else:
+
+                    async def _run(cmd: list[str]):
+                        try:
+                            await asyncio.to_thread(subprocess.run, cmd)
+                        except Exception as e:
+                            print(
+                                f"[bold red]Error:[/bold red] running hardware command: {e}"
+                            )
+
+                    await asyncio.gather(*(_run(c) for c in runnable))
+            command_time = time.time() - command_start
+            if globs.debug.get("perf") or globs.debug.get("all"):
+                total_ms = (time.time() - start_time) * 1000
+                hw_ms = command_time * 1000
+                print(
+                    f"[cyan]perf[/cyan] [dim]·[/dim] total [cyan]{total_ms:.0f}ms[/cyan] [dim]·[/dim] hw [magenta]{hw_ms:.0f}ms[/magenta] [dim]track-cache[/dim]"
+                )
+            return hex_colors
 
     cache_key = create_cache_key(art_url)
     hex_colors = get_cached_colors(cache_key)
@@ -110,15 +249,17 @@ async def process_art_url(art_url: str | None = None) -> None:
             await get_image(IMAGE_PATH, art_url)
         except Exception as e:
             print(f"[bold red]Error:[/bold red] fetching album art: {e}")
-            return
+            return None
 
-        # Extract palette (CPU-bound, run in thread)
+        # Extract the palette.
         try:
             hex_colors = await get_color_palette(IMAGE_PATH)
-            cache_colors(cache_key, hex_colors)
+            # Store with both art-hash and optional track_id in one row (migration 03)
+            cache_track_id = create_track_cache_key(track_id) if track_id else None
+            cache_colors(cache_key, hex_colors, track_id=cache_track_id)
         except Exception as e:
             print(f"[bold red]Error:[/bold red] extracting color palette: {e}")
-            return
+            return None
 
         if not hex_colors:
             print(
@@ -126,36 +267,59 @@ async def process_art_url(art_url: str | None = None) -> None:
             )
             hex_colors = ["ffffff"]  # fallback color
 
-    globs = Globs()
-
-    if globs.debug["palette"] and hex_colors and from_cache:
-        extracted_palette = None
-
-        try:
-            await get_image(IMAGE_PATH, art_url)
-            extracted_palette = await asyncio.to_thread(extract_palette, IMAGE_PATH)
-        except Exception as e:
-            print(
-                f"[bold yellow]Warning:[/bold yellow] debug palette extraction failed: {e}"
-            )
-
-        debug_palette(hex_colors=hex_colors, palette=extracted_palette)
-
+    # Hardware first – latency matters. Palette debug after.
+    command_start = time.time()
     commands = get_command(globs.hardware, hex_colors[0])
-
+    runnable2: list[list[str]] = []
     for command in commands:
-        # Check if the command executable exists
         if not (shutil.which(command[0]) or os.path.exists(command[0])):
             print(
                 f"[bold red]Error:[/bold red] Command [bold]'{command[0]}'[/bold] not found. Skipping hardware command."
             )
             continue
-        if globs.debug["command"]:
-            print(f"Running command: {command}")
-        try:
-            await asyncio.to_thread(subprocess.run, command)
-        except Exception as e:
-            print(f"[bold red]Error:[/bold red] running hardware command: {e}")
+        if globs.debug.get("command") or globs.debug.get("all"):
+            cmd_str = " ".join(command)
+            print(f"[magenta]hw[/magenta] [dim]·[/dim] {cmd_str}")
+        runnable2.append(command)
+    if runnable2:
+        if len(runnable2) == 1:
+            try:
+                await asyncio.to_thread(subprocess.run, runnable2[0])
+            except Exception as e:
+                print(f"[bold red]Error:[/bold red] running hardware command: {e}")
+        else:
+
+            async def _run2(cmd: list[str]):
+                try:
+                    await asyncio.to_thread(subprocess.run, cmd)
+                except Exception as e:
+                    print(f"[bold red]Error:[/bold red] running hardware command: {e}")
+
+            await asyncio.gather(*(_run2(c) for c in runnable2))
+    command_time = time.time() - command_start
+
+    if globs.debug.get("perf") or globs.debug.get("all"):
+        total_ms = (time.time() - start_time) * 1000
+        hw_ms = command_time * 1000
+        print(
+            f"[cyan]perf[/cyan] [dim]·[/dim] total [cyan]{total_ms:.0f}ms[/cyan] [dim]·[/dim] hw [magenta]{hw_ms:.0f}ms[/magenta]"
+        )
+
+    # Palette debug after hardware so it doesn't block lighting update
+    if globs.debug.get("palette") or globs.debug.get("all"):
+        if from_cache and hex_colors:
+            # from_cache path: need image for extracted palette debug.
+            # Do it after hardware to avoid extra latency on the critical path.
+            try:
+                await get_image(IMAGE_PATH, art_url)
+                extracted_palette = await asyncio.to_thread(extract_palette, IMAGE_PATH)
+                debug_palette(hex_colors=hex_colors, palette=extracted_palette)
+            except Exception as e:
+                print(
+                    f"[bold yellow]Warning:[/bold yellow] debug palette extraction failed: {e}"
+                )
+
+    return hex_colors
 
 
 async def watch_playerctl(once: bool = False):
@@ -198,6 +362,7 @@ async def watch_playerctl(once: bool = False):
         await process_art_url(art_url)
 
         print("[bold green]Processing done[/bold green].")
+        print("[dim]" + "─" * 50 + "[/dim]")
         print("")
 
         if once:
