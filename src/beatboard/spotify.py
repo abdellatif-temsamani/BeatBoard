@@ -995,6 +995,39 @@ def _parse_ws_message(
 _TRACK_URI_RE = re.compile(r"spotify:track:([A-Za-z0-9]{22})")
 _ART_URL_RE = re.compile(r"https://i\.scdn\.co/image/[A-Za-z0-9]+")
 _SCDN_RE = re.compile(r"https://[^\s\"']*scdn\.co[^\s\"']*")
+_SPOTIFYCDN_RE = re.compile(r"https://[^\s\"'\x00]*spotifycdn\.com[^\s\"'\x00]*")
+_GENERIC_IMAGE_RE = re.compile(r"https://[^\s\"'\x00]+/image/[A-Za-z0-9]+")
+_HTTPS_URL_RE = re.compile(r"https://[^\s\"'\x00]+")
+
+
+def _find_image_url(text: str) -> str | None:
+    """Find first plausible Spotify image URL in text.
+
+    Tries specific CDN patterns first, then generic fallback that contains
+    ``image``/``scdn``/``spotifycdn`` to avoid picking unrelated https URLs.
+    Returns cleaned URL or None.
+    """
+    for pat in (_ART_URL_RE, _SCDN_RE, _SPOTIFYCDN_RE, _GENERIC_IMAGE_RE):
+        m = pat.search(text)
+        if m:
+            url = m.group(0).strip().rstrip("\x00").rstrip('"').rstrip("'")
+            # Trim protobuf trailing bytes after image id for strict ART pattern
+            m2 = _ART_URL_RE.search(url)
+            if m2:
+                return m2.group(0)
+            return url.rstrip("/")
+    # Fallback: any https URL that looks like an image
+    for m in _HTTPS_URL_RE.finditer(text):
+        url = m.group(0).strip().rstrip("\x00").rstrip('"').rstrip("'")
+        low = url.lower()
+        if "image" in low or "scdn" in low or "spotifycdn" in low:
+            m2 = _ART_URL_RE.search(url)
+            if m2:
+                return m2.group(0)
+            # trim at common delimiter after image id (e.g. \x12 in protobuf)
+            # keep up to next control char
+            return url.split("\x12")[0].split("\x00")[0].rstrip("/")
+    return None
 
 
 def _extract_track_and_art_from_ws_raw(
@@ -1019,15 +1052,7 @@ def _extract_track_and_art_from_ws_raw(
         data = json.loads(raw)
     except json.JSONDecodeError:
         m = _TRACK_URI_RE.search(raw)
-        m_art = _ART_URL_RE.search(raw) or _SCDN_RE.search(raw)
-        art = None
-        if m_art:
-            art = m_art.group(0).strip().rstrip("\x00")
-            # trim at first non-url char (protobuf framing)
-            # keep only up to image id
-            m2 = _ART_URL_RE.search(art)
-            if m2:
-                art = m2.group(0)
+        art = _find_image_url(raw)
         return (m.group(1) if m else None, art)
     if not isinstance(data, dict):
         return (None, None)
@@ -1040,11 +1065,8 @@ def _extract_track_and_art_from_ws_raw(
                 m = _TRACK_URI_RE.search(p)
                 if m and not track_id:
                     track_id = m.group(1)
-                m_art = _ART_URL_RE.search(p) or _SCDN_RE.search(p)
-                if m_art and not art_url:
-                    art = m_art.group(0)
-                    m2 = _ART_URL_RE.search(art)
-                    art_url = m2.group(0) if m2 else art
+                if not art_url:
+                    art_url = _find_image_url(p)
                 if track_id and art_url:
                     return (track_id, art_url)
                 try:
@@ -1062,22 +1084,9 @@ def _extract_track_and_art_from_ws_raw(
                             if m3:
                                 track_id = m3.group(1)
                     if not art_url:
-                        m_a = _ART_URL_RE.search(text) or _SCDN_RE.search(text)
-                        if m_a:
-                            art = m_a.group(0)
-                            m2 = _ART_URL_RE.search(art)
-                            art_url = m2.group(0) if m2 else art
-                        else:
-                            # also try latin1 decoded
-                            m_a2 = _ART_URL_RE.search(
-                                decoded.decode("latin1", errors="ignore")
-                            ) or _SCDN_RE.search(
-                                decoded.decode("latin1", errors="ignore")
-                            )
-                            if m_a2:
-                                art = m_a2.group(0)
-                                m2 = _ART_URL_RE.search(art)
-                                art_url = m2.group(0) if m2 else art
+                        art_url = _find_image_url(text) or _find_image_url(
+                            decoded.decode("latin1", errors="ignore")
+                        )
                     if track_id and art_url:
                         return (track_id, art_url)
                 except Exception:
@@ -1085,12 +1094,7 @@ def _extract_track_and_art_from_ws_raw(
         if track_id or art_url:
             return (track_id, art_url)
     m = _TRACK_URI_RE.search(raw)
-    m_art = _ART_URL_RE.search(raw) or _SCDN_RE.search(raw)
-    art = None
-    if m_art:
-        art = m_art.group(0)
-        m2 = _ART_URL_RE.search(art)
-        art = m2.group(0) if m2 else art
+    art = _find_image_url(raw)
     return (m.group(1) if m else None, art)
 
 
@@ -1461,6 +1465,7 @@ async def watch_spotify_websocket(
             )
         else:
             log("api", "[blue]ws[/blue] [dim]·[/dim] connecting…")
+        pending_task: asyncio.Task | None = None
         try:
             # Dealer expects browser-like Origin; helps avoid 403 on some networks
             dealer_headers = {
@@ -1487,6 +1492,40 @@ async def watch_spotify_websocket(
             async with ws_ctx as ws:
                 log("api", "[green]ws[/green] [dim]·[/dim] [green]connected[/green]")
                 delay = reconnect_delay  # reset on successful connect
+                pending_task = None
+
+                async def _process_resolved_art(
+                    art_url: str,
+                    title: str | None,
+                    artist: str | None,
+                    track_id: str | None,
+                    song_label: str,
+                ) -> None:
+                    nonlocal last_art_url, last_track_id
+                    proc_t0 = time.perf_counter()
+                    try:
+                        await process_art_url(art_url, track_id=track_id)
+                    except asyncio.CancelledError:
+                        log(
+                            "api",
+                            f"[yellow]ws[/yellow] [dim]·[/dim] cancelled [white]{song_label}[/white]",
+                        )
+                        raise
+                    except Exception as exc:
+                        log(
+                            "api",
+                            f"[red]ws[/red] [dim]·[/dim] process failed [white]{song_label}[/white] [red]{exc}[/red]",
+                        )
+                        return
+                    proc_dt = (time.perf_counter() - proc_t0) * 1000
+                    log(
+                        "api",
+                        f"[blue]ws[/blue] [dim]·[/dim] [green]{song_label}[/green] [dim]·[/dim] [cyan]{proc_dt:.0f}ms[/cyan]",
+                    )
+                    last_art_url = art_url
+                    if track_id:
+                        last_track_id = track_id
+
                 async for raw_msg in ws:
                     msg_count += 1
                     parsed = _parse_ws_message(raw_msg)  # type: ignore[arg-type]
@@ -1496,8 +1535,6 @@ async def watch_spotify_websocket(
                             raw_msg
                         )  # type: ignore[arg-type]
                         _pending_track_id = track_id
-                        # Fast path: indexed track_id cache hit → no API, no image download
-                        # Uses migration 03's `track_id` column + in-memory LRU (0.01ms vs 1ms DB + 200ms API)
                         if track_id:
                             if track_id == last_track_id:
                                 log(
@@ -1510,34 +1547,60 @@ async def watch_spotify_websocket(
                             )
                             from .playerctl import apply_colors as _apply_colors
 
-                            # Indexed lookup (memory-first, then SQL WHERE track_id = ?)
-                            cached = _track_get(track_id)
-                            if cached:
+                            cached_preview = _track_get(track_id)
+                            if cached_preview is not None:
+                                song_label = f"{track_id[:8]}… (cache)"
+                                last_track_id = track_id
+                                last_art_url = art_url_ws or f"track_{track_id}"
                                 log(
                                     "api",
                                     f"[green]ws[/green] [dim]·[/dim] track [white]{track_id[:8]}…[/white] [green]cache hit[/green] [dim]track_id[/dim]",
                                 )
-                                song_label = f"{track_id[:8]}… (cache)"
                                 print(
                                     f"[bold yellow]Processing[/bold yellow] [bold green]{song_label}[/bold green]..."
                                 )
-                                proc_t0 = time.perf_counter()
-                                await _apply_colors(cached)
-                                proc_dt = (time.perf_counter() - proc_t0) * 1000
-                                log(
-                                    "api",
-                                    f"[blue]ws[/blue] [dim]·[/dim] [green]{song_label}[/green] [dim]·[/dim] [cyan]{proc_dt:.0f}ms[/cyan]",
-                                )
-                                print("[bold green]Processing done[/bold green].")
-                                print("[dim]" + "─" * 50 + "[/dim]")
-                                print("")
-                                last_art_url = art_url_ws or f"track_{track_id}"
-                                last_track_id = track_id
+
+                                async def _cache_hit_task(
+                                    tid=track_id,
+                                    aw=art_url_ws,
+                                    cached=cached_preview,
+                                    label=song_label,
+                                ):
+                                    nonlocal last_art_url, last_track_id
+                                    try:
+                                        proc_t0 = time.perf_counter()
+                                        await _apply_colors(cached)
+                                        proc_dt = (time.perf_counter() - proc_t0) * 1000
+                                        log(
+                                            "api",
+                                            f"[blue]ws[/blue] [dim]·[/dim] [green]{label}[/green] [dim]·[/dim] [cyan]{proc_dt:.0f}ms[/cyan]",
+                                        )
+                                        print(
+                                            "[bold green]Processing done[/bold green]."
+                                        )
+                                        print("[dim]" + "─" * 50 + "[/dim]")
+                                        print("")
+                                        last_track_id = tid
+                                        last_art_url = aw or f"track_{tid}"
+                                    except asyncio.CancelledError:
+                                        log(
+                                            "api",
+                                            f"[yellow]ws[/yellow] [dim]·[/dim] cancelled [white]{label}[/white]",
+                                        )
+                                        raise
+                                    except Exception as exc:
+                                        log(
+                                            "api",
+                                            f"[red]ws[/red] [dim]·[/dim] cache apply failed [red]{exc}[/red]",
+                                        )
+
                                 if once:
+                                    await _cache_hit_task()
                                     return
+                                if pending_task and not pending_task.done():
+                                    pending_task.cancel()
+                                pending_task = asyncio.create_task(_cache_hit_task())
                                 continue
-                            # Prefer art_url directly from WS payload over API fetch
-                            # Base64 protobuf often already contains https://i.scdn.co/image/... (no REST needed)
                             if art_url_ws:
                                 if art_url_ws == last_art_url:
                                     log(
@@ -1545,53 +1608,131 @@ async def watch_spotify_websocket(
                                         "[blue]ws[/blue] [dim]· unchanged, skip[/dim]",
                                     )
                                     continue
-                                parsed = (art_url_ws, None, None)
+                                song_label = f"{track_id[:8]}…"
+                                last_track_id = track_id
+                                last_art_url = art_url_ws
+                                print(
+                                    f"[bold yellow]Processing[/bold yellow] [bold green]{song_label}[/bold green]..."
+                                )
+
+                                async def _art_task(
+                                    aw=art_url_ws, tid=track_id, label=song_label
+                                ):
+                                    try:
+                                        await _process_resolved_art(
+                                            aw, None, None, tid, label
+                                        )
+                                        print(
+                                            "[bold green]Processing done[/bold green]."
+                                        )
+                                        print("[dim]" + "─" * 50 + "[/dim]")
+                                        print("")
+                                    except asyncio.CancelledError:
+                                        raise
+
+                                if once:
+                                    await _art_task()
+                                    return
+                                if pending_task and not pending_task.done():
+                                    pending_task.cancel()
+                                pending_task = asyncio.create_task(_art_task())
+                                continue
                             else:
+                                song_label = f"{track_id[:8]}…"
+                                last_track_id = track_id
+                                print(
+                                    f"[bold yellow]Processing[/bold yellow] [bold green]{song_label}[/bold green]..."
+                                )
                                 log(
                                     "api",
                                     f"[blue]ws[/blue] [dim]·[/dim] track [white]{track_id[:8]}…[/white] [dim]→[/dim] [yellow]fetch[/yellow]",
                                 )
-                                try:
-                                    fetched = await asyncio.to_thread(
-                                        _fetch_track_sync, track_id, token
-                                    )
-                                except Exception as exc:
-                                    log(
-                                        "api",
-                                        f"[red]ws[/red] [dim]·[/dim] fetch failed: [red]{exc}[/red]",
-                                    )
-                                    continue
-                                art_fetched, title_fetched, artist_fetched = fetched
-                                if art_fetched is None and title_fetched is None:
-                                    # Token may be expired – try refresh-only (no OAuth
-                                    # blocking in the message handler)
+
+                                async def _fetch_task(tid=track_id, label=song_label):
+                                    nonlocal token, last_art_url, last_track_id
                                     try:
-                                        refreshed = _try_refresh_token(
-                                            config_path=getattr(
-                                                globs, "config_path", None
-                                            )
+                                        fetched = await asyncio.to_thread(
+                                            _fetch_track_sync, tid, token
                                         )
-                                        if refreshed and refreshed != token:
-                                            token = refreshed
-                                            fetched = await asyncio.to_thread(
-                                                _fetch_track_sync, track_id, token
+                                    except Exception as exc:
+                                        log(
+                                            "api",
+                                            f"[red]ws[/red] [dim]·[/dim] fetch failed: [red]{exc}[/red]",
+                                        )
+                                        try:
+                                            print(
+                                                "[bold green]Processing done[/bold green]."
                                             )
-                                            (
-                                                art_fetched,
-                                                title_fetched,
-                                                artist_fetched,
-                                            ) = fetched
+                                            print("[dim]" + "─" * 50 + "[/dim]")
+                                            print("")
+                                        except Exception:
+                                            pass
+                                        return
+                                    art_fetched, title_fetched, artist_fetched = fetched
+                                    if art_fetched is None and title_fetched is None:
+                                        try:
+                                            refreshed = _try_refresh_token(
+                                                config_path=getattr(
+                                                    globs, "config_path", None
+                                                )
+                                            )
+                                            if refreshed and refreshed != token:
+                                                token = refreshed
+                                                fetched = await asyncio.to_thread(
+                                                    _fetch_track_sync, tid, token
+                                                )
+                                                (
+                                                    art_fetched,
+                                                    title_fetched,
+                                                    artist_fetched,
+                                                ) = fetched
+                                        except Exception:
+                                            pass
+                                    if not art_fetched:
+                                        log(
+                                            "api",
+                                            "[yellow]ws[/yellow] [dim]·[/dim] no artwork, skip",
+                                        )
+                                        try:
+                                            print(
+                                                "[bold green]Processing done[/bold green]."
+                                            )
+                                            print("[dim]" + "─" * 50 + "[/dim]")
+                                            print("")
+                                        except Exception:
+                                            pass
+                                        return
+                                    better_label = label
+                                    if title_fetched and artist_fetched:
+                                        better_label = (
+                                            f"{title_fetched} – {artist_fetched}"
+                                        )
+                                    elif title_fetched:
+                                        better_label = title_fetched
+                                    await _process_resolved_art(
+                                        art_fetched,
+                                        title_fetched,
+                                        artist_fetched,
+                                        tid,
+                                        better_label,
+                                    )
+                                    try:
+                                        print(
+                                            "[bold green]Processing done[/bold green]."
+                                        )
+                                        print("[dim]" + "─" * 50 + "[/dim]")
+                                        print("")
                                     except Exception:
                                         pass
-                                if not art_fetched:
-                                    log(
-                                        "api",
-                                        "[yellow]ws[/yellow] [dim]·[/dim] no artwork, skip",
-                                    )
-                                    continue
-                                parsed = (art_fetched, title_fetched, artist_fetched)
+
+                                if once:
+                                    await _fetch_task()
+                                    return
+                                if pending_task and not pending_task.done():
+                                    pending_task.cancel()
+                                pending_task = asyncio.create_task(_fetch_task())
+                                continue
                         else:
-                            # No track id – heartbeat / ping or bare art_url
                             try:
                                 maybe = (
                                     json.loads(raw_msg)
@@ -1617,11 +1758,37 @@ async def watch_spotify_websocket(
                                         "[blue]ws[/blue] [dim]· unchanged, skip[/dim]",
                                     )
                                     continue
-                                parsed = (art_url_ws, None, None)
+                                song_label = "Unknown track"
+                                last_art_url = art_url_ws
+                                print(
+                                    f"[bold yellow]Processing[/bold yellow] [bold green]{song_label}[/bold green]..."
+                                )
+
+                                async def _bare_art_task(
+                                    aw=art_url_ws, label=song_label
+                                ):
+                                    try:
+                                        await _process_resolved_art(
+                                            aw, None, None, None, label
+                                        )
+                                        print(
+                                            "[bold green]Processing done[/bold green]."
+                                        )
+                                        print("[dim]" + "─" * 50 + "[/dim]")
+                                        print("")
+                                    except asyncio.CancelledError:
+                                        raise
+
+                                if once:
+                                    await _bare_art_task()
+                                    return
+                                if pending_task and not pending_task.done():
+                                    pending_task.cancel()
+                                pending_task = asyncio.create_task(_bare_art_task())
+                                continue
                             else:
                                 log("api", "[blue]ws[/blue] [dim]· heartbeat[/dim]")
                                 continue
-
                     art_url, title, artist = parsed
                     if not art_url:
                         log("api", "[yellow]ws[/yellow] [dim]·[/dim] no artwork, skip")
@@ -1629,7 +1796,6 @@ async def watch_spotify_websocket(
                     if art_url == last_art_url:
                         log("api", "[blue]ws[/blue] [dim]· unchanged, skip[/dim]")
                         continue
-
                     song_label = ""
                     if title and artist:
                         song_label = f"{title} – {artist}"
@@ -1641,28 +1807,34 @@ async def watch_spotify_websocket(
                         song_label = "Unknown track"
                         if _pending_track_id:
                             song_label = f"{_pending_track_id[:8]}…"
-
-                    print(
-                        f"[bold yellow]Processing[/bold yellow] [bold green]{song_label}[/bold green]..."
-                    )
-                    proc_t0 = time.perf_counter()
-                    # Unified caching: process_art_url stores both art-hash and track_id in one row
-                    # (migration 03) so next WS hit for same track needs no API/palette.
-                    await process_art_url(art_url, track_id=_pending_track_id)
-                    proc_dt = (time.perf_counter() - proc_t0) * 1000
-                    log(
-                        "api",
-                        f"[blue]ws[/blue] [dim]·[/dim] [green]{song_label}[/green] [dim]·[/dim] [cyan]{proc_dt:.0f}ms[/cyan]",
-                    )
-                    print("[bold green]Processing done[/bold green].")
-                    print("[dim]" + "─" * 50 + "[/dim]")
-                    print("")
                     last_art_url = art_url
                     if _pending_track_id:
                         last_track_id = _pending_track_id
-                    # No separate `cache_colors(f"track_…")` – process_art_url already did it
+                    print(
+                        f"[bold yellow]Processing[/bold yellow] [bold green]{song_label}[/bold green]..."
+                    )
+
+                    async def _parsed_task(
+                        au=art_url,
+                        ti=title,
+                        ar=artist,
+                        tid=_pending_track_id,
+                        label=song_label,
+                    ):
+                        try:
+                            await _process_resolved_art(au, ti, ar, tid, label)
+                            print("[bold green]Processing done[/bold green].")
+                            print("[dim]" + "─" * 50 + "[/dim]")
+                            print("")
+                        except asyncio.CancelledError:
+                            raise
+
                     if once:
+                        await _parsed_task()
                         return
+                    if pending_task and not pending_task.done():
+                        pending_task.cancel()
+                    pending_task = asyncio.create_task(_parsed_task())
 
         except (
             ConnectionClosed,
@@ -1670,6 +1842,12 @@ async def watch_spotify_websocket(
             OSError,
             asyncio.TimeoutError,
         ) as exc:  # type: ignore[attr-defined]
+            # Cancel any in-flight track processing so next connection starts clean
+            try:
+                if pending_task is not None and not pending_task.done():
+                    pending_task.cancel()
+            except Exception:
+                pass
             log(
                 "api",
                 f"[yellow]ws[/yellow] [dim]·[/dim] disconnected [dim]({exc})[/dim] [dim]·[/dim] retry in [yellow]{delay:.1f}s[/yellow]",
@@ -1716,6 +1894,11 @@ async def watch_spotify_websocket(
             delay = min(delay * 1.5, max_delay)
             continue
         except Exception as exc:  # pragma: no cover
+            try:
+                if pending_task is not None and not pending_task.done():
+                    pending_task.cancel()
+            except Exception:
+                pass
             log(
                 "api",
                 f"[red]ws[/red] [dim]·[/dim] [red]error[/red]: {exc} [dim]·[/dim] retry in [yellow]{delay:.1f}s[/yellow]",
