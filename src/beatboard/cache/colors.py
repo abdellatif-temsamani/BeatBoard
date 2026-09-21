@@ -54,7 +54,7 @@ def cache_colors(name: Optional[str], colors: Optional[List[str]] = None) -> Non
     """
     globs = Globs()
     start_time = time.time()
-    
+
     if colors is None:
         colors = []
 
@@ -70,7 +70,7 @@ def cache_colors(name: Optional[str], colors: Optional[List[str]] = None) -> Non
     compress_start = time.time()
     compressed_colors = compress_colors(colors)
     compress_time = time.time() - compress_start
-    
+
     if globs.debug.get("perf") or globs.debug.get("all"):
         print(f"[bold cyan]PERF:[/bold cyan] Color compression: {compress_time:.3f}s")
 
@@ -98,10 +98,10 @@ def cache_colors(name: Optional[str], colors: Optional[List[str]] = None) -> Non
             print(f"[red bold]Database error while caching colors:[/red bold] {e}")
             raise
     db_time = time.time() - db_start
-    
+
     if globs.debug.get("perf") or globs.debug.get("all"):
         print(f"[bold cyan]PERF:[/bold cyan] Database write: {db_time:.3f}s")
-    
+
     total_time = time.time() - start_time
     if globs.debug.get("perf") or globs.debug.get("all"):
         print(f"[bold cyan]PERF:[/bold cyan] Total cache write: {total_time:.3f}s")
@@ -118,7 +118,7 @@ def get_cached_colors(name: Optional[str]) -> Optional[List[str]]:
     """
     globs = Globs()
     start_time = time.time()
-    
+
     if name is None:
         return None
 
@@ -143,7 +143,7 @@ def get_cached_colors(name: Optional[str]) -> Optional[List[str]]:
         )
         return None
     db_time = time.time() - db_start
-    
+
     if globs.debug.get("perf") or globs.debug.get("all"):
         print(f"[bold cyan]PERF:[/bold cyan] Database read: {db_time:.3f}s")
 
@@ -158,15 +158,17 @@ def get_cached_colors(name: Optional[str]) -> Optional[List[str]]:
         log("cache", f"[red bold]CACHE CORRUPTION[/red bold] {name}")
         return None
     decompress_time = time.time() - decompress_start
-    
+
     if globs.debug.get("perf") or globs.debug.get("all"):
-        print(f"[bold cyan]PERF:[/bold cyan] Color decompression: {decompress_time:.3f}s")
+        print(
+            f"[bold cyan]PERF:[/bold cyan] Color decompression: {decompress_time:.3f}s"
+        )
 
     log(
         "cache",
         f"[bold green]CACHE HIT[/bold green] {name} [dim]({len(colors)} colors)[/dim]",
     )
-    
+
     total_time = time.time() - start_time
     if globs.debug.get("perf") or globs.debug.get("all"):
         print(f"[bold cyan]PERF:[/bold cyan] Total cache read: {total_time:.3f}s")

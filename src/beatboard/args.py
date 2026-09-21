@@ -116,7 +116,9 @@ class RichArgumentParser(argparse.ArgumentParser):
     def print_help(self, file=None):
         console.print(
             Panel.fit(
-                f"[bold blue]BeatBoard[/bold blue] [cyan]v{__version__}[/cyan]\n[white]Change your hardware RGB based on music[/white]",
+                f"[bold blue]BeatBoard[/bold blue] [cyan]v{
+                    __version__
+                }[/cyan]\n[white]Change your hardware RGB based on music[/white]",
                 border_style="blue",
             )
         )
@@ -165,6 +167,12 @@ parser.add_argument(
     ),
 )
 
+parser.add_argument(
+    "--refresh-hardware",
+    action="store_true",
+    default=False,
+    help="Force re-detection of hardware and refresh cache",
+)
 
 debug_keys = list(Globs.debug.keys())
 parser.add_argument(

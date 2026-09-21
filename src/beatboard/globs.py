@@ -1,4 +1,3 @@
-import platform
 from pathlib import Path
 from typing import Literal, Self
 
@@ -6,25 +5,13 @@ from .hardware import hardwareName
 
 
 def get_cache_db() -> str:
-    """Get the path to the cache database based on the operating system.
+    """Get the path to the cache database.
 
     Returns:
-        The path to the cache database file as a string.
+        The path to the cache database file as a string, always in the
+        user-state directory: ~/.local/state/beatboard/cache.db
     """
-    app_name: str | None = "beatboard"
-    system = platform.system()
-
-    if system == "Linux":
-        base = Path.home() / ".local" / "share"
-    elif system == "Darwin":  # macOS
-        base = Path.home() / "Library" / "Application Support"
-    elif system == "Windows":
-        base = Path.home() / "AppData" / "Roaming"
-    else:
-        base = Path.cwd() / "cache"
-
-    final = (base / app_name if app_name else base) / "cache.sqlite"
-    return str(final)
+    return str(Path.home() / ".local" / "state" / "beatboard" / "cache.db")
 
 
 DebugCategory = Literal[

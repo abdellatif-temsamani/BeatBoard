@@ -140,7 +140,7 @@ def test_kmeans_colors():
     )
 
     assert found_red or found_green or found_blue
-    
+
     # Test with fewer clusters
     colors_2 = kmeans_colors(pixels, n_clusters=2)
     assert len(colors_2) == 2

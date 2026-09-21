@@ -108,12 +108,16 @@ async def process_art_url(art_url: str | None = None) -> None:
     hex_colors = get_cached_colors(cache_key)
     from_cache = bool(hex_colors)
     cache_time = time.time() - cache_start
-    
+
     if globs.debug.get("cache") or globs.debug.get("all"):
-        print(f"[bold cyan]CACHE:[/bold cyan] Lookup: {cache_time:.3f}s (hit: {from_cache})")
-    
+        print(
+            f"[bold cyan]CACHE:[/bold cyan] Lookup: {cache_time:.3f}s (hit: {from_cache})"
+        )
+
     if globs.debug.get("perf") or globs.debug.get("all"):
-        print(f"[bold cyan]PERF:[/bold cyan] Cache lookup: {cache_time:.3f}s (hit: {from_cache})")
+        print(
+            f"[bold cyan]PERF:[/bold cyan] Cache lookup: {cache_time:.3f}s (hit: {from_cache})"
+        )
 
     if not hex_colors:
         # Download or fetch new album art
@@ -124,7 +128,7 @@ async def process_art_url(art_url: str | None = None) -> None:
             print(f"[bold red]Error:[/bold red] fetching album art: {e}")
             return
         download_time = time.time() - download_start
-        
+
         if globs.debug.get("perf") or globs.debug.get("all"):
             print(f"[bold cyan]PERF:[/bold cyan] Image download: {download_time:.3f}s")
 
@@ -134,7 +138,7 @@ async def process_art_url(art_url: str | None = None) -> None:
             cache_start = time.time()
             cache_colors(cache_key, hex_colors)
             cache_write_time = time.time() - cache_start
-            
+
             if globs.debug.get("cache") or globs.debug.get("all"):
                 print(f"[bold cyan]CACHE:[/bold cyan] Write: {cache_write_time:.3f}s")
         except Exception as e:
@@ -177,7 +181,7 @@ async def process_art_url(art_url: str | None = None) -> None:
         except Exception as e:
             print(f"[bold red]Error:[/bold red] running hardware command: {e}")
     command_time = time.time() - command_start
-    
+
     if globs.debug.get("perf") or globs.debug.get("all"):
         print(f"[bold cyan]PERF:[/bold cyan] Hardware commands: {command_time:.3f}s")
 

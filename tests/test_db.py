@@ -89,9 +89,10 @@ class TestSourceMigrations:
         # Check migration ran
         cursor.execute("SELECT file_name FROM migrations ORDER BY file_name")
         migrations = cursor.fetchall()
-        assert len(migrations) == 2
+        assert len(migrations) == 3
         assert migrations[0][0] == "00_create_migration_table.sql"
         assert migrations[1][0] == "01_create_colors_cache_table.sql"
+        assert migrations[2][0] == "02_create_hardware_table.sql"
 
         conn.close()
 
@@ -109,6 +110,6 @@ class TestSourceMigrations:
         cursor = conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM migrations")
         count = cursor.fetchone()[0]
-        assert count == 2  # Two migrations, run only once each
+        assert count == 3  # Three migrations, run only once each
 
         conn.close()

@@ -9,9 +9,14 @@ from ..logs import log
 
 @contextmanager
 def get_connection():
-    db = sqlite3.connect(Globs().cache_path)
-    yield db
-    db.close()
+    # Always use the path from config via Globs (no :memory: fallback).
+    cache_path = Path(Globs().cache_path).expanduser()
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    db = sqlite3.connect(str(cache_path))
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 def get_migrations() -> list[str]:
@@ -87,4 +92,44 @@ def source_migrations():
                 if not exists:
                     source_file(cursor, file, file_name)
 
+        db.commit()
+
+
+def get_cached_hardware() -> list[str]:
+    """Return hardware list cached in the database.
+
+    Returns:
+        List of hardware names stored in the ``hardware`` table,
+        ordered by insertion. Empty list if table missing or no rows.
+    """
+    with get_connection() as db:
+        cursor = db.cursor()
+        cursor.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='hardware'"
+        )
+        if not cursor.fetchone():
+            return []
+        cursor.execute("SELECT name FROM hardware ORDER BY id")
+        rows = cursor.fetchall()
+        return [row[0] for row in rows]
+
+
+def set_cached_hardware(hardware: list[str]) -> None:
+    """Persist ``hardware`` list to the cache database.
+
+    Replaces any previously cached hardware. Creates the table if
+    migrations have not yet created it.
+    """
+    with get_connection() as db:
+        cursor = db.cursor()
+        cursor.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='hardware'"
+        )
+        if not cursor.fetchone():
+            cursor.execute(
+                "CREATE TABLE IF NOT EXISTS hardware (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE)"
+            )
+        cursor.execute("DELETE FROM hardware")
+        for name in hardware:
+            cursor.execute("INSERT INTO hardware (name) VALUES (?)", (name,))
         db.commit()

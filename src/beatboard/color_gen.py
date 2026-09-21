@@ -213,7 +213,7 @@ def debug_palette(
                 swatches_and_values.append(
                     "  ", style=Style(bgcolor=Color.from_rgb(r, g, b))
                 )
-            except Exception as e:
+            except Exception:
                 # If color swatch fails, just show the hex value
                 pass
             swatches_and_values.append(f" #{color} ", style="dim")
@@ -255,7 +255,9 @@ async def get_color_palette(path: str) -> list[str]:
     img_load_time = time.time() - img_load_start
 
     if globs.debug.get("perf") or globs.debug.get("all"):
-        print(f"[bold cyan]PERF:[/bold cyan] Image loading for analysis: {img_load_time:.3f}s")
+        print(
+            f"[bold cyan]PERF:[/bold cyan] Image loading for analysis: {img_load_time:.3f}s"
+        )
 
     # Calculate scores for each color
     scoring_start = time.time()
@@ -326,7 +328,9 @@ async def get_color_palette(path: str) -> list[str]:
         print(f"[bold cyan]PERF:[/bold cyan] Total time: {total_time:.3f}s")
         print(f"[bold cyan]PERF:[/bold cyan] Image dimensions: {img_array.shape}")
         print(f"[bold cyan]PERF:[/bold cyan] Colors found: {len(palette)}")
-        print(f"[bold cyan]PERF:[/bold cyan] Colors after filtering: {len(filtered_colors)}")
+        print(
+            f"[bold cyan]PERF:[/bold cyan] Colors after filtering: {len(filtered_colors)}"
+        )
 
     if globs.debug.get("palette") or globs.debug.get("all"):
         debug_palette(hex_colors, palette)
