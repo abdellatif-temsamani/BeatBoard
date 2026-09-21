@@ -12,7 +12,18 @@ def get_connection():
     # Always use the path from config via Globs (no :memory: fallback).
     cache_path = Path(Globs().cache_path).expanduser()
     cache_path.parent.mkdir(parents=True, exist_ok=True)
-    db = sqlite3.connect(str(cache_path))
+    # check_same_thread=False allows use via asyncio.to_thread
+    db = sqlite3.connect(str(cache_path), check_same_thread=False, timeout=5.0)
+    # Perf pragmas – safe for cache workload (WAL + NORMAL gives ~3x write throughput)
+    try:
+        db.execute("PRAGMA journal_mode=WAL")
+        db.execute("PRAGMA synchronous=NORMAL")
+        db.execute("PRAGMA temp_store=MEMORY")
+        db.execute("PRAGMA cache_size=-20000")  # ~20MB
+        db.execute("PRAGMA busy_timeout=5000")
+        db.execute("PRAGMA foreign_keys=ON")
+    except sqlite3.Error:
+        pass
     try:
         yield db
     finally:

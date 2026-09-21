@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 
 from beatboard.cache.colors import (
     cache_colors,
+    clear_memory_cache,
     compress_colors,
     decompress_colors,
     get_cached_colors,
@@ -35,6 +36,7 @@ class TestCompressDecompressColors:
 class TestColorsCache:
     def setup_method(self):
         """Set up in-memory database with colors_cache table."""
+        clear_memory_cache()
         self.db = sqlite3.connect(":memory:")
         self.db.execute("""
             CREATE TABLE colors_cache (
@@ -51,6 +53,7 @@ class TestColorsCache:
     def teardown_method(self):
         """Clean up database."""
         self.db.close()
+        clear_memory_cache()
 
     @patch("beatboard.cache.colors.get_connection")
     @patch("beatboard.logs.Globs")
@@ -106,6 +109,7 @@ class TestColorsCache:
 class TestGetCachedColors:
     def setup_method(self):
         """Set up in-memory database with colors_cache table."""
+        clear_memory_cache()
         self.db = sqlite3.connect(":memory:")
         self.db.execute("""
             CREATE TABLE colors_cache (
@@ -122,6 +126,7 @@ class TestGetCachedColors:
     def teardown_method(self):
         """Clean up database."""
         self.db.close()
+        clear_memory_cache()
 
     @patch("beatboard.cache.colors.get_connection")
     @patch("beatboard.logs.Globs")
