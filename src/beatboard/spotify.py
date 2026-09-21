@@ -85,7 +85,7 @@ def _get_session() -> requests.Session:
         )
         s.mount("https://", adapter)
         s.mount("http://", adapter)
-        s.headers.update({"User-Agent": "BeatBoard/0.1.3 (spotify-websocket)"})
+        s.headers.update({"User-Agent": "BeatBoard/0.3.0 (spotify-websocket)"})
         _SESSION = s
     return _SESSION
 
@@ -1470,7 +1470,7 @@ async def watch_spotify_websocket(
             # Dealer expects browser-like Origin; helps avoid 403 on some networks
             dealer_headers = {
                 "Origin": "https://open.spotify.com",
-                "User-Agent": "Mozilla/5.0 BeatBoard/0.1.3",
+                "User-Agent": "Mozilla/5.0 BeatBoard/0.3.0",
             }
             try:
                 ws_ctx = websockets.connect(

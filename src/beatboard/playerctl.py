@@ -33,7 +33,7 @@ def _get_image_session():
         )
         s.mount("https://", adapter)
         s.mount("http://", adapter)
-        s.headers.update({"User-Agent": "BeatBoard/0.1.3"})
+        s.headers.update({"User-Agent": "BeatBoard/0.3.0"})
         _IMAGE_SESSION = s
     return _IMAGE_SESSION
 
