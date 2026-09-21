@@ -6,14 +6,14 @@ from beatboard.args import parser
 @pytest.mark.parametrize(
     "args, expected_once, expected_debug, expected_hardware",
     [
-        ([], False, [], ["g213"]),
-        (["--once"], True, [], ["g213"]),
-        (["--debug", "command"], False, ["command"], ["g213"]),
+        ([], False, [], None),
+        (["--once"], True, [], None),
+        (["--debug", "command"], False, ["command"], None),
         (
             ["--once", "--debug", "command", "cache"],
             True,
             ["command", "cache"],
-            ["g213"],
+            None,
         ),
         (["--hardware", "g213"], False, [], ["g213"]),
         (["--hardware", "g213", "g213"], False, [], ["g213", "g213"]),

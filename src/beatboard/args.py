@@ -100,7 +100,10 @@ class DebugAction(argparse.Action):
                 "all": "Enable all debug logging",
             }
             for category in sorted(valid_categories):
-                table.add_row(category, descriptions.get(category, f"Enable {category} debug logging"))
+                table.add_row(
+                    category,
+                    descriptions.get(category, f"Enable {category} debug logging"),
+                )
             console.print(table)
             parser.exit(1)
 
@@ -154,8 +157,12 @@ parser.add_argument(
     "--hardware",
     action=HardwareAction,
     nargs="+",
-    default=[hardware_keys[0]],
-    help=(f"List of hardware to change the color of:\n{', '.join(hardware_keys)}"),
+    default=None,
+    help=(
+        "List of hardware to change the color of. "
+        "Automatically detected when omitted:\n"
+        f"{', '.join(hardware_keys)}"
+    ),
 )
 
 
