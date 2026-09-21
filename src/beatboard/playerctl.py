@@ -9,7 +9,12 @@ from pathlib import Path
 from rich import print
 
 from .cache.colors import cache_colors, get_cached_colors
-from .color_gen import debug_palette, extract_palette, get_color_palette
+from .color_gen import (
+    COLOR_CACHE_VERSION,
+    debug_palette,
+    extract_palette,
+    get_color_palette,
+)
 from .globs import Globs
 from .hardware import get_command
 
@@ -34,7 +39,7 @@ def _get_image_session():
 
 
 def create_cache_key(art_url: str) -> str:
-    """Create a sanitized cache key from an art URL.
+    """Create a versioned cache key from an art URL.
 
     Args:
         art_url: The art URL to hash.
@@ -42,7 +47,13 @@ def create_cache_key(art_url: str) -> str:
     Returns:
         A SHA256 hex digest suitable for use as a cache key.
     """
-    return hashlib.sha256(art_url.encode("utf-8")).hexdigest()
+    value = f"{COLOR_CACHE_VERSION}\0{art_url}"
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+
+def create_track_cache_key(track_id: str) -> str:
+    """Namespace a Spotify track id by the active palette algorithm."""
+    return f"{COLOR_CACHE_VERSION}:{track_id}"
 
 
 def playerctl(*args: str) -> list[str]:
@@ -179,7 +190,9 @@ async def process_art_url(
     if track_id:
         from .cache.colors import get_cached_colors_by_track_id
 
-        hex_colors_track = get_cached_colors_by_track_id(track_id)
+        hex_colors_track = get_cached_colors_by_track_id(
+            create_track_cache_key(track_id)
+        )
         if hex_colors_track:
             hex_colors = hex_colors_track
             from_cache = True
@@ -238,11 +251,12 @@ async def process_art_url(
             print(f"[bold red]Error:[/bold red] fetching album art: {e}")
             return None
 
-        # Extract palette (CPU-bound, run in thread)
+        # Extract the palette.
         try:
             hex_colors = await get_color_palette(IMAGE_PATH)
             # Store with both art-hash and optional track_id in one row (migration 03)
-            cache_colors(cache_key, hex_colors, track_id=track_id)
+            cache_track_id = create_track_cache_key(track_id) if track_id else None
+            cache_colors(cache_key, hex_colors, track_id=cache_track_id)
         except Exception as e:
             print(f"[bold red]Error:[/bold red] extracting color palette: {e}")
             return None

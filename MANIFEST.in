@@ -1,2 +1,3 @@
 recursive-include src/beatboard/G213Colors *.py *.pcap LICENSE README.md
+include THIRD_PARTY_NOTICES.md
 global-exclude src/beatboard/G213Colors/.git*

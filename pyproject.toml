@@ -23,11 +23,9 @@ classifiers = [
 dependencies = [
     "certifi==2025.10.5",
     "charset-normalizer==3.4.4",
-    "colorthief==0.2.1",
     "idna==3.11",
     "markdown-it-py==3.0.0",
     "mdurl==0.1.2",
-    "numpy==2.3.4",
     "packaging==25.0",
     "pillow==12.0.0",
     "Pygments==2.19.2",
