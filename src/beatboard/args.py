@@ -9,7 +9,7 @@ from rich.panel import Panel
 from rich.table import Table
 
 from .globs import Globs
-from .hardware import hardware
+from .hardware import get_all_hardware, hardware
 
 __version__ = version("beatboard")
 
@@ -31,7 +31,11 @@ class VersionAction(argparse.Action):
 
 
 class HardwareAction(argparse.Action):
-    """Custom argparse action that validates hardware options and displays available hardware if invalid."""
+    """Custom argparse action that stores hardware options.
+
+    Validation is deferred until after plugins are loaded in beatboard_main,
+    so community drivers from ~/.config/beatboard/plugins are accepted.
+    """
 
     def __call__(
         self,
@@ -44,25 +48,39 @@ class HardwareAction(argparse.Action):
             values = []
         elif isinstance(values, str):
             values = [values]
-
-        keys = list(hardware.keys())
-        invalid = [v for v in values if v not in keys]
-
-        if invalid:
-            console.print(
-                "[red bold]Error:[/red bold] Invalid hardware option(s):",
-                ", ".join(f"'{v}'" for v in invalid),
-            )
-            console.print("\n[bold blue]Available hardware options:[/bold blue]")
-            table = Table(show_header=True, header_style="bold blue")
-            table.add_column("Hardware", style="cyan")
-            table.add_column("Description", style="white")
-            for key in keys:
-                table.add_row(key, f"Controls {key.upper()} keyboard RGB (Linux/Windows)")
-            console.print(table)
-            parser.exit(1)
-
+        # Store raw values; validation happens after plugin load in beatboard_main
         setattr(namespace, self.dest, values)
+
+
+def _validate_hardware_or_exit(values: list[str] | None) -> None:
+    """Validate hardware names against combined registry and exit with table if invalid."""
+    if not values:
+        return
+    try:
+        keys = list(get_all_hardware().keys())
+    except Exception:
+        keys = list(hardware.keys())
+    invalid = [v for v in values if v not in keys]
+    if invalid:
+        console.print(
+            "[red bold]Error:[/red bold] Invalid hardware option(s):",
+            ", ".join(f"'{v}'" for v in invalid),
+        )
+        console.print("\n[bold blue]Available hardware options:[/bold blue]")
+        table = Table(show_header=True, header_style="bold blue")
+        table.add_column("Hardware", style="cyan")
+        table.add_column("Description", style="white")
+        table.add_column("Source", style="dim")
+        for key in sorted(keys):
+            src = "builtin" if key in hardware else "plugin"
+            table.add_row(
+                key, f"Controls {key.upper()} keyboard RGB (Linux/Windows)", src
+            )
+        console.print(table)
+        # Use parser to exit with code 1
+        import sys
+
+        sys.exit(1)
 
 
 class DebugAction(argparse.Action):
@@ -80,7 +98,15 @@ class DebugAction(argparse.Action):
         elif isinstance(values, str):
             values = [values]
 
-        valid_categories = {"command", "palette", "cache", "perf", "api", "all"}
+        valid_categories = {
+            "command",
+            "palette",
+            "cache",
+            "perf",
+            "api",
+            "plugins",
+            "all",
+        }
         invalid = [v for v in values if v not in valid_categories]
 
         if invalid:
@@ -98,6 +124,7 @@ class DebugAction(argparse.Action):
                 "cache": "Enable cache debug logging",
                 "perf": "Enable performance timing debug logging",
                 "api": "Enable Spotify API debug logging (used when playerctl unavailable)",
+                "plugins": "Enable plugin loading debug logging",
                 "all": "Enable all debug logging",
             }
             for category in sorted(valid_categories):
@@ -162,8 +189,9 @@ parser.add_argument(
     help=(
         "List of hardware to change the color of. "
         "Automatically detected on Linux when omitted. "
-        "On macOS/Windows, manual specification recommended:\n"
-        f"{', '.join(hardware_keys)}"
+        "On macOS/Windows, manual specification recommended.\n"
+        f"Built-ins: {', '.join(hardware_keys)}. "
+        "Community drivers from ~/.config/beatboard/plugins/*.yaml are also available (see docs/plugins.md)."
     ),
 )
 
@@ -172,6 +200,13 @@ parser.add_argument(
     action="store_true",
     default=False,
     help="Force re-detection of hardware and refresh cache",
+)
+
+parser.add_argument(
+    "--reset-cache",
+    action="store_true",
+    default=False,
+    help="Clear color cache only before starting (keeps hardware cache)",
 )
 
 debug_keys = list(Globs.debug.keys())

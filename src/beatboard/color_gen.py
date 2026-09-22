@@ -535,27 +535,12 @@ def generate_palette(swatches: Sequence[Swatch]) -> VibrantPalette:
         options.max_muted_saturation,
     )
 
-    if vibrant is None and dark_vibrant is None and light_vibrant is None:
-        if dark_muted is not None:
-            dark_vibrant = _synthetic_swatch(dark_muted, options.target_dark_luma)
-        if light_muted is not None:
-            # This intentionally follows node-vibrant v4's fallback behavior.
-            dark_vibrant = _synthetic_swatch(light_muted, options.target_dark_luma)
-
-    if vibrant is None:
-        source = dark_vibrant or light_vibrant
-        if source is not None:
-            vibrant = _synthetic_swatch(source, options.target_normal_luma)
-    if dark_vibrant is None and vibrant is not None:
-        dark_vibrant = _synthetic_swatch(vibrant, options.target_dark_luma)
-    if light_vibrant is None and vibrant is not None:
-        light_vibrant = _synthetic_swatch(vibrant, options.target_light_luma)
-    if muted is None and vibrant is not None:
-        muted = _synthetic_swatch(vibrant, options.target_muted_saturation)
-    if dark_muted is None and dark_vibrant is not None:
-        dark_muted = _synthetic_swatch(dark_vibrant, options.target_muted_saturation)
-    if light_muted is None and light_vibrant is not None:
-        light_muted = _synthetic_swatch(light_vibrant, options.target_muted_saturation)
+    # Synthetic fallbacks disabled — only return colors that exist in the artwork.
+    # Previously this mirrored node-vibrant's _synthetic_swatch logic (creating
+    # new colors by shifting lightness/saturation when a role was missing).
+    # Per user request, we now keep only quantized swatches from the image;
+    # missing roles stay None and are omitted from palette.swatches().
+    pass
 
     return VibrantPalette(
         vibrant=vibrant,

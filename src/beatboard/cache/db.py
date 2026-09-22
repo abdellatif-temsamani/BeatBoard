@@ -144,3 +144,19 @@ def set_cached_hardware(hardware: list[str]) -> None:
         for name in hardware:
             cursor.execute("INSERT INTO hardware (name) VALUES (?)", (name,))
         db.commit()
+
+
+def reset_cache() -> None:
+    """Clear color cache only (keeps hardware cache).
+
+    Deletes all rows from colors_cache but preserves the hardware table
+    so `beatboard --reset-cache` does not break hardware detection.
+    """
+    with get_connection() as db:
+        cursor = db.cursor()
+        cursor.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='colors_cache'"
+        )
+        if cursor.fetchone():
+            cursor.execute("DELETE FROM colors_cache")
+            db.commit()
