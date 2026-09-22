@@ -27,26 +27,24 @@
 ## Project Structure
 
 - `src/beatboard/`: Package
-  - `spotify/`: Spotify WebSocket integration (modular package)
-    - `constants.py`: URLs, scopes, defaults, `_UNAUTHORIZED` sentinel
-    - `session.py`: pooled `requests.Session` (`_get_session`)
-    - `callback.py`: OAuth callback HTTP server (`_CallbackHandler`, `_run_local_server`)
-    - `auth.py`: token & OAuth flow (`get_spotify_token`, `build_auth_url`, `exchange_code_for_token`, `refresh_access_token`, `save_spotify_tokens`, `ensure_valid_token`, `check_spotify_api_available`)
-    - `parsing.py`: Dealer/REST payload parsers (`_extract_track_from_payload`, `_parse_ws_message`, `_extract_track_and_art_from_ws_raw`)
-    - `api.py`: one-shot REST fetches (`_fetch_track_sync`, `_fetch_current_playback_sync`)
-    - `watcher.py`: push watcher (`_build_websocket_url`, `watch_spotify_websocket`, `watch_spotify_api`)
-    - `__init__.py`: public facade re-exporting flat `beatboard.spotify` API for backward compat
-  - `playerctl.py`: `playerctl` backend + `process_art_url` pipeline
-  - `hardware.py`: hardware registry & detection
-  - `config.py` / `globs.py` / `logs.py` / `args.py`
-  - `cache/`: SQLite cache, `plugins/`: YAML drivers, `G213Colors/`: vendor driver
+  - `color/`: palette extraction – `constants.py` (RGB/_SIG_BITS), `models.py` (Swatch/VibrantPalette), `quantize.py` (Histogram/VBox/MMCQ), `palette.py` (generator), `image.py` (`extract_palette`/`get_color_palette`) – `color_gen.py` is deprecated shim
+  - `spotify/`: WebSocket integration (pure push)
+    - `constants.py` / `session.py` / `callback.py` / `parsing.py` / `api.py` (leaves)
+    - `oauth.py` / `tokens.py` / `flow.py` + `auth.py` facade (auth lifecycle)
+    - `watcher/` (`connection.py`, `hydration.py`, `handlers.py`, `core.py`, `api.py`) + `__init__.py` facade
+    - `__init__.py` public facade (`beatboard.spotify` flat API)
+  - `hardware/`: registry + detection – `registry.py`, `core.py` (load YAML), `platform.py` (USB/DMI), `detect.py` (`detect_hardware`), `commands.py` (`get_command`)
+  - `playerctl/`: playerctl backend – `session.py`, `keys.py`, `player.py` (`playerctl`/`check`), `image.py` (`get_image`), `apply.py`/`hardware.py` (hardware exec), `process.py` (`process_art_url`), `watcher.py` (`watch_playerctl`)
+  - `cache/`: SQLite + memory – `memory.py` (LRU), `compression.py`, `store.py` (orchestrates), `db.py` (`_has_track_id_column`), `colors.py` facade
+  - `config.py` / `globs.py` / `logs.py` / `args.py` / `utils.py` (35-line shim, don't grow)
+  - `plugins/`: YAML drivers, `G213Colors/`: vendor driver
 - `tests/`: Unit tests, `docs/`: Docs
 - `pyproject.toml`: Config, `.github/`: CI/templates
 
 ## Modularity Rules (enforced)
 
 - **Single responsibility**: one concern per file/module. If you describe a file with "and", split it.
-- **File size**: soft limit 400 lines, hard limit 800. Files >400 lines should be justified; files >800 lines MUST be split into a package (`module/` with `__init__.py` facade). Exception requires ` # modularity: allow-large` comment with rationale. Grandfathered large files (`color_gen.py`, `spotify/watcher.py`) are tracked as warnings until next refactor.
+- **File size**: soft limit 400 lines, hard limit 800. Files >400 lines should be justified; files >800 lines MUST be split into a package (`module/` with `__init__.py` facade). Exception requires ` # modularity: allow-large` comment with rationale.
 - **Package over file**: when a module grows past 3 distinct responsibilities (e.g. auth + parsing + transport), extract cohesive submodules. Use a facade `__init__.py` that re-exports the flat public API for backward compat (see `src/beatboard/spotify/` as reference).
 - **No god files**: no new `utils.py` dumping ground. Place code near its domain (`spotify/auth.py`, `hardware/registry.py`, etc.).
 - **Public API**: keep `beatboard.<module>` import paths stable via facade re-exports; move implementation to submodules but never break `from beatboard.X import Y`.

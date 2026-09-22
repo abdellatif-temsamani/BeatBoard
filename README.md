@@ -224,24 +224,46 @@ python beatboard_dev.py --follow
 ```
 src/beatboard/
 ├── __init__.py          # beatboard_main() – CLI + hardware + mode dispatch
-├── spotify/             # Spotify WebSocket (Dealer) – pure push, no polling
-│   ├── __init__.py      # public facade (re-exports flat beatboard.spotify API)
-│   ├── constants.py     # SPOTIFY_* URLs, DEFAULT_SCOPES, _UNAUTHORIZED
-│   ├── session.py       # pooled requests.Session (_get_session)
-│   ├── callback.py      # OAuth callback server (_CallbackHandler, _run_local_server)
-│   ├── auth.py          # get_spotify_token, OAuth flow, refresh, ensure_valid_token
-│   ├── parsing.py       # payload parsing / image URL extraction
-│   ├── api.py           # one-shot REST (_fetch_track_sync, _fetch_current_playback_sync)
-│   └── watcher.py       # _build_websocket_url, watch_spotify_websocket/api
-├── playerctl.py         # Linux playerctl backend + process_art_url pipeline
-├── hardware.py          # registry & detection
-├── config.py / globs.py / logs.py / args.py
-├── cache/               # SQLite cache (colors, hardware)
-├── plugins/             # YAML hardware/extension drivers
+├── color/               # palette extraction (was color_gen.py 640L)
+│   ├── constants.py     # RGB/_SIG_BITS, COLOR_CACHE_VERSION
+│   ├── models.py        # Swatch, VibrantPalette
+│   ├── quantize.py      # Histogram/VBox/MMCQ
+│   ├── palette.py       # generator
+│   ├── image.py         # extract_palette / get_color_palette
+│   └── __init__.py      # facade; color_gen.py is deprecated shim
+├── spotify/             # WebSocket (Dealer) – pure push, no polling
+│   ├── constants.py / session.py / callback.py / parsing.py / api.py (leaves)
+│   ├── oauth.py / tokens.py / flow.py + auth.py facade (auth lifecycle)
+│   ├── watcher/ (connection.py, hydration.py, handlers.py, core.py, api.py) + __init__.py facade
+│   └── __init__.py      # public facade (beatboard.spotify flat API)
+├── hardware/            # registry + detection
+│   ├── registry.py      # hardware dict + Literal + register/clear
+│   ├── core.py          # load YAML core_plugins → hardware
+│   ├── platform.py      # is_windows/is_linux, USB/DMI
+│   ├── detect.py        # detect_hardware (+ plugin matching)
+│   ├── commands.py      # get_command
+│   └── __init__.py      # facade
+├── playerctl/           # playerctl backend
+│   ├── session.py       # pooled Session (_get_image_session)
+│   ├── keys.py          # create_cache_key / create_track_cache_key
+│   ├── player.py        # playerctl() / check_spotify_available
+│   ├── image.py         # get_image
+│   ├── apply.py         # _run_hardware / apply_colors
+│   ├── process.py       # process_art_url (cache → palette → hardware)
+│   ├── watcher.py       # watch_playerctl
+│   └── __init__.py      # facade
+├── cache/               # SQLite + memory
+│   ├── memory.py        # LRU (_mem_by_name/track)
+│   ├── compression.py   # compress/decompress
+│   ├── store.py         # cache_colors / get_cached_colors*
+│   ├── db.py            # _has_track_id_column, migrations
+│   └── colors.py        # facade
+├── config.py / globs.py / logs.py / args.py / utils.py (35-line shim)
+├── plugins/             # YAML drivers
 └── G213Colors/          # vendor driver (submodule)
 ```
 
-The former 1992-line `spotify.py` god file was split into cohesive modules by single responsibility. `beatboard.spotify` stays import-compatible – `from beatboard.spotify import watch_spotify_api, get_spotify_token` continues to work via the facade.
+All former god files (`color_gen.py` 640L, `spotify.py` 1992L, `hardware.py` 439L, `playerctl.py` 401L, `cache/colors.py` 411L, `watcher.py` 726L) were split by single responsibility into packages with `__init__.py` facades – flat imports like `from beatboard.spotify import watch_spotify_api` and `from beatboard.color_gen import Swatch` stay import-compatible.
 
 ## 🖥️ Supported Hardware
 
