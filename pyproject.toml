@@ -56,6 +56,9 @@ Changelog = "https://github.com/abdellatif-temsamani/BeatBoard/blob/main/CHANGEL
 [tool.setuptools.packages.find]
 where = ["src", "src/beatboard/G213Colors"]
 
+[tool.setuptools.package-data]
+beatboard = ["core_plugins/*.yaml", "core_plugins/*.yml", "G213Colors/*.py"]
+
 [tool.ruff]
 line-length = 88
 target-version = "py311"

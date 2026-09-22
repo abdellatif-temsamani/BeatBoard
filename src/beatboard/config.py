@@ -14,10 +14,12 @@ class ConfigError(ValueError):
 
 
 DEFAULT_CACHE_PATH_RAW = "~/.local/state/beatboard/cache.db"
+DEFAULT_PLUGIN_DIR_RAW = "~/.config/beatboard/plugins"
 
 DEFAULT_CONFIG: dict[str, object] = {
     "debug": [],
     "cache_path": DEFAULT_CACHE_PATH_RAW,
+    "plugin_dir": DEFAULT_PLUGIN_DIR_RAW,
     "spotify_token": None,
     "spotify_refresh_token": None,
     "spotify_client_id": None,
@@ -31,6 +33,7 @@ def _default_config_dict() -> dict[str, object]:
     """Return a fresh copy of the default config dictionary."""
     return {
         "cache_path": DEFAULT_CACHE_PATH_RAW,
+        "plugin_dir": DEFAULT_PLUGIN_DIR_RAW,
         "debug": [],
         "spotify_token": None,
         "spotify_refresh_token": None,
@@ -56,6 +59,7 @@ class Config:
 
     debug: list[DebugCategory] = field(default_factory=list)
     cache_path: str | None = DEFAULT_CACHE_PATH_RAW
+    plugin_dir: str | None = DEFAULT_PLUGIN_DIR_RAW
     spotify_token: str | None = None
     spotify_refresh_token: str | None = None
     spotify_client_id: str | None = None
@@ -98,6 +102,21 @@ def load_config(path: Path) -> Config:
             cache_path = str(Path(raw_cache_path).expanduser())
         else:
             raise ConfigError("cache_path must be a string or null")
+
+    if "plugin_dir" not in data:
+        plugin_dir = str(Path(DEFAULT_PLUGIN_DIR_RAW).expanduser())
+    else:
+        raw_plugin_dir = data.get("plugin_dir")
+        if raw_plugin_dir is None:
+            plugin_dir = None
+        elif isinstance(raw_plugin_dir, str):
+            # Allow empty string to disable plugins; otherwise expand user
+            if raw_plugin_dir.strip() == "":
+                plugin_dir = None
+            else:
+                plugin_dir = str(Path(raw_plugin_dir).expanduser())
+        else:
+            raise ConfigError("plugin_dir must be a string or null")
 
     valid_debug = set(get_args(DebugCategory))
     for category in debug:
@@ -160,6 +179,7 @@ def load_config(path: Path) -> Config:
     return Config(
         debug=debug,  # type: ignore[arg-type]
         cache_path=cache_path,
+        plugin_dir=plugin_dir,
         spotify_token=spotify_token,
         spotify_refresh_token=spotify_refresh_token,
         spotify_client_id=spotify_client_id,

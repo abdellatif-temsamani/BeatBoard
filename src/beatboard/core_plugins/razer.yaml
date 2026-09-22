@@ -1,0 +1,11 @@
+name: razer
+version: "1.0.0"
+description: "Razer devices via razer-cli (requires OpenRazer/razer-cli)"
+author: "BeatBoard"
+type: hardware
+hardware:
+  command: ["razer-cli", "-c"]
+  detect:
+    usb:
+      - vendor: 0x1532
+    executables: ["razer-cli"]

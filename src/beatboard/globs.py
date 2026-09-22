@@ -1,8 +1,6 @@
 from pathlib import Path
 from typing import Literal, Self
 
-from .hardware import hardwareName
-
 
 def get_cache_db() -> str:
     """Get the path to the cache database.
@@ -20,6 +18,7 @@ DebugCategory = Literal[
     "cache",
     "perf",
     "api",
+    "plugins",
     "all",
 ]
 
@@ -41,16 +40,18 @@ class Globs:
     """
 
     __instance: Self | None = None
-    hardware: list[hardwareName] = ["g213"]
+    hardware: list[str] = ["g213"]
     debug: dict[DebugCategory, bool] = {
         "command": False,
         "palette": False,
         "cache": False,
         "perf": False,
         "api": False,
+        "plugins": False,
         "all": False,
     }
     cache_path: str = get_cache_db()
+    plugin_dir: str | None = str(Path.home() / ".config" / "beatboard" / "plugins")
     # Spotify pure-websocket globals
     api: bool = False
     spotify: bool = False
