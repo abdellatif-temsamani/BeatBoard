@@ -34,11 +34,15 @@ def check_file(path: pathlib.Path) -> None:
         return
     lines = len(text.splitlines())
     if lines > HARD:
-        violations.append(f"HARD {rel}: {lines} lines > {HARD} – split into package with facade __init__.py")
+        violations.append(
+            f"HARD {rel}: {lines} lines > {HARD} – split into package with facade __init__.py"
+        )
     elif lines > SOFT:
         # grandfathered files are warnings, not blocking
         if rel in GRANDFATHERED:
-            warnings.append(f"SOFT {rel}: {lines} lines > {SOFT} – grandfathered, consider splitting")
+            warnings.append(
+                f"SOFT {rel}: {lines} lines > {SOFT} – grandfathered, consider splitting"
+            )
         else:
             warnings.append(f"SOFT {rel}: {lines} lines > {SOFT} – consider splitting")
 
@@ -50,11 +54,17 @@ def check_utils_dump() -> None:
         # existing 35-line utils.py is grandfathered; only flag if >100 lines
         try:
             if len(p.read_text(encoding="utf-8", errors="ignore").splitlines()) > 100:
-                violations.append(f"UTILS {p.relative_to(ROOT)}: utils.py dumping ground forbidden – use domain modules")
+                violations.append(
+                    f"UTILS {p.relative_to(ROOT)}: utils.py dumping ground forbidden – use domain modules"
+                )
             else:
-                warnings.append(f"NOTE {p.relative_to(ROOT)}: utils.py exists (35 lines) – avoid growing, prefer domain modules")
+                warnings.append(
+                    f"NOTE {p.relative_to(ROOT)}: utils.py exists (35 lines) – avoid growing, prefer domain modules"
+                )
         except Exception:
-            violations.append(f"UTILS {p.relative_to(ROOT)}: utils.py dumping ground forbidden – use domain modules")
+            violations.append(
+                f"UTILS {p.relative_to(ROOT)}: utils.py dumping ground forbidden – use domain modules"
+            )
 
 
 def check_facade(path: pathlib.Path) -> None:

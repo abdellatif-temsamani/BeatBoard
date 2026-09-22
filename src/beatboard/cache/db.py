@@ -146,6 +146,16 @@ def set_cached_hardware(hardware: list[str]) -> None:
         db.commit()
 
 
+def _has_track_id_column(conn: sqlite3.Connection) -> bool:
+    """Check if colors_cache has track_id column (migration 03)."""
+    try:
+        cur = conn.execute("PRAGMA table_info(colors_cache)")
+        cols = [row[1] for row in cur.fetchall()]
+        return "track_id" in cols
+    except sqlite3.Error:
+        return False
+
+
 def reset_cache() -> None:
     """Clear color cache only (keeps hardware cache).
 
