@@ -1420,6 +1420,17 @@ async def watch_spotify_websocket(
                 print(
                     f"[bold yellow]Processing[/bold yellow] [bold green]{song_label}[/bold green]..."
                 )
+                try:
+                    from .plugins.hooks import run_extension_hooks
+
+                    run_extension_hooks(
+                        "track_change",
+                        title=title or "",
+                        artist=artist or "",
+                        art_url=art_url or "",
+                    )
+                except Exception:
+                    pass
                 init_t0 = time.perf_counter()
                 await process_art_url(art_url)
                 init_dt = (time.perf_counter() - init_t0) * 1000
@@ -1502,6 +1513,18 @@ async def watch_spotify_websocket(
                     song_label: str,
                 ) -> None:
                     nonlocal last_art_url, last_track_id
+                    try:
+                        from .plugins.hooks import run_extension_hooks
+
+                        run_extension_hooks(
+                            "track_change",
+                            title=title or "",
+                            artist=artist or "",
+                            art_url=art_url or "",
+                            track_id=track_id or "",
+                        )
+                    except Exception:
+                        pass
                     proc_t0 = time.perf_counter()
                     try:
                         await process_art_url(art_url, track_id=track_id)
@@ -1568,8 +1591,37 @@ async def watch_spotify_websocket(
                                 ):
                                     nonlocal last_art_url, last_track_id
                                     try:
+                                        # Extension hook for cache hit (track_change already handled via _process_resolved_art, but for direct cache hit we trigger here)
+                                        try:
+                                            from .plugins.hooks import (
+                                                run_extension_hooks as _reh,
+                                            )
+
+                                            _reh(
+                                                "track_change",
+                                                title="",
+                                                artist="",
+                                                art_url=aw or "",
+                                                track_id=tid or "",
+                                            )
+                                        except Exception:
+                                            pass
                                         proc_t0 = time.perf_counter()
                                         await _apply_colors(cached)
+                                        # Also trigger color_applied for cache hit
+                                        try:
+                                            from .plugins.hooks import (
+                                                run_extension_hooks as _reh2,
+                                            )
+
+                                            _reh2(
+                                                "color_applied",
+                                                color=cached[0] if cached else "ffffff",
+                                                art_url=aw or "",
+                                                track_id=tid or "",
+                                            )
+                                        except Exception:
+                                            pass
                                         proc_dt = (time.perf_counter() - proc_t0) * 1000
                                         log(
                                             "api",

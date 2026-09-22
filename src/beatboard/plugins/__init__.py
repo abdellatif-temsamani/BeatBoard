@@ -45,6 +45,7 @@ from .loader import (
     register_plugins,
 )
 from .models import DetectSpec, ExtensionSpec, HardwareSpec, HookSpec, Plugin, UsbId
+from .hooks import run_extension_hooks
 from .registry import (
     clear_extension_registry,
     extension_registry,
@@ -69,6 +70,7 @@ __all__ = [
     "extension_registry",
     "get_extension_plugins",
     "clear_extension_registry",
+    "run_extension_hooks",
 ]
 
 

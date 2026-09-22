@@ -17,6 +17,7 @@ from .color_gen import (
 )
 from .globs import Globs
 from .hardware import get_command
+from .plugins.hooks import run_extension_hooks
 
 # Shared HTTP session for image downloads (keep-alive saves 50-100ms per track)
 _IMAGE_SESSION = None
@@ -196,6 +197,16 @@ async def process_art_url(
         if hex_colors_track:
             hex_colors = hex_colors_track
             from_cache = True
+            # Extension hook for fast path as well
+            try:
+                run_extension_hooks(
+                    "color_applied",
+                    color=hex_colors[0] if hex_colors else "ffffff",
+                    art_url=art_url or "",
+                    track_id=track_id or "",
+                )
+            except Exception:
+                pass
             # Fast path: skip download/palette, go straight to hardware
             command_start = time.time()
             commands = get_command(globs.hardware, hex_colors[0])
@@ -266,6 +277,17 @@ async def process_art_url(
                 "[bold yellow]Warning:[/bold yellow] No colors extracted from image, using fallback"
             )
             hex_colors = ["ffffff"]  # fallback color
+
+    # Extension hook: color_applied (before hardware, so extensions can react to color)
+    try:
+        run_extension_hooks(
+            "color_applied",
+            color=hex_colors[0] if hex_colors else "ffffff",
+            art_url=art_url or "",
+            track_id=track_id or "",
+        )
+    except Exception:
+        pass
 
     # Hardware first – latency matters. Palette debug after.
     command_start = time.time()
@@ -355,11 +377,21 @@ async def watch_playerctl(once: bool = False):
 
         song_label = f"{title} – {artist}" if artist else title
 
+        # Extension hook: track_change
+        try:
+            run_extension_hooks(
+                "track_change", title=title, artist=artist, art_url=art_url
+            )
+        except Exception:
+            pass
+
         print(
             f"[bold yellow]Processing[/bold yellow] [bold green]{song_label}[/bold green]..."
         )
 
-        await process_art_url(art_url)
+        await process_art_url(art_url, track_id=None)
+        # Extension hook: track processing done, color will be handled in process_art_url
+        # color_applied is triggered inside process_art_url after palette extraction
 
         print("[bold green]Processing done[/bold green].")
         print("[dim]" + "─" * 50 + "[/dim]")

@@ -9,6 +9,4 @@ type: extension
 extension:
   hooks:
     - event: track_change
-      command: ["notify-send", "BeatBoard", "Now playing {title} – {artist}"]
-    - event: color_applied
-      command: ["notify-send", "Color", "{color}"]
+      command: ["notify-send", "BeatBoard", "Processing {title} – {artist}"]
