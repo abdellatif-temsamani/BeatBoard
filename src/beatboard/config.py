@@ -160,19 +160,11 @@ def load_config(path: Path) -> Config:
         spotify_websocket_url = "wss://dealer.spotify.com/?access_token={token}"
 
     # Auto-create missing default keys on disk so the user config stays up-to-date.
-    # Also remove legacy key: hardware (moved to cache db). Any legacy
-    # spotify_poll_interval from polling era is healed silently.
     missing_keys = [k for k in DEFAULT_CONFIG if k not in data]
-    has_legacy_hardware = "hardware" in data
-    has_legacy_poll = "spotify_poll_interval" in data
-    if missing_keys or has_legacy_hardware or has_legacy_poll:
+    if missing_keys:
         healed = dict(data)
         for key in missing_keys:
             healed[key] = DEFAULT_CONFIG[key]
-        if has_legacy_hardware:
-            healed.pop("hardware", None)
-        if has_legacy_poll:
-            healed.pop("spotify_poll_interval", None)
         # Preserve any extra user keys, just add missing defaults; write sorted.
         _write_default_config(path, defaults=healed)
 

@@ -20,7 +20,7 @@ def test_globs_singleton():
 @pytest.mark.parametrize(
     "attr, value",
     [
-        ("hardware", ["g213"]),
+        ("hardware", []),
         (
             "debug",
             {
@@ -43,7 +43,7 @@ def test_globs_defaults(attr, value):
 @pytest.mark.parametrize(
     "attr, value",
     [
-        ("hardware", ["g213"]),
+        ("hardware", ["test-hardware"]),
         (
             "debug",
             {

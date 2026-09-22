@@ -186,14 +186,6 @@ hardware: dict[str, list[str]] = {
 }
 ```
 
-**Step 3: Update Type Hints**
-
-Add your hardware name to the `hardwareName` literal type:
-
-```python
-hardwareName = Literal["g213", "razer", "your_device"]
-```
-
 #### Testing Procedures
 
 **Unit Testing:**

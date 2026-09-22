@@ -224,7 +224,7 @@ src/beatboard/
 │   ├── quantize.py      # Histogram/VBox/MMCQ
 │   ├── palette.py       # generator
 │   ├── image.py         # extract_palette / get_color_palette
-│   └── __init__.py      # facade; color_gen.py is deprecated shim
+│   └── __init__.py      # facade
 ├── spotify/             # WebSocket (Dealer) – pure push, no polling
 │   ├── constants.py / session.py / callback.py / parsing.py / api.py (leaves)
 │   ├── oauth.py / tokens.py / flow.py + auth.py facade (auth lifecycle)
@@ -257,7 +257,7 @@ src/beatboard/
 └── G213Colors/          # vendor driver (submodule)
 ```
 
-All former god files (`color_gen.py` 640L, `spotify.py` 1992L, `hardware.py` 439L, `playerctl.py` 401L, `cache/colors.py` 411L, `watcher.py` 726L) were split by single responsibility into packages with `__init__.py` facades – flat imports like `from beatboard.spotify import watch_spotify_api` and `from beatboard.color_gen import Swatch` stay import-compatible.
+All former god files (`color_gen.py` 640L, `spotify.py` 1992L, `hardware.py` 439L, `playerctl.py` 401L, `cache/colors.py` 411L, `watcher.py` 726L) were split by single responsibility into packages with `__init__.py` facades – flat imports like `from beatboard.spotify import watch_spotify_api` and `from beatboard.color import Swatch` stay import-compatible.
 
 ## 🖥️ Supported Hardware
 

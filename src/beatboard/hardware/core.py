@@ -1,4 +1,4 @@
-"""Core hardware loading – YAML plugins and fallback defaults."""
+"""Core hardware loading – YAML plugins only."""
 
 from __future__ import annotations
 
@@ -54,17 +54,12 @@ def _load_core_hardware() -> None:
 
     dirs = _find_core_plugins_dirs()
     seen: set[str] = set()
-    priority_names = ["g213", "razer", "asus"]
     for d in dirs:
         all_files: dict[str, Path] = {}
         for pattern in ("*.yaml", "*.yml"):
             for p in d.glob(pattern):
                 all_files[p.stem] = p
-        ordered_paths: list[Path] = []
-        for name in priority_names:
-            if name in all_files:
-                ordered_paths.append(all_files.pop(name))
-        ordered_paths.extend(sorted(all_files.values(), key=lambda x: x.name))
+        ordered_paths: list[Path] = sorted(all_files.values(), key=lambda x: x.name)
         for p in ordered_paths:
             try:
                 text = p.read_text(encoding="utf-8")
@@ -93,33 +88,3 @@ def _load_core_hardware() -> None:
 
 # Load core hardware at import time so hardware dict is ready for args parsing
 _load_core_hardware()
-
-# Fallback: if core dir missing or empty (e.g., minimal install), keep hardcoded defaults
-if not hardware:
-    hardware.update(
-        {
-            "g213": [sys.executable, _g213_script, "-c"],
-            "razer": ["razer-cli", "-c"],
-            "asus": ["asusctl", "aura", "static", "-c"],
-        }
-    )
-    try:
-        from beatboard.plugins.models import DetectSpec, UsbId
-
-        _core_detect.setdefault(
-            "g213", DetectSpec(usb=[UsbId(vendor=0x046D, product=0xC336)])
-        )
-        _core_detect.setdefault(
-            "razer",
-            DetectSpec(usb=[UsbId(vendor=0x1532)], executables=["razer-cli"]),
-        )
-        _core_detect.setdefault(
-            "asus",
-            DetectSpec(
-                usb=[UsbId(vendor=0x0B05)],
-                executables=["asusctl"],
-                system_vendor="asus",
-            ),
-        )
-    except Exception:
-        pass

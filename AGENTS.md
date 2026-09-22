@@ -27,7 +27,7 @@
 ## Project Structure
 
 - `src/beatboard/`: Package
-  - `color/`: palette extraction – `constants.py` (RGB/_SIG_BITS), `models.py` (Swatch/VibrantPalette), `quantize.py` (Histogram/VBox/MMCQ), `palette.py` (generator), `image.py` (`extract_palette`/`get_color_palette`) – `color_gen.py` is deprecated shim
+  - `color/`: palette extraction – `constants.py` (RGB/_SIG_BITS), `models.py` (Swatch/VibrantPalette), `quantize.py` (Histogram/VBox/MMCQ), `palette.py` (generator), `image.py` (`extract_palette`/`get_color_palette`)
   - `spotify/`: WebSocket integration (pure push)
     - `constants.py` / `session.py` / `callback.py` / `parsing.py` / `api.py` (leaves)
     - `oauth.py` / `tokens.py` / `flow.py` + `auth.py` facade (auth lifecycle)

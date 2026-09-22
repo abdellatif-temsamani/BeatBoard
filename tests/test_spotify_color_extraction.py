@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from PIL import Image
 
-from beatboard.color_gen import (
+from beatboard.color import (
     Swatch,
     extract_palette,
     generate_palette,

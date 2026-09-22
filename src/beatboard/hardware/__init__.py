@@ -9,7 +9,7 @@ from __future__ import annotations
 import os
 
 # --- constants (leaf) ---
-from .constants import _SYSTEM_VENDOR_PATHS, hardwareName
+from .constants import _SYSTEM_VENDOR_PATHS
 
 # --- registry (single source for mutable state) ---
 from .registry import (
@@ -58,7 +58,6 @@ __file__ = os.path.normpath(
 __all__ = [
     # constants / registry
     "hardware",
-    "hardwareName",
     "_core_detect",
     "_plugin_hardware",
     "_plugin_detect",

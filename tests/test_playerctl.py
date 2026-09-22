@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import hashlib
 
-from beatboard.color_gen import COLOR_CACHE_VERSION
+from beatboard.color import COLOR_CACHE_VERSION
 from beatboard.playerctl import create_cache_key, create_track_cache_key
 
 

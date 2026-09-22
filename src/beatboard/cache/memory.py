@@ -32,8 +32,6 @@ def _mem_put(
     if track_id:
         _mem_by_track[track_id] = colors
         _mem_order.append(f"t:{track_id}")
-        legacy = f"track_{track_id}"
-        _mem_by_name[legacy] = colors
     while len(_mem_order) > _MAX_MEM * 2:
         oldest = _mem_order.pop(0)
         if oldest.startswith("n:"):

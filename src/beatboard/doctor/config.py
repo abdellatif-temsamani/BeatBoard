@@ -153,25 +153,6 @@ def diagnose_config(config_path: Path | None = None) -> list[dict[str, str]]:
                 "hint": "",
             }
         )
-        # Check for legacy keys healed
-        if isinstance(loaded, dict) and "hardware" in loaded:
-            results.append(
-                {
-                    "check": "Legacy hardware key",
-                    "status": "warn",
-                    "detail": "found legacy 'hardware' key – was auto-removed",
-                    "hint": "Hardware is now cached in DB; no action needed",
-                }
-            )
-        if isinstance(loaded, dict) and "spotify_poll_interval" in loaded:
-            results.append(
-                {
-                    "check": "Legacy poll interval",
-                    "status": "warn",
-                    "detail": "found legacy 'spotify_poll_interval' – auto-removed",
-                    "hint": "Now using WebSocket push; no polling",
-                }
-            )
         # Check expected keys
         from beatboard.config import DEFAULT_CONFIG
 

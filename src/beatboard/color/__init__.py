@@ -1,8 +1,7 @@
 """Color extraction package – facade re-exporting original flat API.
 
-This package splits ``beatboard.color_gen`` (640 lines) into focused
-submodules while preserving ``beatboard.color_gen`` and ``beatboard.color``
-import paths via re-exports.
+This package splits the original 640-line color_gen module into focused
+submodules while preserving the ``beatboard.color`` import path via re-exports.
 
 Layering:
   constants (leaf) → models / quantize (leaf) → palette → image (orchestrates)

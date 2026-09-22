@@ -8,7 +8,7 @@ import time
 from rich import print
 
 from ..cache.colors import cache_colors, get_cached_colors
-from ..color_gen import debug_palette, extract_palette, get_color_palette
+from ..color import debug_palette, extract_palette, get_color_palette
 from ..globs import Globs
 from ..plugins.hooks import run_extension_hooks
 from .apply import _run_hardware
@@ -94,9 +94,9 @@ async def process_art_url(
 
         if not hex_colors:
             print(
-                "[bold yellow]Warning:[/bold yellow] No colors extracted from image, using fallback"
+                "[bold yellow]Warning:[/bold yellow] No colors extracted from image, skipping hardware update"
             )
-            hex_colors = ["ffffff"]  # fallback color
+            return None
 
     # Extension hook: color_applied (before hardware, so extensions can react to color)
     try:

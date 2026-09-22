@@ -16,7 +16,6 @@ EXCLUDE = {"G213Colors", "__pycache__", "graphify-out"}
 # Grandfathered large files – pass with SOFT warning only until refactored
 GRANDFATHERED = {
     pathlib.Path("src/beatboard/spotify/watcher.py"),
-    pathlib.Path("src/beatboard/color_gen.py"),
 }
 
 ALLOW_LARGE_RE = re.compile(r"#\s*modularity:\s*allow-large")

@@ -36,18 +36,6 @@ def test_load_config_creates_default_file(tmp_path: Path) -> None:
     assert (
         config.spotify_websocket_url == "wss://dealer.spotify.com/?access_token={token}"
     )
-    # pure websocket mode – poll_interval is legacy and not in default config
-    assert (
-        not hasattr(config, "spotify_poll_interval")
-        or getattr(config, "spotify_poll_interval", None) is None
-        or "spotify_poll_interval"
-        not in yaml.safe_load(config_path.read_text(encoding="utf-8"))
-    )
-    # hardware is no longer stored in config - should not be present
-    assert not hasattr(config, "hardware")
-    raw = yaml.safe_load(config_path.read_text(encoding="utf-8"))
-    assert "hardware" not in raw
-    assert "spotify_poll_interval" not in raw
 
 
 def test_get_config_path_uses_home_config_directory(
@@ -71,19 +59,19 @@ def test_load_config_reads_user_settings(tmp_path: Path) -> None:
     assert config.cache_path == "/tmp/beatboard.db"
 
 
-def test_load_config_ignores_legacy_hardware(tmp_path: Path) -> None:
+def test_load_config_preserves_unknown_keys(tmp_path: Path) -> None:
     config_path = tmp_path / "config.yaml"
     config_path.write_text(
-        "hardware:\n  - g213\ndebug:\n  - cache\ncache_path: /tmp/beatboard.db\n",
+        "unknown_key: value\ndebug:\n  - cache\ncache_path: /tmp/beatboard.db\n",
         encoding="utf-8",
     )
 
     config = load_config(config_path)
 
-    # hardware key should be removed from file and not present in Config
-    assert not hasattr(config, "hardware")
+    # unknown keys are preserved in file but not exposed in Config
+    assert not hasattr(config, "unknown_key")
     data = yaml.safe_load(config_path.read_text(encoding="utf-8"))
-    assert "hardware" not in data
+    assert data["unknown_key"] == "value"
     assert data["debug"] == ["cache"]
     assert data["cache_path"] == "/tmp/beatboard.db"
 
@@ -102,7 +90,7 @@ def test_load_config_rejects_unknown_debug_category(tmp_path: Path) -> None:
         ("- g213\n", "top level must be a mapping"),
         ("debug: cache\n", "debug must be a list of strings"),
         ("cache_path: []\n", "cache_path must be a string or null"),
-        ("hardware: [\n", "invalid YAML"),
+        ("unknown_key: [\n", "invalid YAML"),
     ],
 )
 def test_load_config_rejects_invalid_shapes(

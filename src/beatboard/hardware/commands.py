@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from .constants import hardwareName
 from .registry import _plugin_hardware, get_all_hardware, hardware
 
 
@@ -17,7 +16,7 @@ def _build_plugin_command(template: list[str], color: str) -> list[str]:
     return template + [color]
 
 
-def get_command(names: list[hardwareName] | list[str], color: str) -> list[list[str]]:
+def get_command(names: list[str], color: str) -> list[list[str]]:
     """Get the command to run the hardware.
 
     Args:

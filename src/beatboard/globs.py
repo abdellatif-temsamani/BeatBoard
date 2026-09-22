@@ -40,7 +40,7 @@ class Globs:
     """
 
     __instance: Self | None = None
-    hardware: list[str] = ["g213"]
+    hardware: list[str] = []
     debug: dict[DebugCategory, bool] = {
         "command": False,
         "palette": False,
