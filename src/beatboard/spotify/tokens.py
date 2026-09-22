@@ -5,7 +5,6 @@ Layer: constants → oauth → tokens. No dependency on flow/callback.
 
 from __future__ import annotations
 
-import os
 import time
 from pathlib import Path
 
@@ -31,18 +30,7 @@ def _get_session():  # lazy to avoid circular at import time
 
 
 def get_spotify_token() -> str | None:
-    """Resolve a Spotify API token from env or config file."""
-    for env_var in ("SPOTIFY_TOKEN", "SPOTIFY_ACCESS_TOKEN", "BEATBOARD_SPOTIFY_TOKEN"):
-        token = os.getenv(env_var)
-        if token:
-            token = token.strip()
-            if token:
-                log(
-                    "api",
-                    f"[cyan]api[/cyan] [dim]·[/dim] token from env:[green]{env_var}[/green]",
-                )
-                return token
-
+    """Resolve a Spotify API token from config."""
     globs = Globs()
     for attr in ("spotify_token", "spotify_access_token"):
         token = getattr(globs, attr, None)
@@ -57,12 +45,8 @@ def get_spotify_token() -> str | None:
 def _try_client_credentials_token() -> str | None:
     """Attempt to obtain a token via Spotify Client Credentials flow."""
     globs = Globs()
-    client_id = os.getenv("SPOTIFY_CLIENT_ID") or getattr(
-        globs, "spotify_client_id", None
-    )
-    client_secret = os.getenv("SPOTIFY_CLIENT_SECRET") or getattr(
-        globs, "spotify_client_secret", None
-    )
+    client_id = getattr(globs, "spotify_client_id", None)
+    client_secret = getattr(globs, "spotify_client_secret", None)
 
     if not client_id or not client_secret:
         return None
@@ -144,22 +128,14 @@ def _try_refresh_token(config_path: Path | None = None) -> str | None:
     """Attempt to refresh the access token using the stored refresh token."""
     t0 = time.perf_counter()
     globs = Globs()
-    refresh_token = getattr(globs, "spotify_refresh_token", None) or os.getenv(
-        "SPOTIFY_REFRESH_TOKEN"
-    )
+    refresh_token = getattr(globs, "spotify_refresh_token", None)
     if not refresh_token:
         log("api", "[yellow]api[/yellow] [dim]·[/dim] no refresh token")
         return None
     log("api", "[cyan]api[/cyan] [dim]·[/dim] [yellow]refreshing token…[/yellow]")
-    client_id = (
-        os.getenv("SPOTIFY_CLIENT_ID")
-        or getattr(globs, "spotify_client_id", None)
-        or DEFAULT_CLIENT_ID
-    )
+    client_id = getattr(globs, "spotify_client_id", None) or DEFAULT_CLIENT_ID
     client_secret = (
-        os.getenv("SPOTIFY_CLIENT_SECRET")
-        or getattr(globs, "spotify_client_secret", None)
-        or DEFAULT_CLIENT_SECRET
+        getattr(globs, "spotify_client_secret", None) or DEFAULT_CLIENT_SECRET
     )
     try:
         data = refresh_access_token(refresh_token, client_id, client_secret)

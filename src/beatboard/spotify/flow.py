@@ -6,7 +6,6 @@ flow except the facade, to avoid cycles.
 
 from __future__ import annotations
 
-import os
 import time
 import urllib.parse
 import webbrowser
@@ -38,23 +37,12 @@ def run_oauth_flow(
 ) -> str | None:
     """Run the full Spotify Authorization Code flow."""
     globs = Globs()
-    client_id = (
-        client_id
-        or os.getenv("SPOTIFY_CLIENT_ID")
-        or getattr(globs, "spotify_client_id", None)
-        or DEFAULT_CLIENT_ID
-    )
+    client_id = client_id or getattr(globs, "spotify_client_id", None) or DEFAULT_CLIENT_ID
     client_secret = (
-        client_secret
-        or os.getenv("SPOTIFY_CLIENT_SECRET")
-        or getattr(globs, "spotify_client_secret", None)
-        or DEFAULT_CLIENT_SECRET
+        client_secret or getattr(globs, "spotify_client_secret", None) or DEFAULT_CLIENT_SECRET
     )
     redirect_uri = (
-        redirect_uri
-        or os.getenv("SPOTIFY_REDIRECT_URI")
-        or getattr(globs, "spotify_redirect_uri", None)
-        or DEFAULT_REDIRECT_URI
+        redirect_uri or getattr(globs, "spotify_redirect_uri", None) or DEFAULT_REDIRECT_URI
     )
 
     if not client_id:
@@ -176,12 +164,8 @@ def check_spotify_api_available() -> bool:
         return True
 
     globs = Globs()
-    client_id = os.getenv("SPOTIFY_CLIENT_ID") or getattr(
-        globs, "spotify_client_id", None
-    )
-    client_secret = os.getenv("SPOTIFY_CLIENT_SECRET") or getattr(
-        globs, "spotify_client_secret", None
-    )
+    client_id = getattr(globs, "spotify_client_id", None)
+    client_secret = getattr(globs, "spotify_client_secret", None)
     has_oauth = bool(client_id and client_secret)
     dt = (time.perf_counter() - t0) * 1000
     log(
@@ -193,10 +177,9 @@ def check_spotify_api_available() -> bool:
 
     print(
         "[red bold]Error:[/red bold] Spotify API token not found. "
-        "Set [cyan]SPOTIFY_TOKEN[/cyan] environment variable or add "
-        "[cyan]spotify_token[/cyan] to [dim]~/.config/beatboard/config.yaml[/dim]. "
+        "Add [cyan]spotify_token[/cyan] to [dim]~/.config/beatboard/config.yaml[/dim]. "
         "Alternatively, ensure [cyan]spotify_client_id[/cyan] and "
-        "[cyan]spotify_client_secret[/cyan] are set and run with [cyan]--api[/cyan] "
+        "[cyan]spotify_client_secret[/cyan] are set in config and run with [cyan]--api[/cyan] "
         "to start browser authentication at http://127.0.0.1:8888/callback. "
         "Obtain credentials from https://developer.spotify.com/dashboard"
     )

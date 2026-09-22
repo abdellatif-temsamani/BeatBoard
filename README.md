@@ -95,17 +95,11 @@ Use the Spotify API when `playerctl` is not available on your platform, or if yo
 2. **Configure BeatBoard:**
    Create or edit the config file at `%USERPROFILE%\.config\beatboard\config.yaml`:
 
-   ```yaml
-   spotify_client_id: "your_client_id_here"
-   spotify_client_secret: "your_client_secret_here"
-   spotify_redirect_uri: "http://127.0.0.1:8888/callback"
-   ```
-
-   Or set environment variables:
-   ```powershell
-   setx SPOTIFY_CLIENT_ID "your_client_id_here"
-   setx SPOTIFY_CLIENT_SECRET "your_client_secret_here"
-   ```
+    ```yaml
+    spotify_client_id: "your_client_id_here"
+    spotify_client_secret: "your_client_secret_here"
+    spotify_redirect_uri: "http://127.0.0.1:8888/callback"
+    ```
 
 3. **Run BeatBoard:**
    ```bash
