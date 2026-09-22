@@ -171,9 +171,9 @@ if __name__ == "__main__":
     set_color(sys.argv[1])
 ```
 
-**Step 2: Register in Hardware Module**
+**Step 2: Register in Hardware Module (or add a YAML plugin)**
 
-Add your hardware to `src/beatboard/hardware.py`:
+Preferred for most users: drop a YAML file in `~/.config/beatboard/plugins/` – see `docs/plugins.md`. For built-ins, add your hardware to `src/beatboard/hardware.py`:
 
 ```python
 # Add import for your script path

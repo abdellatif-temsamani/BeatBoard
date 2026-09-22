@@ -219,6 +219,30 @@ python beatboard_dev.py
 python beatboard_dev.py --follow
 ```
 
+## 🏗️ Architecture
+
+```
+src/beatboard/
+├── __init__.py          # beatboard_main() – CLI + hardware + mode dispatch
+├── spotify/             # Spotify WebSocket (Dealer) – pure push, no polling
+│   ├── __init__.py      # public facade (re-exports flat beatboard.spotify API)
+│   ├── constants.py     # SPOTIFY_* URLs, DEFAULT_SCOPES, _UNAUTHORIZED
+│   ├── session.py       # pooled requests.Session (_get_session)
+│   ├── callback.py      # OAuth callback server (_CallbackHandler, _run_local_server)
+│   ├── auth.py          # get_spotify_token, OAuth flow, refresh, ensure_valid_token
+│   ├── parsing.py       # payload parsing / image URL extraction
+│   ├── api.py           # one-shot REST (_fetch_track_sync, _fetch_current_playback_sync)
+│   └── watcher.py       # _build_websocket_url, watch_spotify_websocket/api
+├── playerctl.py         # Linux playerctl backend + process_art_url pipeline
+├── hardware.py          # registry & detection
+├── config.py / globs.py / logs.py / args.py
+├── cache/               # SQLite cache (colors, hardware)
+├── plugins/             # YAML hardware/extension drivers
+└── G213Colors/          # vendor driver (submodule)
+```
+
+The former 1992-line `spotify.py` god file was split into cohesive modules by single responsibility. `beatboard.spotify` stays import-compatible – `from beatboard.spotify import watch_spotify_api, get_spotify_token` continues to work via the facade.
+
 ## 🖥️ Supported Hardware
 
 ### Currently Supported
