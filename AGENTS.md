@@ -43,8 +43,18 @@
 - `tests/`: Unit tests, `docs/`: Docs
 - `pyproject.toml`: Config, `.github/`: CI/templates
 
+## Modularity Rules (enforced)
+
+- **Single responsibility**: one concern per file/module. If you describe a file with "and", split it.
+- **File size**: soft limit 400 lines, hard limit 800. Files >400 lines should be justified; files >800 lines MUST be split into a package (`module/` with `__init__.py` facade). Exception requires ` # modularity: allow-large` comment with rationale. Grandfathered large files (`color_gen.py`, `spotify/watcher.py`) are tracked as warnings until next refactor.
+- **Package over file**: when a module grows past 3 distinct responsibilities (e.g. auth + parsing + transport), extract cohesive submodules. Use a facade `__init__.py` that re-exports the flat public API for backward compat (see `src/beatboard/spotify/` as reference).
+- **No god files**: no new `utils.py` dumping ground. Place code near its domain (`spotify/auth.py`, `hardware/registry.py`, etc.).
+- **Public API**: keep `beatboard.<module>` import paths stable via facade re-exports; move implementation to submodules but never break `from beatboard.X import Y`.
+- **Layering**: `constants.py` (no deps) → `session.py`/`parsing.py` (leaf) → `auth.py`/`api.py` (uses leaves) → `watcher.py` (orchestrates). Avoid circular imports; watcher imports leaves, never the reverse.
+- **Check before commit**: run `python scripts/check_modularity.py` (or `ruff check . && python -m pytest`) – CI fails on violations.
+
 ## rules
 
-- ignore `__pycache__`, `build`, `dist`, `venv`, `src/beatboard/G213Colors/**`
+- ignore `__pycache__`, `build`, `dist`, `venv`, `src/beatboard/G213Colors/**`, `graphify-out/**`
 
 No Cursor or Copilot rules found.
