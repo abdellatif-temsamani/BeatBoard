@@ -222,3 +222,10 @@ parser.add_argument(
     default=False,
     help="Use Spotify WebSocket API (required on platforms without playerctl)",
 )
+
+parser.add_argument(
+    "--doctor",
+    action="store_true",
+    default=False,
+    help="Diagnose Spotify, permissions, hardware, OpenRGB, cache, config",
+)

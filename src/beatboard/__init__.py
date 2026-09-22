@@ -1,4 +1,5 @@
 import asyncio
+import sys
 from pathlib import Path
 
 from rich import print
@@ -25,9 +26,31 @@ async def beatboard_main(config_path: Path | None = None):
     loads community plugins, and starts the playerctl watching process.
     """
     resolved_config_path = config_path or get_config_path()
+    # Fast peek for --doctor so invalid config can still be diagnosed
+    _is_doctor_argv = "--doctor" in sys.argv
     try:
         config = load_config(resolved_config_path)
     except (ConfigError, OSError) as error:
+        if _is_doctor_argv:
+            # Still run doctor to diagnose the bad config
+            try:
+                from .doctor import run_doctor
+
+                # Initialize globs minimally so other sections can still run
+                _gl = Globs()
+                # Use defaults for cache/plugin when config failed
+                try:
+                    _gl.cache_path = get_cache_db()
+                except Exception:
+                    pass
+                run_doctor(resolved_config_path)
+            except Exception as doc_exc:
+                print(f"[red bold]Doctor failed:[/red bold] {doc_exc}")
+            print(
+                f"[red bold]Error:[/red bold] Invalid configuration "
+                f"at {resolved_config_path}: {error}"
+            )
+            return
         print(
             f"[red bold]Error:[/red bold] Invalid configuration "
             f"at {resolved_config_path}: {error}"
@@ -44,6 +67,41 @@ async def beatboard_main(config_path: Path | None = None):
 
     # Parse CLI args first (HardwareAction is now non-validating, so plugins can be validated after load)
     args = parser.parse_args()
+
+    # --doctor: run diagnostics and exit (after config + args, before hardware init)
+    if getattr(args, "doctor", False):
+        # Ensure globs are populated for doctor submodules (spotify, etc.)
+        globs.config_path = resolved_config_path
+        globs.spotify_token = config.spotify_token
+        globs.spotify_refresh_token = config.spotify_refresh_token
+        globs.spotify_client_id = config.spotify_client_id
+        globs.spotify_client_secret = config.spotify_client_secret
+        globs.spotify_redirect_uri = config.spotify_redirect_uri
+        globs.spotify_websocket_url = config.spotify_websocket_url
+        # Load plugins briefly so hardware diagnostics see community drivers
+        # (don't fail doctor if plugin load fails)
+        try:
+            from .hardware import clear_plugin_hardware
+            from .plugins.loader import load_plugins, register_plugins
+            from .plugins.registry import clear_extension_registry
+
+            clear_plugin_hardware()
+            clear_extension_registry()
+            if globs.plugin_dir:
+                _p_dir = Path(globs.plugin_dir).expanduser()
+                _p_dir.mkdir(parents=True, exist_ok=True)
+                plugins, _ = load_plugins(_p_dir)
+                if plugins:
+                    register_plugins(plugins)
+        except Exception:
+            pass
+        try:
+            from .doctor import run_doctor
+
+            run_doctor(resolved_config_path, cache_path_str=globs.cache_path)
+        except Exception as exc:
+            print(f"[red bold]Doctor failed:[/red bold] {exc}")
+        return
 
     # Combine debug from config and CLI — do this before plugin loading so -d plugins is visible
     globs.debug = {

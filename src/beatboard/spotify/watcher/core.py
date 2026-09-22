@@ -57,21 +57,21 @@ async def watch_spotify_websocket(
         reconnect_delay: Reconnect backoff base (seconds).
         websocket_url: Override WebSocket URL (e.g. for testing).
     """
-    if 'poll_interval' in kwargs and kwargs['poll_interval'] is not None:
+    if "poll_interval" in kwargs and kwargs["poll_interval"] is not None:
         try:
-            reconnect_delay = float(kwargs['poll_interval'])
+            reconnect_delay = float(kwargs["poll_interval"])
         except (TypeError, ValueError):
             pass
 
     token = get_spotify_token()
     if not token:
         globs = Globs()
-        config_path = getattr(globs, 'config_path', None)
+        config_path = getattr(globs, "config_path", None)
         token = ensure_valid_token(config_path=config_path)
         if not token:
             print(
-                '[red bold]Error:[/red bold] Spotify API token not found. '
-                'Cannot watch Spotify via WebSocket without authentication.'
+                "[red bold]Error:[/red bold] Spotify API token not found. "
+                "Cannot watch Spotify via WebSocket without authentication."
             )
             return
 
@@ -85,14 +85,14 @@ async def watch_spotify_websocket(
         )
     except ImportError:
         print(
-            '[red bold]Error:[/red bold] websockets package not installed – '
-            'websocket-only mode requires websockets. '
-            'Install with: pip install websockets'
+            "[red bold]Error:[/red bold] websockets package not installed – "
+            "websocket-only mode requires websockets. "
+            "Install with: pip install websockets"
         )
         return
 
     if websocket_url is None:
-        custom_cfg = getattr(globs, 'spotify_websocket_url', None)
+        custom_cfg = getattr(globs, "spotify_websocket_url", None)
         if custom_cfg:
             websocket_url = custom_cfg
 
@@ -102,11 +102,11 @@ async def watch_spotify_websocket(
     msg_count = 0
 
     log(
-        'api',
-        f'[cyan]api[/cyan] [dim]·[/dim] [blue]ws[/blue] watch start [dim]·[/dim] '
-        f'{"[magenta]custom[/magenta]" if websocket_url else "[green]dealer[/green]"} '
-        f'[dim]·[/dim] reconnect [cyan]{reconnect_delay:.1f}s[/cyan]'
-        + (' [dim]·[/dim] [yellow]once[/yellow]' if once else ''),
+        "api",
+        f"[cyan]api[/cyan] [dim]·[/dim] [blue]ws[/blue] watch start [dim]·[/dim] "
+        f"{'[magenta]custom[/magenta]' if websocket_url else '[green]dealer[/green]'} "
+        f"[dim]·[/dim] reconnect [cyan]{reconnect_delay:.1f}s[/cyan]"
+        + (" [dim]·[/dim] [yellow]once[/yellow]" if once else ""),
     )
 
     # Initial hydration – single REST call before push.
@@ -122,11 +122,11 @@ async def watch_spotify_websocket(
 
         if delay != reconnect_delay:
             log(
-                'api',
-                f'[yellow]ws[/yellow] [dim]·[/dim] connecting… [dim](retry in [yellow]{delay:.1f}s[/yellow])[/dim]',
+                "api",
+                f"[yellow]ws[/yellow] [dim]·[/dim] connecting… [dim](retry in [yellow]{delay:.1f}s[/yellow])[/dim]",
             )
         else:
-            log('api', '[blue]ws[/blue] [dim]·[/dim] connecting…')
+            log("api", "[blue]ws[/blue] [dim]·[/dim] connecting…")
         pending_task: asyncio.Task | None = None
         try:
             dealer_headers = dict(_DEALER_HEADERS)
@@ -147,7 +147,7 @@ async def watch_spotify_websocket(
                     extra_headers=dealer_headers,  # type: ignore[call-arg]
                 )
             async with ws_ctx as ws:
-                log('api', '[green]ws[/green] [dim]·[/dim] [green]connected[/green]')
+                log("api", "[green]ws[/green] [dim]·[/dim] [green]connected[/green]")
                 delay = reconnect_delay
                 pending_task = None
 
@@ -163,8 +163,8 @@ async def watch_spotify_websocket(
                         if track_id:
                             if track_id == state.last_track_id:
                                 log(
-                                    'api',
-                                    '[blue]ws[/blue] [dim]· unchanged, skip[/dim]',
+                                    "api",
+                                    "[blue]ws[/blue] [dim]· unchanged, skip[/dim]",
                                 )
                                 continue
                             from ...cache.colors import (
@@ -173,44 +173,54 @@ async def watch_spotify_websocket(
 
                             cached_preview = _track_get(track_id)
                             if cached_preview is not None:
-                                song_label = f'{track_id[:8]}… (cache)'
+                                song_label = f"{track_id[:8]}… (cache)"
                                 state.last_track_id = track_id
-                                state.last_art_url = art_url_ws or f'track_{track_id}'
+                                state.last_art_url = art_url_ws or f"track_{track_id}"
                                 log(
-                                    'api',
-                                    f'[green]ws[/green] [dim]·[/dim] track [white]{track_id[:8]}…[/white] [green]cache hit[/green] [dim]track_id[/dim]',
+                                    "api",
+                                    f"[green]ws[/green] [dim]·[/dim] track [white]{track_id[:8]}…[/white] [green]cache hit[/green] [dim]track_id[/dim]",
                                 )
                                 print(
-                                    f'[bold yellow]Processing[/bold yellow] [bold green]{song_label}[/bold green]...'
+                                    f"[bold yellow]Processing[/bold yellow] [bold green]{song_label}[/bold green]..."
                                 )
                                 if once:
                                     await _cache_hit_task(
-                                        track_id, art_url_ws, cached_preview, song_label, state
+                                        track_id,
+                                        art_url_ws,
+                                        cached_preview,
+                                        song_label,
+                                        state,
                                     )
                                     return
                                 if pending_task and not pending_task.done():
                                     pending_task.cancel()
                                 pending_task = asyncio.create_task(
                                     _cache_hit_task(
-                                        track_id, art_url_ws, cached_preview, song_label, state
+                                        track_id,
+                                        art_url_ws,
+                                        cached_preview,
+                                        song_label,
+                                        state,
                                     )
                                 )
                                 continue
                             if art_url_ws:
                                 if art_url_ws == state.last_art_url:
                                     log(
-                                        'api',
-                                        '[blue]ws[/blue] [dim]· unchanged, skip[/dim]',
+                                        "api",
+                                        "[blue]ws[/blue] [dim]· unchanged, skip[/dim]",
                                     )
                                     continue
-                                song_label = f'{track_id[:8]}…'
+                                song_label = f"{track_id[:8]}…"
                                 state.last_track_id = track_id
                                 state.last_art_url = art_url_ws
                                 print(
-                                    f'[bold yellow]Processing[/bold yellow] [bold green]{song_label}[/bold green]...'
+                                    f"[bold yellow]Processing[/bold yellow] [bold green]{song_label}[/bold green]..."
                                 )
                                 if once:
-                                    await _art_task(art_url_ws, track_id, song_label, state)
+                                    await _art_task(
+                                        art_url_ws, track_id, song_label, state
+                                    )
                                     return
                                 if pending_task and not pending_task.done():
                                     pending_task.cancel()
@@ -219,14 +229,14 @@ async def watch_spotify_websocket(
                                 )
                                 continue
                             else:
-                                song_label = f'{track_id[:8]}…'
+                                song_label = f"{track_id[:8]}…"
                                 state.last_track_id = track_id
                                 print(
-                                    f'[bold yellow]Processing[/bold yellow] [bold green]{song_label}[/bold green]...'
+                                    f"[bold yellow]Processing[/bold yellow] [bold green]{song_label}[/bold green]..."
                                 )
                                 log(
-                                    'api',
-                                    f'[blue]ws[/blue] [dim]·[/dim] track [white]{track_id[:8]}…[/white] [dim]→[/dim] [yellow]fetch[/yellow]',
+                                    "api",
+                                    f"[blue]ws[/blue] [dim]·[/dim] track [white]{track_id[:8]}…[/white] [dim]→[/dim] [yellow]fetch[/yellow]",
                                 )
                                 if once:
                                     await _fetch_task(track_id, song_label, state)
@@ -246,12 +256,12 @@ async def watch_spotify_websocket(
                                 )
                                 if (
                                     isinstance(maybe, dict)
-                                    and maybe.get('type') == 'ping'
+                                    and maybe.get("type") == "ping"
                                 ):
-                                    await ws.send(json.dumps({'type': 'pong'}))
+                                    await ws.send(json.dumps({"type": "pong"}))
                                     log(
-                                        'api',
-                                        '[cyan]ws[/cyan] [dim]·[/dim] ping[dim]↔[/dim]pong',
+                                        "api",
+                                        "[cyan]ws[/cyan] [dim]·[/dim] ping[dim]↔[/dim]pong",
                                     )
                                     continue
                             except Exception:
@@ -259,14 +269,14 @@ async def watch_spotify_websocket(
                             if art_url_ws:
                                 if art_url_ws == state.last_art_url:
                                     log(
-                                        'api',
-                                        '[blue]ws[/blue] [dim]· unchanged, skip[/dim]',
+                                        "api",
+                                        "[blue]ws[/blue] [dim]· unchanged, skip[/dim]",
                                     )
                                     continue
-                                song_label = 'Unknown track'
+                                song_label = "Unknown track"
                                 state.last_art_url = art_url_ws
                                 print(
-                                    f'[bold yellow]Processing[/bold yellow] [bold green]{song_label}[/bold green]...'
+                                    f"[bold yellow]Processing[/bold yellow] [bold green]{song_label}[/bold green]..."
                                 )
                                 if once:
                                     await _bare_art_task(art_url_ws, song_label, state)
@@ -278,31 +288,31 @@ async def watch_spotify_websocket(
                                 )
                                 continue
                             else:
-                                log('api', '[blue]ws[/blue] [dim]· heartbeat[/dim]')
+                                log("api", "[blue]ws[/blue] [dim]· heartbeat[/dim]")
                                 continue
                     art_url, title, artist = parsed
                     if not art_url:
-                        log('api', '[yellow]ws[/yellow] [dim]·[/dim] no artwork, skip')
+                        log("api", "[yellow]ws[/yellow] [dim]·[/dim] no artwork, skip")
                         continue
                     if art_url == state.last_art_url:
-                        log('api', '[blue]ws[/blue] [dim]· unchanged, skip[/dim]')
+                        log("api", "[blue]ws[/blue] [dim]· unchanged, skip[/dim]")
                         continue
-                    song_label = ''
+                    song_label = ""
                     if title and artist:
-                        song_label = f'{title} – {artist}'
+                        song_label = f"{title} – {artist}"
                     elif title:
                         song_label = title
                     elif artist:
                         song_label = artist
                     else:
-                        song_label = 'Unknown track'
+                        song_label = "Unknown track"
                         if _pending_track_id:
-                            song_label = f'{_pending_track_id[:8]}…'
+                            song_label = f"{_pending_track_id[:8]}…"
                     state.last_art_url = art_url
                     if _pending_track_id:
                         state.last_track_id = _pending_track_id
                     print(
-                        f'[bold yellow]Processing[/bold yellow] [bold green]{song_label}[/bold green]...'
+                        f"[bold yellow]Processing[/bold yellow] [bold green]{song_label}[/bold green]..."
                     )
                     if once:
                         await _parsed_task(
@@ -312,7 +322,9 @@ async def watch_spotify_websocket(
                     if pending_task and not pending_task.done():
                         pending_task.cancel()
                     pending_task = asyncio.create_task(
-                        _parsed_task(art_url, title, artist, _pending_track_id, song_label, state)
+                        _parsed_task(
+                            art_url, title, artist, _pending_track_id, song_label, state
+                        )
                     )
 
         except (
@@ -327,42 +339,42 @@ async def watch_spotify_websocket(
             except Exception:
                 pass
             log(
-                'api',
-                f'[yellow]ws[/yellow] [dim]·[/dim] disconnected [dim]({exc})[/dim] [dim]·[/dim] retry in [yellow]{delay:.1f}s[/yellow]',
+                "api",
+                f"[yellow]ws[/yellow] [dim]·[/dim] disconnected [dim]({exc})[/dim] [dim]·[/dim] retry in [yellow]{delay:.1f}s[/yellow]",
             )
-            _status = getattr(exc, 'status_code', None)
+            _status = getattr(exc, "status_code", None)
             is_auth = (
-                '401' in str(exc)
-                or '403' in str(exc)
+                "401" in str(exc)
+                or "403" in str(exc)
                 or _status in (401, 403)
                 or (
                     isinstance(exc, InvalidStatusCode)
-                    and getattr(exc, 'status_code', None) in (401, 403)
+                    and getattr(exc, "status_code", None) in (401, 403)
                 )
             )
             if is_auth:  # type: ignore[attr-defined]
                 print(
-                    f'[yellow]Warning:[/yellow] WebSocket auth failed ({exc}) – refreshing token…'
+                    f"[yellow]Warning:[/yellow] WebSocket auth failed ({exc}) – refreshing token…"
                 )
                 try:
                     refreshed = _try_refresh_token(
-                        config_path=getattr(globs, 'config_path', None)
+                        config_path=getattr(globs, "config_path", None)
                     )
                     if not refreshed:
                         refreshed = ensure_valid_token(
-                            config_path=getattr(globs, 'config_path', None),
+                            config_path=getattr(globs, "config_path", None),
                             force_refresh=True,
                         )
                     if refreshed and refreshed != state.token:
                         state.token = refreshed
                         delay = reconnect_delay
                         log(
-                            'api',
-                            '[green]ws[/green] [dim]·[/dim] token refreshed, reconnecting…',
+                            "api",
+                            "[green]ws[/green] [dim]·[/dim] token refreshed, reconnecting…",
                         )
                         continue
                 except Exception as refresh_exc:  # pragma: no cover
-                    print(f'[bold red]Error:[/bold red] Refresh failed: {refresh_exc}')
+                    print(f"[bold red]Error:[/bold red] Refresh failed: {refresh_exc}")
             await asyncio.sleep(delay)
             delay = min(delay * 1.5, max_delay)
             continue
@@ -373,8 +385,8 @@ async def watch_spotify_websocket(
             except Exception:
                 pass
             log(
-                'api',
-                f'[red]ws[/red] [dim]·[/dim] [red]error[/red]: {exc} [dim]·[/dim] retry in [yellow]{delay:.1f}s[/yellow]',
+                "api",
+                f"[red]ws[/red] [dim]·[/dim] [red]error[/red]: {exc} [dim]·[/dim] retry in [yellow]{delay:.1f}s[/yellow]",
             )
             await asyncio.sleep(delay)
             delay = min(delay * 1.5, max_delay)

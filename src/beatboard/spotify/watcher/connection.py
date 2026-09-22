@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 import urllib.parse
 
 from ..._version import __version__
@@ -19,9 +18,7 @@ _DEALER_HEADERS: dict[str, str] = {
 def _build_websocket_url(token: str) -> str:
     """Build the Spotify WebSocket (Dealer) URL."""
     globs = Globs()
-    custom = getattr(globs, "spotify_websocket_url", None) or os.getenv(
-        "SPOTIFY_WEBSOCKET_URL"
-    )
+    custom = getattr(globs, "spotify_websocket_url", None)
     if custom:
         custom = custom.strip()
         if custom:
