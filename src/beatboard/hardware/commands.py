@@ -37,7 +37,7 @@ def get_command(names: list[hardwareName] | list[str], color: str) -> list[list[
             if name in _plugin_hardware:
                 commands.append(_build_plugin_command(_plugin_hardware[name], color))
             else:
-                commands.append(hardware[name] + [color])
+                commands.append(_build_plugin_command(hardware[name], color))
         else:
             raise ValueError(f"Unknown hardware: {name}")
     return commands
