@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import asyncio
+import colorsys
 import time
 
 from rich import print
 
 from ..cache.colors import cache_colors, get_cached_colors
-from ..color import debug_palette, extract_palette, get_color_palette
+from ..color import debug_palette, extract_palette, get_color_palette, get_argb_color
 from ..globs import Globs
 from ..plugins.hooks import run_extension_hooks
 from .apply import _run_hardware
@@ -48,11 +49,13 @@ async def process_art_url(
         if hex_colors_track:
             hex_colors = hex_colors_track
             from_cache = True
+            # Select ARGB-optimized color from cached palette
+            argb_color = _select_argb_color_from_hex_palette(hex_colors)
             # Extension hook for fast path as well
             try:
                 run_extension_hooks(
                     "color_applied",
-                    color=hex_colors[0] if hex_colors else "ffffff",
+                    color=argb_color if argb_color else "ffffff",
                     art_url=art_url or "",
                     track_id=track_id or "",
                 )
@@ -60,7 +63,7 @@ async def process_art_url(
                 pass
             # Fast path: skip download/palette, go straight to hardware
             command_start = time.time()
-            await _run_hardware(hex_colors[0])
+            await _run_hardware(argb_color if argb_color else hex_colors[0])
             command_time = time.time() - command_start
             if globs.debug.get("perf") or globs.debug.get("all"):
                 total_ms = (time.time() - start_time) * 1000
@@ -82,8 +85,9 @@ async def process_art_url(
             print(f"[bold red]Error:[/bold red] fetching album art: {e}")
             return None
 
-        # Extract the palette.
+        # Extract the palette with ARGB-optimized selection
         try:
+            argb_color = await get_argb_color(IMAGE_PATH)
             hex_colors = await get_color_palette(IMAGE_PATH)
             # Store with both art-hash and optional track_id in one row (migration 03)
             cache_track_id = create_track_cache_key(track_id) if track_id else None
@@ -97,12 +101,15 @@ async def process_art_url(
                 "[bold yellow]Warning:[/bold yellow] No colors extracted from image, skipping hardware update"
             )
             return None
+    else:
+        # Select ARGB-optimized color from cached palette
+        argb_color = _select_argb_color_from_hex_palette(hex_colors)
 
     # Extension hook: color_applied (before hardware, so extensions can react to color)
     try:
         run_extension_hooks(
             "color_applied",
-            color=hex_colors[0] if hex_colors else "ffffff",
+            color=argb_color if argb_color else hex_colors[0] if hex_colors else "ffffff",
             art_url=art_url or "",
             track_id=track_id or "",
         )
@@ -111,7 +118,7 @@ async def process_art_url(
 
     # Hardware first – latency matters. Palette debug after.
     command_start = time.time()
-    await _run_hardware(hex_colors[0])
+    await _run_hardware(argb_color if argb_color else hex_colors[0] if hex_colors else "ffffff")
     command_time = time.time() - command_start
 
     if globs.debug.get("perf") or globs.debug.get("all"):
@@ -136,3 +143,44 @@ async def process_art_url(
                 )
 
     return hex_colors
+
+
+def _select_argb_color_from_hex_palette(hex_colors: list[str]) -> str | None:
+    """Select the best ARGB color from a cached hex color palette.
+
+    Filters colors for visibility on LED lighting, prioritizing brightness
+    and saturation over other factors.
+
+    Args:
+        hex_colors: List of hex color strings from the cached palette.
+
+    Returns:
+        Best ARGB color hex string, or None if no suitable color found.
+    """
+    if not hex_colors:
+        return None
+
+    def hex_to_hsl(hex_color: str) -> tuple[float, float, float]:
+        """Convert hex color to HSL."""
+        hex_color = hex_color.lstrip("#")
+        r = int(hex_color[0:2], 16) / 255
+        g = int(hex_color[2:4], 16) / 255
+        b = int(hex_color[4:6], 16) / 255
+        hue, lightness, saturation = colorsys.rgb_to_hls(r, g, b)
+        return hue, saturation, lightness
+
+    def is_argb_suitable(hex_color: str) -> bool:
+        """Check if a hex color is suitable for ARGB lighting."""
+        _, saturation, lightness = hex_to_hsl(hex_color)
+        # Filter out very dark colors and very desaturated colors
+        return lightness >= 0.15 and saturation >= 0.1
+
+    # Filter colors for ARGB suitability
+    suitable_colors = [color for color in hex_colors if is_argb_suitable(color)]
+
+    if suitable_colors:
+        # Return the first suitable color (palette is already in node-vibrant preference order)
+        return suitable_colors[0]
+
+    # Fallback to first color if none pass the filter
+    return hex_colors[0]

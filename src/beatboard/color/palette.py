@@ -8,6 +8,59 @@ from typing import Sequence
 from .models import Swatch, VibrantPalette, _GeneratorOptions
 
 
+def _is_argb_suitable(swatch: Swatch) -> bool:
+    """Check if a swatch is suitable for ARGB lighting.
+    
+    ARGB LEDs need colors with sufficient brightness and saturation to be visible.
+    Very dark colors (lightness < 0.15) or very desaturated colors don't show well.
+    
+    Args:
+        swatch: The color swatch to evaluate.
+        
+    Returns:
+        True if the color is suitable for ARGB lighting.
+    """
+    _, saturation, lightness = swatch.hsl
+    # Filter out very dark colors and very desaturated colors
+    # Lightness threshold: 0.15 (avoid nearly black colors)
+    # Saturation threshold: 0.1 (avoid nearly gray colors)
+    return lightness >= 0.15 and saturation >= 0.1
+
+
+def select_argb_color(palette: VibrantPalette) -> str | None:
+    """Select the best color from a palette for ARGB lighting.
+    
+    Prioritizes vibrant colors that will show well on LED lighting.
+    Falls back through the palette in order of preference.
+    
+    Args:
+        palette: The vibrant palette to select from.
+        
+    Returns:
+        Hex color string suitable for ARGB, or None if no suitable color found.
+    """
+    # Try vibrant first (most visible), then light_vibrant, then others
+    preference_order = [
+        palette.vibrant,
+        palette.light_vibrant,
+        palette.light_muted,
+        palette.muted,
+        palette.dark_vibrant,
+        palette.dark_muted,
+    ]
+    
+    for swatch in preference_order:
+        if swatch is not None and _is_argb_suitable(swatch):
+            return swatch.hex
+    
+    # If no swatch passes the filter, return the first available color as fallback
+    for swatch in preference_order:
+        if swatch is not None:
+            return swatch.hex
+    
+    return None
+
+
 def _comparison_value(
     saturation: float,
     target_saturation: float,

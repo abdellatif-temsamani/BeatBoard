@@ -40,6 +40,7 @@ from .palette import (
     _find_variation,
     _synthetic_swatch,
     generate_palette,
+    select_argb_color,
 )
 
 # --- image ---
@@ -49,6 +50,7 @@ from .image import (
     debug_palette,
     extract_palette,
     get_color_palette,
+    get_argb_color,
 )
 
 __all__ = [
@@ -77,10 +79,12 @@ __all__ = [
     "_find_variation",
     "_synthetic_swatch",
     "generate_palette",
+    "select_argb_color",
     # image
     "_load_pixels",
     "_extract_vibrant",
     "extract_palette",
     "debug_palette",
     "get_color_palette",
+    "get_argb_color",
 ]
