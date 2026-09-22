@@ -10,6 +10,7 @@ from pathlib import Path
 def diagnose_hardware() -> list[dict[str, str]]:
     """Check hardware registry and detection."""
     results: list[dict[str, str]] = []
+    detected: list[str] = []
     # Registry
     try:
         from beatboard.hardware import get_all_hardware, hardware
@@ -61,56 +62,6 @@ def diagnose_hardware() -> list[dict[str, str]]:
             }
         )
         return results
-
-    # Executables for each hardware
-    try:
-        from beatboard.hardware import get_all_hardware
-        from beatboard.hardware.commands import _build_plugin_command
-        from beatboard.hardware.core import _g213_script
-
-        _ = _build_plugin_command  # keep import used
-        all_hw = get_all_hardware()
-        for name, cmd in all_hw.items():
-            # cmd is list[str]
-            exe = cmd[0] if cmd else ""
-            # Resolve placeholders: __python__ / __g213_script__ already resolved in registry
-            # For g213, exe is sys.executable
-            if exe == sys.executable:
-                exists = Path(exe).is_file()
-                found = exe if exists else None
-                detail = f"{exe} {'found' if exists else 'missing'}"
-                status = "ok" if exists else "fail"
-                hint = (
-                    "" if exists else "Python executable not found – reinstall Python"
-                )
-            elif exe == _g213_script or exe.endswith("G213Colors.py"):
-                exists = Path(exe).is_file()
-                status = "ok" if exists else "warn"
-                detail = f"{exe} {'exists' if exists else 'missing'}"
-                hint = "" if exists else "Reinstall BeatBoard"
-            else:
-                found = shutil.which(exe) if exe else None
-                # for razer/asus, tool may not be installed – info not fail if not needed
-                status = "ok" if found else "warn"
-                detail = found or f"{exe} not found in PATH"
-                hint = "" if found else f"Install {exe} for {name} support"
-            results.append(
-                {
-                    "check": f"Hardware '{name}' command",
-                    "status": status,
-                    "detail": f"{cmd} -> {detail}",
-                    "hint": hint,
-                }
-            )
-    except Exception as exc:
-        results.append(
-            {
-                "check": "Hardware commands",
-                "status": "warn",
-                "detail": str(exc),
-                "hint": "",
-            }
-        )
 
     # Detection
     try:
@@ -176,12 +127,75 @@ def diagnose_hardware() -> list[dict[str, str]]:
                 }
             )
         except Exception as exc:
+            detected = []
             results.append(
                 {
                     "check": "Detected hardware",
                     "status": "fail",
                     "detail": str(exc),
                     "hint": "Check detect_hardware() logic",
+                }
+            )
+
+        # Executables for each hardware (only for detected hardware)
+        if detected:
+            try:
+                from beatboard.hardware import get_all_hardware
+                from beatboard.hardware.commands import _build_plugin_command
+                from beatboard.hardware.core import _g213_script
+
+                _ = _build_plugin_command  # keep import used
+                all_hw = get_all_hardware()
+                # Only check commands for detected hardware
+                detected_hw = {name: cmd for name, cmd in all_hw.items() if name in detected}
+                for name, cmd in detected_hw.items():
+                    # cmd is list[str]
+                    exe = cmd[0] if cmd else ""
+                    # Resolve placeholders: __python__ / __g213_script__ already resolved in registry
+                    # For g213, exe is sys.executable
+                    if exe == sys.executable:
+                        exists = Path(exe).is_file()
+                        found = exe if exists else None
+                        detail = f"{exe} {'found' if exists else 'missing'}"
+                        status = "ok" if exists else "fail"
+                        hint = (
+                            "" if exists else "Python executable not found – reinstall Python"
+                        )
+                    elif exe == _g213_script or exe.endswith("G213Colors.py"):
+                        exists = Path(exe).is_file()
+                        status = "ok" if exists else "warn"
+                        detail = f"{exe} {'exists' if exists else 'missing'}"
+                        hint = "" if exists else "Reinstall BeatBoard"
+                    else:
+                        found = shutil.which(exe) if exe else None
+                        # for razer/asus, tool may not be installed – info not fail if not needed
+                        status = "ok" if found else "warn"
+                        detail = found or f"{exe} not found in PATH"
+                        hint = "" if found else f"Install {exe} for {name} support"
+                    results.append(
+                        {
+                            "check": f"Hardware '{name}' command",
+                            "status": status,
+                            "detail": f"{cmd} -> {detail}",
+                            "hint": hint,
+                        }
+                    )
+            except Exception as exc:
+                results.append(
+                    {
+                        "check": "Hardware commands",
+                        "status": "warn",
+                        "detail": str(exc),
+                        "hint": "",
+                    }
+                )
+        else:
+            results.append(
+                {
+                    "check": "Hardware commands",
+                    "status": "info",
+                    "detail": "skipped – no detected hardware",
+                    "hint": "Connect supported hardware or use --hardware <name>",
                 }
             )
 

@@ -9,9 +9,18 @@ from pathlib import Path
 
 
 def diagnose_permissions(
-    config_path: Path | None = None, cache_path_str: str | None = None
+    config_path: Path | None = None,
+    cache_path_str: str | None = None,
+    detected_hardware: list[str] | None = None,
 ) -> list[dict[str, str]]:
-    """Check filesystem and USB permissions."""
+    """Check filesystem and USB permissions.
+    
+    Args:
+        config_path: Optional config path override.
+        cache_path_str: Optional cache path override.
+        detected_hardware: Optional list of detected hardware names to check
+            executables for. If None, all executables are checked.
+    """
     results: list[dict[str, str]] = []
 
     # Config and cache dirs writable – already covered but re-emphasize
@@ -181,30 +190,31 @@ def diagnose_permissions(
             {"check": "Linux groups", "status": "warn", "detail": str(exc), "hint": ""}
         )
 
-    # Check G213 script permission
+    # Check G213 script permission (only if g213 detected)
     try:
         from beatboard.hardware.core import _g213_script
 
-        p = Path(_g213_script)
-        exists = p.is_file()
-        results.append(
-            {
-                "check": "G213Colors script",
-                "status": "ok" if exists else "warn",
-                "detail": str(p) + (" exists" if exists else " missing"),
-                "hint": "" if exists else "Reinstall BeatBoard; G213 driver missing",
-            }
-        )
-        if exists:
-            readable = os.access(p, os.R_OK)
+        if detected_hardware is None or "g213" in detected_hardware:
+            p = Path(_g213_script)
+            exists = p.is_file()
             results.append(
                 {
-                    "check": "G213Colors readable",
-                    "status": "ok" if readable else "fail",
-                    "detail": "readable" if readable else "not readable",
-                    "hint": "" if readable else f"chmod 644 {p}",
+                    "check": "G213Colors script",
+                    "status": "ok" if exists else "warn",
+                    "detail": str(p) + (" exists" if exists else " missing"),
+                    "hint": "" if exists else "Reinstall BeatBoard; G213 driver missing",
                 }
             )
+            if exists:
+                readable = os.access(p, os.R_OK)
+                results.append(
+                    {
+                        "check": "G213Colors readable",
+                        "status": "ok" if readable else "fail",
+                        "detail": "readable" if readable else "not readable",
+                        "hint": "" if readable else f"chmod 644 {p}",
+                    }
+                )
     except Exception as exc:
         results.append(
             {
@@ -253,8 +263,27 @@ def diagnose_permissions(
             }
         )
 
-    # Which executables needed?
-    for exe in ("playerctl", "razer-cli", "asusctl"):
+    # Which executables needed? (dynamic based on detected hardware)
+    # Map hardware to required executables
+    hardware_to_exe = {
+        "razer": "razer-cli",
+        "asus": "asusctl",
+        "openrgb": "openrgb",
+    }
+    # playerctl is always checked as it's used for player control
+    executables_to_check = ["playerctl"]
+    
+    if detected_hardware:
+        for hw in detected_hardware:
+            if hw in hardware_to_exe:
+                exe = hardware_to_exe[hw]
+                if exe not in executables_to_check:
+                    executables_to_check.append(exe)
+    else:
+        # If no hardware detected, check all hardware executables
+        executables_to_check.extend(hardware_to_exe.values())
+    
+    for exe in executables_to_check:
         found = shutil.which(exe)
         results.append(
             {

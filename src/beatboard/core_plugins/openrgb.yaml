@@ -1,8 +1,8 @@
 # Example: Generic OpenRGB device (vendor-agnostic)
 name: openrgb
-version: "0.2.0"
+version: "1.0.0"
 description: "Generic RGB via OpenRGB CLI – works for many motherboards, RAM, keyboards"
-author: "Community"
+author: "BeatBoard"
 type: hardware
 hardware:
   command: ["openrgb", "--color", "{color}"]
