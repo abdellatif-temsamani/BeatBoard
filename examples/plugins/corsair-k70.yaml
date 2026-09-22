@@ -1,0 +1,16 @@
+# Example: Corsair K70 RGB via OpenRGB / ck-corsair-cli community driver
+# Place this file in ~/.config/beatboard/plugins/ (or your custom plugin_dir)
+name: corsair-k70
+version: "1.0.0"
+description: "Corsair K70 RGB keyboard via ck-corsair-cli"
+author: "Community <https://github.com/abdellatif-temsamani/BeatBoard>"
+type: hardware
+hardware:
+  # Command template – {color} will be replaced with 6-char hex (e.g. ff0000)
+  # If no placeholder, color is appended as last argument.
+  command: ["ck-corsair-cli", "-c", "{color}"]
+  detect:
+    usb:
+      - vendor: 0x1b1c  # Corsair vendor ID
+        product: 0x1b49 # K70 product ID (example)
+    executables: ["ck-corsair-cli"]

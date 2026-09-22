@@ -16,6 +16,7 @@ def test_load_config_creates_default_file(tmp_path: Path) -> None:
     assert yaml.safe_load(config_path.read_text(encoding="utf-8")) == {
         "cache_path": "~/.local/state/beatboard/cache.db",
         "debug": [],
+        "plugin_dir": "~/.config/beatboard/plugins",
         "spotify_client_id": None,
         "spotify_client_secret": None,
         "spotify_redirect_uri": "http://127.0.0.1:8888/callback",

@@ -83,22 +83,29 @@ def test_generator_selects_named_variations() -> None:
 
 
 def test_generator_synthesizes_missing_vibrant_roles() -> None:
+    # Synthetic fallbacks disabled — only real quantized colors are returned
     palette = generate_palette([Swatch((252, 4, 4), 100)])
 
     assert palette.vibrant is not None
     assert palette.vibrant.rgb == (252, 4, 4)
-    assert palette.dark_vibrant is not None
-    assert palette.dark_vibrant.population == 0
-    assert palette.light_vibrant is not None
-    assert palette.light_vibrant.population == 0
+    assert palette.dark_vibrant is None
+    assert palette.light_vibrant is None
+    assert palette.muted is None
 
 
 def test_generator_promotes_a_muted_palette() -> None:
+    # Synthetic fallbacks disabled — muted grey does not promote to vibrant
     palette = generate_palette([Swatch((50, 50, 50), 100)])
 
-    assert palette.vibrant is not None
-    assert palette.dark_vibrant is not None
-    assert palette.light_vibrant is not None
+    assert palette.vibrant is None
+    assert palette.dark_vibrant is None
+    assert palette.light_vibrant is None
+    # Grey maps to muted roles only
+    assert (
+        palette.muted is not None
+        or palette.dark_muted is not None
+        or palette.light_muted is not None
+    )
 
 
 def test_extract_palette_uses_mmcq(sample_image: Path) -> None:

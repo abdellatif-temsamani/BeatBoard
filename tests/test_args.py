@@ -27,8 +27,13 @@ def test_parser_various_args(args, expected_once, expected_debug, expected_hardw
 
 
 def test_parser_invalid_hardware():
+    # Hardware validation is deferred until after plugins are loaded (so parser accepts any value)
+    parsed = parser.parse_args(["--hardware", "invalid"])
+    assert parsed.hardware == ["invalid"]
+    from beatboard.args import _validate_hardware_or_exit
+
     with pytest.raises(SystemExit):
-        parser.parse_args(["--hardware", "invalid"])
+        _validate_hardware_or_exit(parsed.hardware)
 
 
 def test_parser_invalid_debug():

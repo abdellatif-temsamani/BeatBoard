@@ -29,6 +29,7 @@ def test_globs_singleton():
                 "cache": False,
                 "perf": False,
                 "api": False,
+                "plugins": False,
                 "all": False,
             },
         ),
@@ -51,6 +52,7 @@ def test_globs_defaults(attr, value):
                 "cache": False,
                 "perf": False,
                 "api": False,
+                "plugins": False,
                 "all": False,
             },
         ),
@@ -72,6 +74,7 @@ def test_globs_independent_instances():
         "cache": False,
         "perf": False,
         "api": False,
+        "plugins": False,
         "all": False,
     }
     assert g2.debug == {
@@ -80,5 +83,6 @@ def test_globs_independent_instances():
         "cache": False,
         "perf": False,
         "api": False,
+        "plugins": False,
         "all": False,
     }  # Shared state

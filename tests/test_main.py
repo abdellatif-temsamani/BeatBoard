@@ -131,24 +131,33 @@ async def test_main_stops_when_no_hardware_is_detected(
     restore_hardware: None,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
+    # No hardware is no longer a hard error — it continues with empty hardware
+    async def watch_playerctl(once: bool) -> None:
+        return None
+
     monkeypatch.setattr(
         beatboard.parser,
         "parse_args",
-        lambda: Namespace(hardware=None, debug=[], once=False, refresh_hardware=False),
+        lambda: Namespace(
+            hardware=None,
+            debug=[],
+            once=False,
+            refresh_hardware=False,
+            reset_cache=False,
+            api=False,
+        ),
     )
     monkeypatch.setattr(beatboard, "get_cached_hardware", lambda: [])
     monkeypatch.setattr(beatboard, "detect_hardware", lambda: [])
-    monkeypatch.setattr(
-        beatboard,
-        "check_spotify_available",
-        lambda: pytest.fail("Spotify should not be checked without hardware"),
-    )
+    monkeypatch.setattr(beatboard, "check_spotify_available", lambda: True)
+    monkeypatch.setattr(beatboard, "source_migrations", lambda: None)
+    monkeypatch.setattr(beatboard, "watch_playerctl", watch_playerctl)
 
     await beatboard.beatboard_main(tmp_path / "config.yaml")
 
+    assert Globs().hardware == []
     output = capsys.readouterr().out
-    assert "No supported hardware detected" in output
-    assert "--hardware" in output
+    assert "No supported hardware detected" not in output
 
 
 @pytest.mark.asyncio
