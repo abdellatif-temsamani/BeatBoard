@@ -1,17 +1,13 @@
 import argparse
-
-# Read version from package metadata
-from importlib.metadata import version
 from typing import Any, Sequence
 
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
+from ._version import __version__
 from .globs import Globs
 from .hardware import get_all_hardware, hardware
-
-__version__ = version("beatboard")
 
 console = Console()
 

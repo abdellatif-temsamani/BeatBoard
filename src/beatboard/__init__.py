@@ -3,6 +3,7 @@ from pathlib import Path
 
 from rich import print
 
+from ._version import __version__ as __version__  # noqa: F401 - re-exported
 from .args import parser
 from .cache.db import get_cached_hardware, set_cached_hardware, source_migrations
 from .config import ConfigError, get_config_path, load_config

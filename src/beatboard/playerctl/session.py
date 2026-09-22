@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from .._version import __version__
+
 _IMAGE_SESSION = None
 
 
@@ -16,6 +18,6 @@ def _get_image_session():
         )
         s.mount("https://", adapter)
         s.mount("http://", adapter)
-        s.headers.update({"User-Agent": "BeatBoard/0.3.0"})
+        s.headers.update({"User-Agent": f"BeatBoard/{__version__}"})
         _IMAGE_SESSION = s
     return _IMAGE_SESSION

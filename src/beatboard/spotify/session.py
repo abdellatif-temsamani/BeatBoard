@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import requests
 
+from .._version import __version__
+
 _SESSION: requests.Session | None = None
 
 
@@ -21,6 +23,6 @@ def _get_session() -> requests.Session:
         )
         s.mount("https://", adapter)
         s.mount("http://", adapter)
-        s.headers.update({"User-Agent": "BeatBoard/0.3.0 (spotify-websocket)"})
+        s.headers.update({"User-Agent": f"BeatBoard/{__version__} (spotify-websocket)"})
         _SESSION = s
     return _SESSION
