@@ -1,0 +1,11 @@
+# Example: Philips Hue bridge via custom script with {color} placeholder in arg
+name: hue-bridge
+version: "1.0.0"
+description: "Philips Hue via hue-cli bridge tool"
+author: "Community"
+type: hardware
+hardware:
+  command: ["hue-cli", "set", "--color={color}"]
+  detect:
+    executables: ["hue-cli"]
+    # Optional: match Hue bridge USB? Hue uses network, so executable-only is fine

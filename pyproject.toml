@@ -1,48 +1,109 @@
+# =============================================================================
+# BeatBoard — pyproject.toml
+# Keep this file the single source of truth for packaging & tooling.
+# Human-maintainer rules:
+#   - Group and alphabetize dependencies; use >= lower bounds, not == pins
+#     (pins belong in a lockfile, not in pyproject; == causes resolver conflicts)
+#   - Keep tool configs here (ruff/mypy/pytest) so `ruff check . && pytest` is enough
+#   - `version` is static; setuptools-scm is only a build fallback for git tags
+# =============================================================================
+
 [build-system]
-requires = ["setuptools>=61.0", "wheel", "setuptools-scm"]
+requires = [
+    "setuptools>=61",
+    "setuptools-scm>=8",
+    "wheel",
+]
 build-backend = "setuptools.build_meta"
 
+# ---------------------------------------------------------------------------
+# Project metadata  (PEP 621) — https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
+# ---------------------------------------------------------------------------
 [project]
 name = "BeatBoard"
 version = "0.3.0"
 description = "Dynamic keyboard RGB lighting based on Spotify album art"
-readme = "README.md"
-license = "MIT"
+readme = { file = "README.md", content-type = "text/markdown" }
+license = { text = "MIT" }
 requires-python = ">=3.11"
+authors = [
+    { name = "Abdellatif Temsamani", email = "contact@abdellatif.dev" },
+]
+maintainers = [
+    { name = "Abdellatif Temsamani", email = "contact@abdellatif.dev" },
+]
+keywords = [
+    "spotify",
+    "rgb",
+    "keyboard",
+    "album-art",
+    "playerctl",
+    "openrgb",
+    "hardware",
+    "lighting",
+]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: End Users/Desktop",
     "Environment :: Console",
-
+    "License :: OSI Approved :: MIT License",
     "Operating System :: POSIX :: Linux",
+    "Operating System :: Microsoft :: Windows",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Multimedia :: Sound/Audio :: Players",
 ]
+
+# ---------------------------------------------------------------------------
+# Dependencies
+# Direct deps use >= lower bounds. Transitive deps (pulled via requests/rich)
+# are listed explicitly only when we relied on their pinned version before;
+# they can be removed once `pip-compile` / lockfile is adopted.
+# Sorted alphabetically for clean diffs.
+# ---------------------------------------------------------------------------
 dependencies = [
-    "certifi==2025.10.5",
-    "charset-normalizer==3.4.4",
-    "idna==3.11",
-    "markdown-it-py==3.0.0",
-    "mdurl==0.1.2",
-    "packaging==25.0",
-    "pillow==12.0.0",
-    "Pygments==2.19.2",
-    "PyYAML==6.0.3",
-    "pyusb==1.3.1",
-    "randomcolor==0.4.4.6",
-    "requests==2.32.5",
-    "rich==14.2.0",
-    "setuptools-scm==8.1.0",
-    "six==1.17.0",
-    "urllib3==2.6.1",
-    "websockets==15.0.1",
+    # --- direct ---
+    "Pillow>=12.0.0",        # album-art decoding (PIL)
+    "PyYAML>=6.0.3",         # config + YAML plugins
+    "pyusb>=1.3.1",          # Logitech G213 direct USB + hardware detection
+    "requests>=2.32.5",      # Spotify HTTP (OAuth, REST, image download)
+    "rich>=14.2.0",          # CLI UI, tables, doctor output
+    "websockets>=15.0.1",    # Spotify Dealer WebSocket (push, no polling)
+
+    # --- transitive (explicitly pinned before; kept for reproducibility) ---
+    # If you adopt a lockfile (pip-tools/uv), delete this block and let the
+    # resolver pull them transitively.
+    "certifi>=2025.10.5",          # via requests
+    "charset-normalizer>=3.4.4",   # via requests
+    "idna>=3.11",                  # via requests
+    "urllib3>=2.6.1",              # via requests
+    "markdown-it-py>=3.0.0",       # via rich
+    "mdurl>=0.1.2",                # via markdown-it-py
+    "Pygments>=2.19.2",            # via rich
+    "packaging>=25.0",             # via rich / setuptools-scm
+    "six>=1.17.0",                 # via randomcolor compat
+
+    # --- vendor-adjacent (used only by vendored G213Colors script) ---
+    "randomcolor>=0.4.4.6",
 ]
 
+# Optional groups — install with `pip install -e ".[dev]"`
 [project.optional-dependencies]
-dev = ["pytest==8.3.3", "pytest-asyncio==1.3.0", "ruff==0.14.8", "build==1.3.0", "pip-audit==2.7.3"]
-
+dev = [
+    # test
+    "pytest>=8.3.3",
+    "pytest-asyncio>=0.24",
+    # lint / format / types — keep in sync with CI (ci.yml)
+    "ruff>=0.14.8",
+    "mypy>=1.14",
+    "types-PyYAML>=6.0",
+    "types-requests>=2.32",
+    # build / audit
+    "build>=1.3.0",
+    "pip-audit>=2.7.3",
+]
 
 [project.scripts]
 beatboard = "beatboard.__main__:main"
@@ -52,15 +113,103 @@ Homepage = "https://github.com/abdellatif-temsamani/BeatBoard"
 Repository = "https://github.com/abdellatif-temsamani/BeatBoard"
 Issues = "https://github.com/abdellatif-temsamani/BeatBoard/issues"
 Changelog = "https://github.com/abdellatif-temsamani/BeatBoard/blob/main/CHANGELOG.md"
+Documentation = "https://github.com/abdellatif-temsamani/BeatBoard#readme"
+
+# ---------------------------------------------------------------------------
+# Setuptools — package discovery
+# ---------------------------------------------------------------------------
+[tool.setuptools]
+include-package-data = true
 
 [tool.setuptools.packages.find]
-where = ["src", "src/beatboard/G213Colors"]
+where = ["src"]
+# G213Colors is a vendored git submodule (single .py + pcaps), not a Python
+# package — exclude it from discovery; it is shipped via package-data / MANIFEST.in
+exclude = ["G213Colors*"]
 
+[tool.setuptools.package-data]
+beatboard = [
+    "core_plugins/*.yaml",
+    "core_plugins/*.yml",
+    "G213Colors/*.py",
+]
+
+# setuptools-scm fallback: when building from a git checkout, derive version
+# from tags if pyproject version is not set dynamically.
+# No `write_to` — version is read from `pyproject.toml` / git tags at build
+# time via `src/beatboard/_version.py`. Avoids a generated `_version_scm.py`
+# in the source tree (was previously created on `python -m build`).
+[tool.setuptools_scm]
+fallback_version = "0.3.0"
+
+# ---------------------------------------------------------------------------
+# Ruff — lint + format (single tool, fast)
+# `ruff check .`  and  `ruff format .`  /  `ruff format --check .` in CI
+# ---------------------------------------------------------------------------
 [tool.ruff]
 line-length = 88
 target-version = "py311"
-exclude = ["src/beatboard/G213Colors/"]
+exclude = [
+    "src/beatboard/G213Colors/",  # vendored, not our style
+    "graphify-out/",
+    "build/",
+    "dist/",
+    ".venv/",
+    "venv/",
+]
 
+[tool.ruff.lint]
+# Keep ruff's safe defaults (E4/E7/E9/F) — the previous file had no `select`
+# so `ruff check .` passed with zero config. Extend incrementally.
+select = [
+    "E4",  # pycodestyle errors (not E501 — line length is enforced by formatter)
+    "E7",
+    "E9",
+    "F",   # pyflakes — undefined names, unused imports
+]
+ignore = []
+
+# Next step (run in a follow-up PR, fix violations first):
+# select = ["E4","E7","E9","F","I","UP","B","C4","SIM","RUF"]
+# ignore = ["E501","W505","RUF001","RUF002","RUF003"]
+# Then: ruff check . --fix && ruff format . && pytest
+
+[tool.ruff.lint.pycodestyle]
+max-doc-length = 88
+
+[tool.ruff.lint.pyupgrade]
+keep-runtime-typing = true  # keep `from __future__ import annotations` for py311
+
+[tool.ruff.format]
+quote-style = "single"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+# ---------------------------------------------------------------------------
+# Mypy — static typing (gradual; start permissive, tighten over time)
+# `mypy src/`  (add to CI when ready: `mypy src/ --ignore-missing-imports`)
+# ---------------------------------------------------------------------------
+[tool.mypy]
+python_version = "3.11"
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+show_error_codes = true
+ignore_missing_imports = true  # third-party stubs not always available
+exclude = [
+    "src/beatboard/G213Colors/",
+    "graphify-out/",
+]
+
+# Stricter per-package overrides — opt-in as modules get typed
+# [[tool.mypy.overrides]]
+# module = "beatboard.color.*"
+# disallow_untyped_defs = true
+
+# ---------------------------------------------------------------------------
+# Pytest
+# ---------------------------------------------------------------------------
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
@@ -69,3 +218,33 @@ python_classes = "Test*"
 python_functions = "test_*"
 asyncio_default_fixture_loop_scope = "function"
 asyncio_mode = "auto"
+addopts = "-q"
+
+# ---------------------------------------------------------------------------
+# Coverage (optional — `pytest --cov=beatboard` if pytest-cov installed)
+# ---------------------------------------------------------------------------
+[tool.coverage.run]
+source = ["beatboard"]
+branch = true
+omit = [
+    "src/beatboard/G213Colors/*",
+    "src/beatboard/_version_scm.py",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+]
+
+# ---------------------------------------------------------------------------
+# Pyright / basedpyright (if used locally — harmless if not installed)
+# ---------------------------------------------------------------------------
+[tool.pyright]
+include = ["src"]
+exclude = ["src/beatboard/G213Colors", "graphify-out", "build", "dist"]
+typeCheckingMode = "basic"
+pythonVersion = "3.11"

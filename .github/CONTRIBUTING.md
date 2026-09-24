@@ -106,7 +106,7 @@ Enhancement suggestions are tracked as [GitHub issues](https://github.com/abdell
 #### Prerequisites
 
 - Python 3.11+
-- `playerctl` installed
+- `playerctl` installed (Linux) or Spotify API credentials for `--api`
 - Basic knowledge of Python and hardware interfaces
 
 #### Setup Development Environment
@@ -126,7 +126,7 @@ Enhancement suggestions are tracked as [GitHub issues](https://github.com/abdell
 BeatBoard supports various RGB keyboards. To add support for new hardware:
 
 - Research the device's USB protocol or HID interface
-- Implement a new hardware module in `src/hardware.py` or a separate file
+- Implement a new hardware module in `src/beatboard/hardware.py` (or a YAML plugin in `src/beatboard/plugins/` / `~/.config/beatboard/plugins/`)
 - Test on real hardware if possible
 - Document the device in the README
 

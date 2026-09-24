@@ -1,0 +1,13 @@
+# Example: Generic OpenRGB device (vendor-agnostic)
+name: openrgb
+version: "1.0.0"
+description: "Generic RGB via OpenRGB CLI – works for many motherboards, RAM, keyboards"
+author: "BeatBoard"
+type: hardware
+hardware:
+  command: ["openrgb", "--color", "{color}"]
+  detect:
+    executables: ["openrgb"]
+    # No USB requirement – manual only unless you add usb filter below
+    # usb:
+    #   - vendor: 0x0b05  # ASUS example

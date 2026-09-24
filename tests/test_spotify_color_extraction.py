@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from PIL import Image
 
-from beatboard.color_gen import (
+from beatboard.color import (
     Swatch,
     extract_palette,
     generate_palette,
@@ -19,8 +19,8 @@ from beatboard.color_gen import (
 @pytest.fixture
 def sample_image(tmp_path: Path) -> Path:
     """Create a lossless image with red, green, and blue regions."""
-    path = tmp_path / "sample.png"
-    image = Image.new("RGB", (100, 100), "blue")
+    path = tmp_path / 'sample.png'
+    image = Image.new('RGB', (100, 100), 'blue')
     for x in range(50):
         for y in range(50):
             image.putpixel((x, y), (255, 0, 0))
@@ -56,9 +56,9 @@ def test_quantize_tracks_population() -> None:
     }
 
 
-@pytest.mark.parametrize("color_count", [0, 1, 257])
+@pytest.mark.parametrize('color_count', [0, 1, 257])
 def test_quantize_validates_color_count(color_count: int) -> None:
-    with pytest.raises(ValueError, match="between 2 and 256"):
+    with pytest.raises(ValueError, match='between 2 and 256'):
         quantize([(255, 0, 0, 255)], color_count=color_count)
 
 
@@ -83,22 +83,29 @@ def test_generator_selects_named_variations() -> None:
 
 
 def test_generator_synthesizes_missing_vibrant_roles() -> None:
+    # Synthetic fallbacks disabled — only real quantized colors are returned
     palette = generate_palette([Swatch((252, 4, 4), 100)])
 
     assert palette.vibrant is not None
     assert palette.vibrant.rgb == (252, 4, 4)
-    assert palette.dark_vibrant is not None
-    assert palette.dark_vibrant.population == 0
-    assert palette.light_vibrant is not None
-    assert palette.light_vibrant.population == 0
+    assert palette.dark_vibrant is None
+    assert palette.light_vibrant is None
+    assert palette.muted is None
 
 
 def test_generator_promotes_a_muted_palette() -> None:
+    # Synthetic fallbacks disabled — muted grey does not promote to vibrant
     palette = generate_palette([Swatch((50, 50, 50), 100)])
 
-    assert palette.vibrant is not None
-    assert palette.dark_vibrant is not None
-    assert palette.light_vibrant is not None
+    assert palette.vibrant is None
+    assert palette.dark_vibrant is None
+    assert palette.light_vibrant is None
+    # Grey maps to muted roles only
+    assert (
+        palette.muted is not None
+        or palette.dark_muted is not None
+        or palette.light_muted is not None
+    )
 
 
 def test_extract_palette_uses_mmcq(sample_image: Path) -> None:
@@ -118,15 +125,15 @@ async def test_get_color_palette_returns_vibrant_role_first(
     colors = await get_color_palette(str(sample_image))
 
     assert colors
-    assert colors[0] in {"fc0404", "04fc04", "0404fc"}
+    assert colors[0] in {'fc0404', '04fc04', '0404fc'}
     assert len(colors) == len(set(colors))
     assert all(len(color) == 6 for color in colors)
-    assert all(set(color) <= set("0123456789abcdef") for color in colors)
+    assert all(set(color) <= set('0123456789abcdef') for color in colors)
 
 
 @pytest.mark.asyncio
 async def test_get_color_palette_ignores_all_white_image(tmp_path: Path) -> None:
-    path = tmp_path / "white.png"
-    Image.new("RGB", (20, 20), "white").save(path)
+    path = tmp_path / 'white.png'
+    Image.new('RGB', (20, 20), 'white').save(path)
 
     assert await get_color_palette(str(path)) == []

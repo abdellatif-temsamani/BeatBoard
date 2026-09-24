@@ -2,7 +2,7 @@
 
 ## node-vibrant
 
-The color quantization and palette generation in `src/beatboard/color_gen.py`
+The color quantization and palette generation in `src/beatboard/color/`
 is inspired by [node-vibrant](https://github.com/Vibrant-Colors/node-vibrant)
 ([MIT License](https://github.com/Vibrant-Colors/node-vibrant/blob/master/LICENSE))
 by Jari Zwarts and AKFish.

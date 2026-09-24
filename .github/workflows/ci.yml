@@ -39,6 +39,9 @@ jobs:
         run: |
           ruff check .
           ruff format --check .
+      - name: Check modularity
+        run: |
+          python scripts/check_modularity.py
       - name: Run tests
         run: |
           python -m pytest

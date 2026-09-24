@@ -16,12 +16,12 @@ def get_connection():
     db = sqlite3.connect(str(cache_path), check_same_thread=False, timeout=5.0)
     # Perf pragmas – safe for cache workload (WAL + NORMAL gives ~3x write throughput)
     try:
-        db.execute("PRAGMA journal_mode=WAL")
-        db.execute("PRAGMA synchronous=NORMAL")
-        db.execute("PRAGMA temp_store=MEMORY")
-        db.execute("PRAGMA cache_size=-20000")  # ~20MB
-        db.execute("PRAGMA busy_timeout=5000")
-        db.execute("PRAGMA foreign_keys=ON")
+        db.execute('PRAGMA journal_mode=WAL')
+        db.execute('PRAGMA synchronous=NORMAL')
+        db.execute('PRAGMA temp_store=MEMORY')
+        db.execute('PRAGMA cache_size=-20000')  # ~20MB
+        db.execute('PRAGMA busy_timeout=5000')
+        db.execute('PRAGMA foreign_keys=ON')
     except sqlite3.Error:
         pass
     try:
@@ -38,16 +38,16 @@ def get_migrations() -> list[str]:
     """
     from pathlib import Path
 
-    migrations_dir = Path(__file__).parent / "migrations"
-    files = list(migrations_dir.glob("*.sql"))
+    migrations_dir = Path(__file__).parent / 'migrations'
+    files = list(migrations_dir.glob('*.sql'))
 
-    files.sort(key=lambda p: int(p.stem.split("_")[0]))
+    files.sort(key=lambda p: int(p.stem.split('_')[0]))
     return [str(p) for p in files]
 
 
 def read_sql_file(file_path: str) -> str:
     """Read SQL script from file."""
-    with open(file_path, "r") as f:
+    with open(file_path, 'r') as f:
         return f.read()
 
 
@@ -61,14 +61,14 @@ def source_file(cursor: Cursor, file: str, file_name: str):
     """
     sql_script = read_sql_file(file)
 
-    log("cache", f"sourcing '{file_name}'")
+    log('cache', f"sourcing '{file_name}'")
     cursor.executescript(sql_script)
 
     cursor.execute(
-        "INSERT INTO migrations (file_name, status) VALUES (?, ?)",
+        'INSERT INTO migrations (file_name, status) VALUES (?, ?)',
         (
             file_name,
-            "ran",
+            'ran',
         ),
     )
 
@@ -97,7 +97,7 @@ def source_migrations():
                 source_file(cursor, file, file_name)
             else:
                 cursor.execute(
-                    "SELECT 1 FROM migrations WHERE file_name = ?", (file_name,)
+                    'SELECT 1 FROM migrations WHERE file_name = ?', (file_name,)
                 )
                 exists = cursor.fetchone()
                 if not exists:
@@ -120,7 +120,7 @@ def get_cached_hardware() -> list[str]:
         )
         if not cursor.fetchone():
             return []
-        cursor.execute("SELECT name FROM hardware ORDER BY id")
+        cursor.execute('SELECT name FROM hardware ORDER BY id')
         rows = cursor.fetchall()
         return [row[0] for row in rows]
 
@@ -138,9 +138,35 @@ def set_cached_hardware(hardware: list[str]) -> None:
         )
         if not cursor.fetchone():
             cursor.execute(
-                "CREATE TABLE IF NOT EXISTS hardware (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE)"
+                'CREATE TABLE IF NOT EXISTS hardware (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE)'
             )
-        cursor.execute("DELETE FROM hardware")
+        cursor.execute('DELETE FROM hardware')
         for name in hardware:
-            cursor.execute("INSERT INTO hardware (name) VALUES (?)", (name,))
+            cursor.execute('INSERT INTO hardware (name) VALUES (?)', (name,))
         db.commit()
+
+
+def _has_track_id_column(conn: sqlite3.Connection) -> bool:
+    """Check if colors_cache has track_id column (migration 03)."""
+    try:
+        cur = conn.execute('PRAGMA table_info(colors_cache)')
+        cols = [row[1] for row in cur.fetchall()]
+        return 'track_id' in cols
+    except sqlite3.Error:
+        return False
+
+
+def reset_cache() -> None:
+    """Clear color cache only (keeps hardware cache).
+
+    Deletes all rows from colors_cache but preserves the hardware table
+    so `beatboard --reset-cache` does not break hardware detection.
+    """
+    with get_connection() as db:
+        cursor = db.cursor()
+        cursor.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='colors_cache'"
+        )
+        if cursor.fetchone():
+            cursor.execute('DELETE FROM colors_cache')
+            db.commit()

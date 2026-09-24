@@ -1,0 +1,11 @@
+name: g213
+version: "1.0.0"
+description: "Logitech G213 Prodigy via G213Colors (direct USB HID)"
+author: "BeatBoard"
+type: hardware
+hardware:
+  command: ["__python__", "__g213_script__", "-c", "{color}"]
+  detect:
+    usb:
+      - vendor: 0x046D
+        product: 0xC336

@@ -1,0 +1,12 @@
+name: g502
+version: "1.0.0"
+description: "Logitech G502 SE HERO Gaming Mouse via ratbagctl (libratbag)"
+author: "BeatBoard"
+type: hardware
+hardware:
+  command: ["sh", "-c", "D=$(/usr/bin/python3 /usr/sbin/ratbagctl list | grep -i g502 | cut -d: -f1 | tr -d ' '); [ -n \"$D\" ] && /usr/bin/python3 /usr/sbin/ratbagctl \"$D\" led 0 set color {color} && /usr/bin/python3 /usr/sbin/ratbagctl \"$D\" led 1 set color {color}"]
+  detect:
+    usb:
+      - vendor: 0x046D
+        product: 0xC08B
+    executables: ["ratbagctl"]

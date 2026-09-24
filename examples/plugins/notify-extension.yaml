@@ -1,0 +1,12 @@
+# Example: Desktop notification extension
+# This demonstrates the `extension` plugin type. Extensions can hook into
+# BeatBoard events and run commands (e.g., notifications, scripts).
+name: notify-track
+version: "0.1.0"
+description: "Send desktop notification on track change"
+author: "Community"
+type: extension
+extension:
+  hooks:
+    - event: track_change
+      command: ["notify-send", "BeatBoard", "Processing {title} – {artist}"]

@@ -1,0 +1,12 @@
+name: asus
+version: "1.0.0"
+description: "Asus devices via asusctl (requires asusctl)"
+author: "BeatBoard"
+type: hardware
+hardware:
+  command: ["asusctl", "aura", "static", "-c"]
+  detect:
+    usb:
+      - vendor: 0x0B05
+    executables: ["asusctl"]
+    system_vendor: "asus"
