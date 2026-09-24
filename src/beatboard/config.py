@@ -207,3 +207,76 @@ def load_config(path: Path) -> Config:
         spotify_redirect_uri=spotify_redirect_uri,
         spotify_websocket_url=spotify_websocket_url,
     )
+
+
+def persist_hardware_to_config(path: Path, hardware: list[str]) -> list[str] | None:
+    """Persist detected hardware to the config file (auto-store).
+
+    Merges ``hardware`` into the existing ``hardware`` key so manual
+    fallback entries (e.g., laptop internal keyboards) are preserved.
+    If the config file does not exist or is unreadable, it is created
+    from defaults with the hardware value.
+    Returns the merged hardware list that was written (or None if nothing changed).
+    """
+    if not hardware:
+        return None
+    # Normalize incoming hardware (strip, dedupe preserving order)
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for item in hardware:
+        if not isinstance(item, str):
+            continue
+        cleaned = item.strip()
+        if not cleaned or cleaned in seen:
+            continue
+        seen.add(cleaned)
+        normalized.append(cleaned)
+    if not normalized:
+        return
+    try:
+        text = path.read_text(encoding='utf-8')
+        data = yaml.safe_load(text)
+    except Exception:
+        data = None
+    if not isinstance(data, dict):
+        # File missing, invalid, or not a mapping – start from defaults
+        data = _default_config_dict()
+    # Existing hardware in file
+    raw_existing = data.get('hardware')
+    existing: list[str] = []
+    if raw_existing is None:
+        existing = []
+    elif isinstance(raw_existing, str):
+        if raw_existing.strip():
+            existing = [raw_existing.strip()]
+    elif isinstance(raw_existing, list):
+        for item in raw_existing:
+            if isinstance(item, str) and item.strip():
+                cleaned = item.strip()
+                if cleaned not in existing:
+                    existing.append(cleaned)
+    else:
+        existing = []
+    # Merge: existing fallback entries first, then new detected ones
+    merged: list[str] = list(existing)
+    for h in normalized:
+        if h not in merged:
+            merged.append(h)
+    # No change? Avoid rewriting
+    if merged == existing and raw_existing is not None:
+        # Also handle case where raw_existing was string single and merged single same
+        if isinstance(raw_existing, list) and raw_existing == merged:
+            return merged if merged else None
+        if isinstance(raw_existing, str) and merged == [raw_existing.strip()]:
+            return merged if merged else None
+        # If existing was None and merged empty (shouldn't happen due early return)
+        if raw_existing is None and not merged:
+            return None
+    # Write merged (empty -> None to keep default semantics)
+    data['hardware'] = merged if merged else None
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(yaml.safe_dump(data, sort_keys=True), encoding='utf-8')
+    except OSError:
+        return None
+    return merged if merged else None

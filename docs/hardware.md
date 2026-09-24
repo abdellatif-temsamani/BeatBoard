@@ -94,6 +94,16 @@ while a stale cache exists (laptop case), BeatBoard detects the stale cache,
 re-runs detection to confirm emptiness, and updates the cache to the new fallback.
 Use `beatboard --doctor` to see the effective `hardware` value and hints.
 
+**Auto-store detected hardware:** whenever BeatBoard successfully auto-detects
+hardware (fresh detection or cached hit), it merges that list into
+`~/.config/beatboard/config.yaml: hardware` so the config always reflects your
+last working hardware. The merge preserves manual fallback entries (e.g.,
+`hardware: [g213]` for a laptop internal keyboard) and appends newly detected
+names without duplicates. CLI `--hardware` never writes to the config. This makes
+the fallback self-populating: after the first successful run on a new machine,
+the config already contains the right names for the next cold boot when USB may
+be briefly unavailable.
+
 **Linux detection:**
 - `g213` – USB `046d:c336` alone (no executable required)
 - `razer` – vendor `1532` (any product) **AND** `razer-cli` on `$PATH`

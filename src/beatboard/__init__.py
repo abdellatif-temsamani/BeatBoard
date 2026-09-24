@@ -361,6 +361,24 @@ async def beatboard_main(config_path: Path | None = None):
 
     globs.hardware = selected_hardware
 
+    # Auto-store detected hardware in config (so next run has fallback even if USB not visible)
+    # Only when hardware was auto-resolved (not CLI) and we have a selection.
+    # Merges with existing fallback entries so manual laptop entries are preserved.
+    if selected_hardware and args.hardware is None:
+        try:
+            from .config import persist_hardware_to_config
+
+            merged = persist_hardware_to_config(resolved_config_path, selected_hardware)  # type: ignore[arg-type]
+            # Keep in-memory config in sync with what was written (merged)
+            if merged is not None:
+                config.hardware = list(merged)  # type: ignore[assignment]
+            else:
+                # No file change (already up-to-date) – ensure in-memory matches file
+                # If file had string/single, merged may be same; keep as is
+                pass
+        except Exception:
+            pass
+
     use_api = bool(getattr(args, 'api', False))
 
     if use_api:
