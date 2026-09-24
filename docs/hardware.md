@@ -100,9 +100,11 @@ extraction still runs) or exits with guidance to connect a device / use
 # Community plugin ~/.config/beatboard/plugins/openrgb.yaml → _plugin_hardware["openrgb"]
 from beatboard.hardware import get_all_hardware, get_command, detect_hardware
 
-all_hw = get_all_hardware()           # {"g213": [...], "razer": [...], "asus": [...], "g502": [...]} + plugins
-detected = detect_hardware()          # uses PyUSB + shutil.which + DMI
-commands = get_command(["g213", "razer"], "ff0000")
+all_hw = (
+    get_all_hardware()
+)  # {"g213": [...], "razer": [...], "asus": [...], "g502": [...]} + plugins
+detected = detect_hardware()  # uses PyUSB + shutil.which + DMI
+commands = get_command(['g213', 'razer'], 'ff0000')
 # → [[sys.executable, "…/G213Colors/G213Colors.py", "-c", "ff0000"], ["razer-cli", "-c", "ff0000"]]
 ```
 
@@ -291,12 +293,14 @@ Or a standalone script invoked by the command:
 import sys
 import your_hardware_library
 
+
 def set_color(color_hex: str) -> None:
     if len(color_hex) != 6:
         print('Invalid color format', file=sys.stderr)
         sys.exit(1)
     r, g, b = int(color_hex[0:2], 16), int(color_hex[2:4], 16), int(color_hex[4:6], 16)
     your_hardware_library.set_rgb(r, g, b)
+
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
@@ -331,20 +335,33 @@ if you need the interpreter or script path.
 **Unit Testing (uses the public facade – `src/beatboard/hardware/__init__.py` re-exports):**
 
 ```python
-from beatboard.hardware import get_command, detect_hardware, clear_plugin_hardware, register_plugin_hardware
+from beatboard.hardware import (
+    get_command,
+    detect_hardware,
+    clear_plugin_hardware,
+    register_plugin_hardware,
+)
 from beatboard.plugins.models import DetectSpec, UsbId
 from types import SimpleNamespace
 
+
 def test_your_device_command():
-    commands = get_command(["my-device"], "ff0000")
+    commands = get_command(['my-device'], 'ff0000')
     assert len(commands) == 1
-    assert "ff0000" in commands[0]
+    assert 'ff0000' in commands[0]
+
 
 def test_your_device_detect():
-    spec = DetectSpec(usb=[UsbId(vendor=0x1234, product=0x5678)], executables=["my-tool"])
-    register_plugin_hardware("my-device", ["my-tool", "-c", "{color}"], spec)
+    spec = DetectSpec(
+        usb=[UsbId(vendor=0x1234, product=0x5678)], executables=['my-tool']
+    )
+    register_plugin_hardware('my-device', ['my-tool', '-c', '{color}'], spec)
     devices = [SimpleNamespace(idVendor=0x1234, idProduct=0x5678)]
-    assert "my-device" in detect_hardware(devices=devices, executable_finder=lambda n: "/usr/bin/my-tool" if n == "my-tool" else None, system_vendor="Generic")
+    assert 'my-device' in detect_hardware(
+        devices=devices,
+        executable_finder=lambda n: '/usr/bin/my-tool' if n == 'my-tool' else None,
+        system_vendor='Generic',
+    )
     clear_plugin_hardware()
 ```
 
@@ -409,7 +426,7 @@ Command expansion is in `hardware/commands.py: _build_plugin_command`:
 
 ### Detection Semantics (`hardware/detect.py: _plugin_matches_detect`)
 
-```python
+```text
 # Linux
 if executables: all must be found via shutil.which
 if has_usb and has_vendor: require (usb_match OR vendor_match) AND executables

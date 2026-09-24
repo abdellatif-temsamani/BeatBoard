@@ -1,6 +1,6 @@
 #!/bin/sh
 # BeatBoard pre-commit hook
-# Runs: ruff format .  +  ruff check .
+# Runs: ruff format . + ruff check . + ruff format --check .
 # Auto-stages formatting changes so the commit includes them.
 
 set -e
@@ -10,6 +10,8 @@ if command -v ruff >/dev/null 2>&1; then
   RUFF="ruff"
 elif python -m ruff --version >/dev/null 2>&1; then
   RUFF="python -m ruff"
+elif python3 -m ruff --version >/dev/null 2>&1; then
+  RUFF="python3 -m ruff"
 else
   echo "ruff not found (tried 'ruff' and 'python -m ruff'). Skipping hook."
   exit 0
@@ -19,7 +21,7 @@ echo "▶ ruff format ."
 $RUFF format .
 
 # If formatting changed any tracked files, stage the changes.
-# `git diff --quiet` exits 0 when no unstaged changes; we invert for sh compatible.
+# `git diff --quiet` checks working tree vs index (unstaged).
 if ! git diff --quiet 2>/dev/null; then
   git add -u
   echo "  → staged formatting changes (git add -u)"
@@ -27,5 +29,8 @@ fi
 
 echo "▶ ruff check ."
 $RUFF check .
+
+echo "▶ ruff format --check ."
+$RUFF format --check .
 
 echo "✓ ruff checks passed"
