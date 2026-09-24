@@ -149,7 +149,7 @@ def diagnose_config(config_path: Path | None = None) -> list[dict[str, str]]:
             {
                 'check': 'Config validation',
                 'status': 'ok',
-                'detail': f'debug={cfg.debug} cache_path={cfg.cache_path}',
+                'detail': f'debug={cfg.debug} cache_path={cfg.cache_path} hardware={cfg.hardware}',
                 'hint': '',
             }
         )

@@ -20,6 +20,7 @@ DEFAULT_CONFIG: dict[str, object] = {
     'debug': [],
     'cache_path': DEFAULT_CACHE_PATH_RAW,
     'plugin_dir': DEFAULT_PLUGIN_DIR_RAW,
+    'hardware': None,
     'spotify_token': None,
     'spotify_refresh_token': None,
     'spotify_client_id': None,
@@ -35,6 +36,7 @@ def _default_config_dict() -> dict[str, object]:
         'cache_path': DEFAULT_CACHE_PATH_RAW,
         'plugin_dir': DEFAULT_PLUGIN_DIR_RAW,
         'debug': [],
+        'hardware': None,
         'spotify_token': None,
         'spotify_refresh_token': None,
         'spotify_client_id': None,
@@ -60,6 +62,7 @@ class Config:
     debug: list[DebugCategory] = field(default_factory=list)
     cache_path: str | None = DEFAULT_CACHE_PATH_RAW
     plugin_dir: str | None = DEFAULT_PLUGIN_DIR_RAW
+    hardware: list[str] | None = None
     spotify_token: str | None = None
     spotify_refresh_token: str | None = None
     spotify_client_id: str | None = None
@@ -123,6 +126,30 @@ def load_config(path: Path) -> Config:
         if category not in valid_debug:
             raise ConfigError(f"unknown debug category '{category}'")
 
+    # Hardware fallback – used when autodetection yields nothing (e.g., laptop keyboards)
+    if 'hardware' not in data:
+        hardware: list[str] | None = None
+    else:
+        raw_hardware = data.get('hardware')
+        if raw_hardware is None:
+            hardware = None
+        elif isinstance(raw_hardware, str):
+            if not raw_hardware.strip():
+                raise ConfigError(
+                    'hardware must be a string or list of strings or null'
+                )
+            hardware = [raw_hardware.strip()]
+        elif isinstance(raw_hardware, list):
+            if not all(isinstance(item, str) for item in raw_hardware):
+                raise ConfigError(
+                    'hardware must be a string or list of strings or null'
+                )
+            if any(not item.strip() for item in raw_hardware):
+                raise ConfigError('hardware entries must be non-empty strings')
+            hardware = [item.strip() for item in raw_hardware]
+        else:
+            raise ConfigError('hardware must be a string or list of strings or null')
+
     # Spotify configuration – defaults match abdellatif dev app
     raw_spotify_token = data.get('spotify_token')
     if raw_spotify_token is not None and not isinstance(raw_spotify_token, str):
@@ -172,6 +199,7 @@ def load_config(path: Path) -> Config:
         debug=debug,  # type: ignore[arg-type]
         cache_path=cache_path,
         plugin_dir=plugin_dir,
+        hardware=hardware,
         spotify_token=spotify_token,
         spotify_refresh_token=spotify_refresh_token,
         spotify_client_id=spotify_client_id,

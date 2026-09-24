@@ -116,7 +116,7 @@ def diagnose_hardware() -> list[dict[str, str]]:
             hint = (
                 ''
                 if detected
-                else 'Connect supported hardware or use --hardware <name>'
+                else 'Connect supported hardware, use --hardware <name>, or set hardware: [name] in ~/.config/beatboard/config.yaml (fallback for laptop keyboards)'
             )
             results.append(
                 {
@@ -199,7 +199,7 @@ def diagnose_hardware() -> list[dict[str, str]]:
                     'check': 'Hardware commands',
                     'status': 'info',
                     'detail': 'skipped – no detected hardware',
-                    'hint': 'Connect supported hardware or use --hardware <name>',
+                    'hint': 'Connect supported hardware, use --hardware <name>, or set hardware: [name] in config.yaml',
                 }
             )
 

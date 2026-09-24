@@ -266,6 +266,93 @@ async def beatboard_main(config_path: Path | None = None):
                         pass
                 selected_hardware = detected
 
+    # Fallback to config hardware when autodetection yields nothing
+    # (e.g., laptop internal keyboards not visible via USB/DMI)
+    _cfg_hw_raw = getattr(config, 'hardware', None)
+    # Don't validate fallback here; only validate when actually needed
+    # so invalid fallback doesn't break runs where detection succeeds.
+    _fallback_hw: list[str] | None = (
+        list(_cfg_hw_raw) if _cfg_hw_raw else None  # type: ignore[arg-type]
+    )
+
+    if not selected_hardware:
+        if _fallback_hw:
+            try:
+                from .args import _validate_hardware_or_exit as _validate_fallback
+
+                _validate_fallback(_fallback_hw)
+            except SystemExit:
+                raise
+            except Exception as exc:  # pragma: no cover
+                print(
+                    f'[yellow]Warning:[/yellow] invalid fallback hardware in config: {exc}'
+                )
+                _fallback_hw = None
+            if _fallback_hw:
+                selected_hardware = _fallback_hw
+                if (
+                    globs.debug.get('cache')
+                    or globs.debug.get('all')
+                    or globs.debug.get('plugins')
+                ):
+                    print(
+                        f'[dim]using fallback hardware from config: {selected_hardware}[/dim]'
+                    )
+                else:
+                    print(
+                        f'[green]Using fallback hardware from config:[/green] {", ".join(selected_hardware)}'
+                    )
+                try:
+                    set_cached_hardware(selected_hardware)
+                except Exception:
+                    pass
+    elif _fallback_hw and args.hardware is None:
+        # Handle config edit while cache holds stale fallback.
+        # Only validate if we actually need to replace the stale cache.
+        try:
+            _cached_hw = get_cached_hardware()
+        except Exception:
+            _cached_hw = []
+        if (
+            _cached_hw
+            and selected_hardware == _cached_hw
+            and set(_cached_hw) != set(_fallback_hw)
+        ):
+            try:
+                _fresh_detected = detect_hardware()
+            except Exception:
+                _fresh_detected = []
+            if not _fresh_detected:
+                try:
+                    from .args import _validate_hardware_or_exit as _validate_fallback2
+
+                    _validate_fallback2(_fallback_hw)  # type: ignore[arg-type]
+                except SystemExit:
+                    raise
+                except Exception as exc:  # pragma: no cover
+                    print(
+                        f'[yellow]Warning:[/yellow] invalid fallback hardware in config: {exc}'
+                    )
+                    _fallback_hw = None  # type: ignore[assignment]
+                if _fallback_hw:
+                    selected_hardware = _fallback_hw
+                    if (
+                        globs.debug.get('cache')
+                        or globs.debug.get('all')
+                        or globs.debug.get('plugins')
+                    ):
+                        print(
+                            f'[dim]using updated fallback hardware from config: {selected_hardware} (cache stale)[/dim]'
+                        )
+                    else:
+                        print(
+                            f'[green]Using fallback hardware from config:[/green] {", ".join(selected_hardware)}'
+                        )
+                    try:
+                        set_cached_hardware(selected_hardware)
+                    except Exception:
+                        pass
+
     if not selected_hardware:
         if globs.debug.get('all'):
             print('[dim]no hardware selected — continuing without hardware[/dim]')

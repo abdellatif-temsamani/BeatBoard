@@ -75,6 +75,25 @@ An explicit `--hardware` selection always takes precedence. `--refresh-hardware`
 forces re-detection. Use `--debug plugins` or `--debug all` to log
 `plugins loaded: N from <dir>` and `detect: usb_ids=...`.
 
+**Config fallback for undetectable hardware (e.g., laptop internal keyboards):**
+Some internal keyboards (e.g., laptop hybrid keyboards) are not visible via USB/DMI and
+never auto-detect. Set a fallback in `~/.config/beatboard/config.yaml` so BeatBoard
+still drives them when nothing else is detected:
+
+```yaml
+hardware: g213          # single name, or
+hardware: [g213, razer] # list for multiple
+# hardware: null        # (default) no fallback
+```
+
+Resolution order is `CLI --hardware` → cached detection → fresh detection →
+`config.hardware` fallback. The fallback is only used when auto-detection yields
+nothing, so it never overrides a successful detection. Validation happens after
+plugins are loaded, so community drivers are accepted. If you change the fallback
+while a stale cache exists (laptop case), BeatBoard detects the stale cache,
+re-runs detection to confirm emptiness, and updates the cache to the new fallback.
+Use `beatboard --doctor` to see the effective `hardware` value and hints.
+
 **Linux detection:**
 - `g213` – USB `046d:c336` alone (no executable required)
 - `razer` – vendor `1532` (any product) **AND** `razer-cli` on `$PATH`
