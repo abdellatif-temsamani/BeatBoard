@@ -21,9 +21,9 @@ def compress_colors(colors: List[str]) -> str:
     Returns:
         Base64-encoded compressed string.
     """
-    raw = json.dumps(colors).encode("utf-8")
+    raw = json.dumps(colors).encode('utf-8')
     compressed = zlib.compress(raw)
-    return base64.b64encode(compressed).decode("utf-8")
+    return base64.b64encode(compressed).decode('utf-8')
 
 
 def decompress_colors(data: str) -> List[str]:
@@ -37,4 +37,4 @@ def decompress_colors(data: str) -> List[str]:
     """
     compressed = base64.b64decode(data)
     raw = zlib.decompress(compressed)
-    return json.loads(raw.decode("utf-8"))
+    return json.loads(raw.decode('utf-8'))

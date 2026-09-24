@@ -5,6 +5,6 @@ from __future__ import annotations
 from pathlib import Path
 
 _SYSTEM_VENDOR_PATHS = (
-    Path("/sys/class/dmi/id/sys_vendor"),
-    Path("/sys/devices/virtual/dmi/id/sys_vendor"),
+    Path('/sys/class/dmi/id/sys_vendor'),
+    Path('/sys/devices/virtual/dmi/id/sys_vendor'),
 )

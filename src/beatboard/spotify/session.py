@@ -21,8 +21,8 @@ def _get_session() -> requests.Session:
         adapter = requests.adapters.HTTPAdapter(
             pool_connections=10, pool_maxsize=10, max_retries=1
         )
-        s.mount("https://", adapter)
-        s.mount("http://", adapter)
-        s.headers.update({"User-Agent": f"BeatBoard/{__version__} (spotify-websocket)"})
+        s.mount('https://', adapter)
+        s.mount('http://', adapter)
+        s.headers.update({'User-Agent': f'BeatBoard/{__version__} (spotify-websocket)'})
         _SESSION = s
     return _SESSION

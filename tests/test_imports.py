@@ -10,7 +10,7 @@ def test_beatboard_args_import():
     import beatboard.args
 
     assert beatboard.args is not None
-    assert hasattr(beatboard.args, "parser")
+    assert hasattr(beatboard.args, 'parser')
 
 
 def test_beatboard_globs_import():
@@ -18,7 +18,7 @@ def test_beatboard_globs_import():
     import beatboard.globs
 
     assert beatboard.globs is not None
-    assert hasattr(beatboard.globs, "Globs")
+    assert hasattr(beatboard.globs, 'Globs')
 
 
 def test_beatboard_hardware_import():
@@ -26,7 +26,7 @@ def test_beatboard_hardware_import():
     import beatboard.hardware
 
     assert beatboard.hardware is not None
-    assert hasattr(beatboard.hardware, "get_command")
+    assert hasattr(beatboard.hardware, 'get_command')
 
 
 def test_main_import():

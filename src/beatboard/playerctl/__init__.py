@@ -19,15 +19,15 @@ from .session import _IMAGE_SESSION, _get_image_session
 from .watcher import watch_playerctl
 
 __all__ = [
-    "_IMAGE_SESSION",
-    "_get_image_session",
-    "create_cache_key",
-    "create_track_cache_key",
-    "playerctl",
-    "check_spotify_available",
-    "get_image",
-    "apply_colors",
-    "process_art_url",
-    "watch_playerctl",
-    "_run_hardware",
+    '_IMAGE_SESSION',
+    '_get_image_session',
+    'create_cache_key',
+    'create_track_cache_key',
+    'playerctl',
+    'check_spotify_available',
+    'get_image',
+    'apply_colors',
+    'process_art_url',
+    'watch_playerctl',
+    '_run_hardware',
 ]

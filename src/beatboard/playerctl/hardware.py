@@ -10,4 +10,4 @@ from __future__ import annotations
 
 from .apply import _run_hardware, apply_colors
 
-__all__ = ["_run_hardware", "apply_colors"]
+__all__ = ['_run_hardware', 'apply_colors']

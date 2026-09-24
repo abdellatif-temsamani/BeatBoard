@@ -52,38 +52,38 @@ from .commands import _build_plugin_command, get_command
 # Backward compat: keep hardware.__file__ pointing to original hardware.py
 # location so tests computing G213 path via dirname(hardware.__file__) still work.
 __file__ = os.path.normpath(
-    os.path.join(os.path.dirname(__file__), "..", "hardware.py")
+    os.path.join(os.path.dirname(__file__), '..', 'hardware.py')
 )
 
 __all__ = [
     # constants / registry
-    "hardware",
-    "_core_detect",
-    "_plugin_hardware",
-    "_plugin_detect",
-    "_get_plugin_detect",
-    "_SYSTEM_VENDOR_PATHS",
-    "register_plugin_hardware",
-    "clear_plugin_hardware",
-    "get_all_hardware",
-    "get_all_hardware_names",
-    "is_plugin_hardware",
+    'hardware',
+    '_core_detect',
+    '_plugin_hardware',
+    '_plugin_detect',
+    '_get_plugin_detect',
+    '_SYSTEM_VENDOR_PATHS',
+    'register_plugin_hardware',
+    'clear_plugin_hardware',
+    'get_all_hardware',
+    'get_all_hardware_names',
+    'is_plugin_hardware',
     # core
-    "_g213_script",
-    "_resolve_core_command",
-    "_find_core_plugins_dirs",
-    "_load_core_hardware",
+    '_g213_script',
+    '_resolve_core_command',
+    '_find_core_plugins_dirs',
+    '_load_core_hardware',
     # platform
-    "is_windows",
-    "is_linux",
-    "USBDevice",
-    "_connected_usb_devices",
-    "_system_vendor",
-    "system",
+    'is_windows',
+    'is_linux',
+    'USBDevice',
+    '_connected_usb_devices',
+    '_system_vendor',
+    'system',
     # detection
-    "_plugin_matches_detect",
-    "detect_hardware",
+    '_plugin_matches_detect',
+    'detect_hardware',
     # commands
-    "_build_plugin_command",
-    "get_command",
+    '_build_plugin_command',
+    'get_command',
 ]

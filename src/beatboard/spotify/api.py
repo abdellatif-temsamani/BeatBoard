@@ -22,49 +22,49 @@ def _fetch_track_sync(
     try:
         sess = _get_session()
         resp = sess.get(
-            f"https://api.spotify.com/v1/tracks/{track_id}",
-            headers={"Authorization": f"Bearer {token}"},
+            f'https://api.spotify.com/v1/tracks/{track_id}',
+            headers={'Authorization': f'Bearer {token}'},
             timeout=5,
         )
         dt = (time.perf_counter() - t0) * 1000
         _c = (
-            "green"
+            'green'
             if resp.ok
-            else "yellow"
+            else 'yellow'
             if resp.status_code in (204, 404)
-            else "red"
+            else 'red'
         )
         log(
-            "api",
-            f"[cyan]api[/cyan] [dim]·[/dim] track [white]{track_id[:8]}…[/white] [{_c}]{resp.status_code}[/] [dim]·[/dim] [cyan]{dt:.0f}ms[/cyan]",
+            'api',
+            f'[cyan]api[/cyan] [dim]·[/dim] track [white]{track_id[:8]}…[/white] [{_c}]{resp.status_code}[/] [dim]·[/dim] [cyan]{dt:.0f}ms[/cyan]',
         )
         if resp.status_code == 401:
             return (None, None, None)
         if not resp.ok:
             return (None, None, None)
         data = resp.json()
-        title = data.get("name")
-        artists = data.get("artists") or []
+        title = data.get('name')
+        artists = data.get('artists') or []
         artist: str | None = None
         if artists:
             names = [
-                a.get("name", "")
+                a.get('name', '')
                 for a in artists
-                if isinstance(a, dict) and a.get("name")
+                if isinstance(a, dict) and a.get('name')
             ]
-            artist = ", ".join(n for n in names if n) if names else None
+            artist = ', '.join(n for n in names if n) if names else None
         art_url: str | None = None
-        album = data.get("album") or {}
+        album = data.get('album') or {}
         if isinstance(album, dict):
-            images = album.get("images") or []
+            images = album.get('images') or []
             if images and isinstance(images[0], dict):
-                art_url = images[0].get("url")
+                art_url = images[0].get('url')
         return (art_url, title, artist)
     except requests.RequestException as exc:
         dt = (time.perf_counter() - t0) * 1000
         log(
-            "api",
-            f"[red]api[/red] [dim]·[/dim] track [white]{track_id[:8]}…[/white] [red]error[/red] [dim]·[/dim] [red]{dt:.0f}ms[/red] [dim]{exc}[/dim]",
+            'api',
+            f'[red]api[/red] [dim]·[/dim] track [white]{track_id[:8]}…[/white] [red]error[/red] [dim]·[/dim] [red]{dt:.0f}ms[/red] [dim]{exc}[/dim]',
         )
         return (None, None, None)
 
@@ -74,25 +74,25 @@ def _fetch_current_playback_sync(
 ) -> Tuple[str | None, str | None, str | None] | None | object:
     """Fetch currently playing track once – for initial hydration only."""
     t0 = time.perf_counter()
-    log("api", "[cyan]api[/cyan] [dim]·[/dim] fetching now playing…")
+    log('api', '[cyan]api[/cyan] [dim]·[/dim] fetching now playing…')
     try:
         sess = _get_session()
         resp = sess.get(
             SPOTIFY_CURRENTLY_PLAYING_URL,
-            headers={"Authorization": f"Bearer {token}"},
+            headers={'Authorization': f'Bearer {token}'},
             timeout=5,
         )
         dt = (time.perf_counter() - t0) * 1000
         _c2 = (
-            "green"
+            'green'
             if resp.status_code == 200
-            else "yellow"
+            else 'yellow'
             if resp.status_code in (204, 404)
-            else "red"
+            else 'red'
         )
         log(
-            "api",
-            f"[cyan]api[/cyan] [dim]·[/dim] now playing [{_c2}]{resp.status_code}[/] [dim]·[/dim] [cyan]{dt:.0f}ms[/cyan]",
+            'api',
+            f'[cyan]api[/cyan] [dim]·[/dim] now playing [{_c2}]{resp.status_code}[/] [dim]·[/dim] [cyan]{dt:.0f}ms[/cyan]',
         )
         if resp.status_code == 401:
             return _UNAUTHORIZED
@@ -111,13 +111,13 @@ def _fetch_current_playback_sync(
         extracted = _extract_track_from_payload(data)
         if extracted:
             return extracted
-        if data.get("is_playing") is False:
+        if data.get('is_playing') is False:
             return None
         return None
     except requests.RequestException as exc:
         dt = (time.perf_counter() - t0) * 1000
         log(
-            "api",
-            f"[red]api[/red] [dim]·[/dim] now playing [red]error[/red] [dim]·[/dim] [red]{dt:.0f}ms[/red] [dim]{exc}[/dim]",
+            'api',
+            f'[red]api[/red] [dim]·[/dim] now playing [red]error[/red] [dim]·[/dim] [red]{dt:.0f}ms[/red] [dim]{exc}[/dim]',
         )
         return None

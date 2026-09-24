@@ -11,12 +11,12 @@ async def watch_spotify_api(
     **kwargs,
 ) -> None:
     """Stream Spotify track changes and update hardware lighting."""
-    if "poll_interval" in kwargs and kwargs["poll_interval"] is not None:
+    if 'poll_interval' in kwargs and kwargs['poll_interval'] is not None:
         try:
-            reconnect_delay = float(kwargs["poll_interval"])
+            reconnect_delay = float(kwargs['poll_interval'])
         except (TypeError, ValueError):
             pass
     await watch_spotify_websocket(once=once, reconnect_delay=reconnect_delay)
 
 
-__all__ = ["watch_spotify_api"]
+__all__ = ['watch_spotify_api']

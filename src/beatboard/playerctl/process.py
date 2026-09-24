@@ -32,7 +32,7 @@ async def process_art_url(
     Returns:
         Extracted hex colors or None on failure.
     """
-    IMAGE_PATH = "/tmp/album_art.jpg"
+    IMAGE_PATH = '/tmp/album_art.jpg'
     globs = Globs()
     start_time = time.time()
 
@@ -54,10 +54,10 @@ async def process_art_url(
             # Extension hook for fast path as well
             try:
                 run_extension_hooks(
-                    "color_applied",
-                    color=argb_color if argb_color else "ffffff",
-                    art_url=art_url or "",
-                    track_id=track_id or "",
+                    'color_applied',
+                    color=argb_color if argb_color else 'ffffff',
+                    art_url=art_url or '',
+                    track_id=track_id or '',
                 )
             except Exception:
                 pass
@@ -65,11 +65,11 @@ async def process_art_url(
             command_start = time.time()
             await _run_hardware(argb_color if argb_color else hex_colors[0])
             command_time = time.time() - command_start
-            if globs.debug.get("perf") or globs.debug.get("all"):
+            if globs.debug.get('perf') or globs.debug.get('all'):
                 total_ms = (time.time() - start_time) * 1000
                 hw_ms = command_time * 1000
                 print(
-                    f"[cyan]perf[/cyan] [dim]·[/dim] total [cyan]{total_ms:.0f}ms[/cyan] [dim]·[/dim] hw [magenta]{hw_ms:.0f}ms[/magenta] [dim]track-cache[/dim]"
+                    f'[cyan]perf[/cyan] [dim]·[/dim] total [cyan]{total_ms:.0f}ms[/cyan] [dim]·[/dim] hw [magenta]{hw_ms:.0f}ms[/magenta] [dim]track-cache[/dim]'
                 )
             return hex_colors
 
@@ -82,7 +82,7 @@ async def process_art_url(
         try:
             await get_image(IMAGE_PATH, art_url)
         except Exception as e:
-            print(f"[bold red]Error:[/bold red] fetching album art: {e}")
+            print(f'[bold red]Error:[/bold red] fetching album art: {e}')
             return None
 
         # Extract the palette with ARGB-optimized selection
@@ -93,12 +93,12 @@ async def process_art_url(
             cache_track_id = create_track_cache_key(track_id) if track_id else None
             cache_colors(cache_key, hex_colors, track_id=cache_track_id)
         except Exception as e:
-            print(f"[bold red]Error:[/bold red] extracting color palette: {e}")
+            print(f'[bold red]Error:[/bold red] extracting color palette: {e}')
             return None
 
         if not hex_colors:
             print(
-                "[bold yellow]Warning:[/bold yellow] No colors extracted from image, skipping hardware update"
+                '[bold yellow]Warning:[/bold yellow] No colors extracted from image, skipping hardware update'
             )
             return None
     else:
@@ -108,14 +108,14 @@ async def process_art_url(
     # Extension hook: color_applied (before hardware, so extensions can react to color)
     try:
         run_extension_hooks(
-            "color_applied",
+            'color_applied',
             color=argb_color
             if argb_color
             else hex_colors[0]
             if hex_colors
-            else "ffffff",
-            art_url=art_url or "",
-            track_id=track_id or "",
+            else 'ffffff',
+            art_url=art_url or '',
+            track_id=track_id or '',
         )
     except Exception:
         pass
@@ -123,19 +123,19 @@ async def process_art_url(
     # Hardware first – latency matters. Palette debug after.
     command_start = time.time()
     await _run_hardware(
-        argb_color if argb_color else hex_colors[0] if hex_colors else "ffffff"
+        argb_color if argb_color else hex_colors[0] if hex_colors else 'ffffff'
     )
     command_time = time.time() - command_start
 
-    if globs.debug.get("perf") or globs.debug.get("all"):
+    if globs.debug.get('perf') or globs.debug.get('all'):
         total_ms = (time.time() - start_time) * 1000
         hw_ms = command_time * 1000
         print(
-            f"[cyan]perf[/cyan] [dim]·[/dim] total [cyan]{total_ms:.0f}ms[/cyan] [dim]·[/dim] hw [magenta]{hw_ms:.0f}ms[/magenta]"
+            f'[cyan]perf[/cyan] [dim]·[/dim] total [cyan]{total_ms:.0f}ms[/cyan] [dim]·[/dim] hw [magenta]{hw_ms:.0f}ms[/magenta]'
         )
 
     # Palette debug after hardware so it doesn't block lighting update
-    if globs.debug.get("palette") or globs.debug.get("all"):
+    if globs.debug.get('palette') or globs.debug.get('all'):
         if from_cache and hex_colors:
             # from_cache path: need image for extracted palette debug.
             # Do it after hardware to avoid extra latency on the critical path.
@@ -145,7 +145,7 @@ async def process_art_url(
                 debug_palette(hex_colors=hex_colors, palette=extracted_palette)
             except Exception as e:
                 print(
-                    f"[bold yellow]Warning:[/bold yellow] debug palette extraction failed: {e}"
+                    f'[bold yellow]Warning:[/bold yellow] debug palette extraction failed: {e}'
                 )
 
     return hex_colors
@@ -168,7 +168,7 @@ def _select_argb_color_from_hex_palette(hex_colors: list[str]) -> str | None:
 
     def hex_to_hsl(hex_color: str) -> tuple[float, float, float]:
         """Convert hex color to HSL."""
-        hex_color = hex_color.lstrip("#")
+        hex_color = hex_color.lstrip('#')
         r = int(hex_color[0:2], 16) / 255
         g = int(hex_color[2:4], 16) / 255
         b = int(hex_color[4:6], 16) / 255

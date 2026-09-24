@@ -16,12 +16,12 @@ system = _stdlib_platform.system
 
 def is_windows() -> bool:
     """Check if the current platform is Windows."""
-    return system() == "Windows"
+    return system() == 'Windows'
 
 
 def is_linux() -> bool:
     """Check if the current platform is Linux."""
-    return system() == "Linux"
+    return system() == 'Linux'
 
 
 class USBDevice(Protocol):
@@ -43,7 +43,7 @@ def _system_vendor() -> str:
     """Read the system vendor exposed by Linux DMI, when available."""
     for path in _SYSTEM_VENDOR_PATHS:
         try:
-            return path.read_text(encoding="utf-8").strip()
+            return path.read_text(encoding='utf-8').strip()
         except OSError:
             continue
-    return ""
+    return ''

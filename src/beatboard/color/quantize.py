@@ -60,12 +60,12 @@ class _VBox:
         histogram: _Histogram,
     ) -> None:
         self.dimension = {
-            "r1": r1,
-            "r2": r2,
-            "g1": g1,
-            "g2": g2,
-            "b1": b1,
-            "b2": b2,
+            'r1': r1,
+            'r2': r2,
+            'g1': g1,
+            'g2': g2,
+            'b1': b1,
+            'b2': b2,
         }
         self.histogram = histogram
         self._volume: int | None = None
@@ -87,16 +87,16 @@ class _VBox:
     def clone(self) -> _VBox:
         d = self.dimension
         return _VBox(
-            d["r1"], d["r2"], d["g1"], d["g2"], d["b1"], d["b2"], self.histogram
+            d['r1'], d['r2'], d['g1'], d['g2'], d['b1'], d['b2'], self.histogram
         )
 
     def volume(self) -> int:
         if self._volume is None:
             d = self.dimension
             self._volume = (
-                (d["r2"] - d["r1"] + 1)
-                * (d["g2"] - d["g1"] + 1)
-                * (d["b2"] - d["b1"] + 1)
+                (d['r2'] - d['r1'] + 1)
+                * (d['g2'] - d['g1'] + 1)
+                * (d['b2'] - d['b1'] + 1)
             )
         return self._volume
 
@@ -107,9 +107,9 @@ class _VBox:
             index = self.histogram.index
             self._count = sum(
                 values[index(red, green, blue)]
-                for red in range(d["r1"], d["r2"] + 1)
-                for green in range(d["g1"], d["g2"] + 1)
-                for blue in range(d["b1"], d["b2"] + 1)
+                for red in range(d['r1'], d['r2'] + 1)
+                for green in range(d['g1'], d['g2'] + 1)
+                for blue in range(d['b1'], d['b2'] + 1)
             )
         return self._count
 
@@ -123,9 +123,9 @@ class _VBox:
         multiplier = 1 << _RSHIFT
         total = red_sum = green_sum = blue_sum = 0
 
-        for red in range(d["r1"], d["r2"] + 1):
-            for green in range(d["g1"], d["g2"] + 1):
-                for blue in range(d["b1"], d["b2"] + 1):
+        for red in range(d['r1'], d['r2'] + 1):
+            for green in range(d['g1'], d['g2'] + 1):
+                for blue in range(d['b1'], d['b2'] + 1):
                     population = values[index(red, green, blue)]
                     if not population:
                         continue
@@ -142,9 +142,9 @@ class _VBox:
             )
         else:
             self._average = (
-                multiplier * (d["r1"] + d["r2"] + 1) // 2,
-                multiplier * (d["g1"] + d["g2"] + 1) // 2,
-                multiplier * (d["b1"] + d["b2"] + 1) // 2,
+                multiplier * (d['r1'] + d['r2'] + 1) // 2,
+                multiplier * (d['g1'] + d['g2'] + 1) // 2,
+                multiplier * (d['b1'] + d['b2'] + 1) // 2,
             )
         return self._average
 
@@ -157,14 +157,14 @@ class _VBox:
 
         d = self.dimension
         widths = {
-            "r": d["r2"] - d["r1"] + 1,
-            "g": d["g2"] - d["g1"] + 1,
-            "b": d["b2"] - d["b1"] + 1,
+            'r': d['r2'] - d['r1'] + 1,
+            'g': d['g2'] - d['g1'] + 1,
+            'b': d['b2'] - d['b1'] + 1,
         }
         # JavaScript's Math.max branch order resolves ties as red, green, blue.
-        channel = max(widths, key=lambda name: (widths[name], -"rgb".index(name)))
-        lower = d[f"{channel}1"]
-        upper = d[f"{channel}2"]
+        channel = max(widths, key=lambda name: (widths[name], -'rgb'.index(name)))
+        lower = d[f'{channel}1']
+        upper = d[f'{channel}2']
         cumulative = [0] * (upper + 1)
         total = 0
 
@@ -199,8 +199,8 @@ class _VBox:
 
         first = self.clone()
         second = self.clone()
-        first.dimension[f"{channel}2"] = cut
-        second.dimension[f"{channel}1"] = cut + 1
+        first.dimension[f'{channel}2'] = cut
+        second.dimension[f'{channel}1'] = cut + 1
         return first, second
 
     def _slice_count(self, channel: str, value: int) -> int:
@@ -208,16 +208,16 @@ class _VBox:
         values = self.histogram.values
         index = self.histogram.index
         ranges = {
-            "r": range(d["r1"], d["r2"] + 1),
-            "g": range(d["g1"], d["g2"] + 1),
-            "b": range(d["b1"], d["b2"] + 1),
+            'r': range(d['r1'], d['r2'] + 1),
+            'g': range(d['g1'], d['g2'] + 1),
+            'b': range(d['b1'], d['b2'] + 1),
         }
         ranges[channel] = range(value, value + 1)
         return sum(
             values[index(red, green, blue)]
-            for red in ranges["r"]
-            for green in ranges["g"]
-            for blue in ranges["b"]
+            for red in ranges['r']
+            for green in ranges['g']
+            for blue in ranges['b']
         )
 
 
@@ -266,7 +266,7 @@ def _split_boxes(queue: _PriorityQueue, target: float) -> None:
 def quantize(pixels: Iterable[RGBA], color_count: int = 64) -> list[Swatch]:
     """Quantize RGBA pixels using node-vibrant's MMCQ implementation."""
     if color_count < 2 or color_count > 256:
-        raise ValueError("color_count must be between 2 and 256")
+        raise ValueError('color_count must be between 2 and 256')
 
     histogram = _Histogram(pixels)
     if histogram.color_count == 0:

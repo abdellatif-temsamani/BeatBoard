@@ -33,9 +33,9 @@ async def _run_hardware(color: str) -> None:
                 f"[bold red]Error:[/bold red] Command [bold]'{command[0]}'[/bold] not found. Skipping hardware command."
             )
             continue
-        if globs.debug.get("command") or globs.debug.get("all"):
-            cmd_str = " ".join(command)
-            print(f"[magenta]hw[/magenta] [dim]·[/dim] {cmd_str}")
+        if globs.debug.get('command') or globs.debug.get('all'):
+            cmd_str = ' '.join(command)
+            print(f'[magenta]hw[/magenta] [dim]·[/dim] {cmd_str}')
         runnable.append(command)
 
     if runnable:
@@ -44,7 +44,7 @@ async def _run_hardware(color: str) -> None:
             try:
                 await asyncio.to_thread(subprocess.run, cmd)
             except Exception as e:
-                print(f"[bold red]Error:[/bold red] running hardware command: {e}")
+                print(f'[bold red]Error:[/bold red] running hardware command: {e}')
 
         if len(runnable) == 1:
             await _run(runnable[0])
@@ -61,8 +61,8 @@ async def apply_colors(hex_colors: list[str]) -> None:
     globs = Globs()
     start_hw = time.time()
     if not hex_colors:
-        hex_colors = ["ffffff"]
+        hex_colors = ['ffffff']
     await _run_hardware(hex_colors[0])
-    if globs.debug.get("perf") or globs.debug.get("all"):
+    if globs.debug.get('perf') or globs.debug.get('all'):
         hw_ms = (time.time() - start_hw) * 1000
-        print(f"[cyan]perf[/cyan] [dim]·[/dim] hw [cyan]{hw_ms:.0f}ms[/cyan]")
+        print(f'[cyan]perf[/cyan] [dim]·[/dim] hw [cyan]{hw_ms:.0f}ms[/cyan]')

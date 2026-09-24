@@ -28,13 +28,13 @@ def _mem_put(
 ) -> None:
     if name:
         _mem_by_name[name] = colors
-        _mem_order.append(f"n:{name}")
+        _mem_order.append(f'n:{name}')
     if track_id:
         _mem_by_track[track_id] = colors
-        _mem_order.append(f"t:{track_id}")
+        _mem_order.append(f't:{track_id}')
     while len(_mem_order) > _MAX_MEM * 2:
         oldest = _mem_order.pop(0)
-        if oldest.startswith("n:"):
+        if oldest.startswith('n:'):
             k = oldest[2:]
             _mem_by_name.pop(k, None)
         else:

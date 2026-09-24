@@ -36,7 +36,7 @@ p{color:#a8a8b8;line-height:1.6;margin:0 0 16px;font-size:15px}
 code{background:rgba(255,255,255,.08);padding:2px 6px;border-radius:6px;font-size:12px;color:#e8e8ef;word-break:break-all}
 """
 
-    def _html(self, *, icon: str, title: str, body: str, footer: str = "") -> bytes:
+    def _html(self, *, icon: str, title: str, body: str, footer: str = '') -> bytes:
         doc = f"""<!doctype html>
 <html lang="en">
 <head>
@@ -48,7 +48,7 @@ code{background:rgba(255,255,255,.08);padding:2px 6px;border-radius:6px;font-siz
 <body>
   <div class="card">
     <div class="logo">♫ BeatBoard</div>
-    <div class="icon {icon}">{"✓" if icon == "success" else "✕" if icon == "error" else "!"}</div>
+    <div class="icon {icon}">{'✓' if icon == 'success' else '✕' if icon == 'error' else '!'}</div>
     <h1>{html_lib.escape(title)}</h1>
     {body}
     {footer}
@@ -60,24 +60,24 @@ code{background:rgba(255,255,255,.08);padding:2px 6px;border-radius:6px;font-siz
     def do_GET(self):  # noqa: N802
         parsed = urllib.parse.urlparse(self.path)
         qs = urllib.parse.parse_qs(parsed.query)
-        if parsed.path.endswith("/callback"):
-            code = qs.get("code", [None])[0]
-            state = qs.get("state", [None])[0]
-            error = qs.get("error", [None])[0]
+        if parsed.path.endswith('/callback'):
+            code = qs.get('code', [None])[0]
+            state = qs.get('state', [None])[0]
+            error = qs.get('error', [None])[0]
             self.server.auth_code = code  # type: ignore[attr-defined]
             self.server.auth_state = state  # type: ignore[attr-defined]
             self.server.auth_error = error  # type: ignore[attr-defined]
             self.send_response(200)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.send_header("Cache-Control", "no-store")
+            self.send_header('Content-Type', 'text/html; charset=utf-8')
+            self.send_header('Cache-Control', 'no-store')
             self.end_headers()
             if error:
                 safe = html_lib.escape(error)
                 body = f'<p>Spotify returned an error and BeatBoard could not connect.</p><p><code>{safe}</code></p><p class="hint">Close this window and run <code>beatboard --api</code> again to retry. Check your app redirect URI is <code>http://127.0.0.1:8888/callback</code>.</p><button class="btn btn-secondary" onclick="window.close()">Close window</button>'
                 self.wfile.write(
                     self._html(
-                        icon="error",
-                        title="Authentication failed",
+                        icon='error',
+                        title='Authentication failed',
                         body=body,
                         footer='<div class="footer">Need help? See Spotify Dashboard → Edit Settings</div>',
                     )
@@ -86,8 +86,8 @@ code{background:rgba(255,255,255,.08);padding:2px 6px;border-radius:6px;font-siz
                 body = """<p>Your Spotify account is now connected. BeatBoard will stream track changes via WebSocket — no polling.</p><p class="hint">You can close this window and return to the terminal. It will try to close automatically in <span id="cd">4</span>s.</p><button class="btn" onclick="window.close()">Close window</button><script>let n=4,el=document.getElementById('cd');const t=setInterval(()=>{n--;if(el)el.textContent=n;if(n<=0){clearInterval(t);try{window.close()}catch(e){}}},1000)</script>"""
                 self.wfile.write(
                     self._html(
-                        icon="success",
-                        title="Authentication successful!",
+                        icon='success',
+                        title='Authentication successful!',
                         body=body,
                         footer='<div class="footer">Listening via wss://dealer.spotify.com • BeatBoard</div>',
                     )
@@ -96,8 +96,8 @@ code{background:rgba(255,255,255,.08);padding:2px 6px;border-radius:6px;font-siz
                 body = '<p>No authorization code was received. The redirect may have been blocked.</p><p class="hint">Close this window and run <code>beatboard --api</code> again. Allow the browser to open <code>http://127.0.0.1:8888/callback</code>.</p><button class="btn btn-secondary" onclick="window.close()">Close window</button>'
                 self.wfile.write(
                     self._html(
-                        icon="warn",
-                        title="No code received",
+                        icon='warn',
+                        title='No code received',
                         body=body,
                     )
                 )
@@ -107,12 +107,12 @@ code{background:rgba(255,255,255,.08);padding:2px 6px;border-radius:6px;font-siz
                 pass
         else:
             self.send_response(404)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header('Content-Type', 'text/html; charset=utf-8')
             self.end_headers()
             self.wfile.write(
                 self._html(
-                    icon="error",
-                    title="Not found",
+                    icon='error',
+                    title='Not found',
                     body='<p class="hint">Unknown path. Expected <code>/callback?code=...</code></p>',
                 )
             )
@@ -122,14 +122,14 @@ code{background:rgba(255,255,255,.08);padding:2px 6px;border-radius:6px;font-siz
 
 
 def _run_local_server(
-    host: str = "127.0.0.1", port: int = 8888, timeout: int = 180
+    host: str = '127.0.0.1', port: int = 8888, timeout: int = 180
 ) -> tuple[str | None, str | None, str | None]:
     """Run a temporary HTTP server to capture OAuth callback."""
     code_queue: queue.Queue = queue.Queue()
     t0 = time.perf_counter()
     log(
-        "api",
-        f"[cyan]api[/cyan] [dim]·[/dim] callback listening on [cyan]http://{host}:{port}/callback[/cyan] [dim]·[/dim] [cyan]{timeout}s[/cyan]",
+        'api',
+        f'[cyan]api[/cyan] [dim]·[/dim] callback listening on [cyan]http://{host}:{port}/callback[/cyan] [dim]·[/dim] [cyan]{timeout}s[/cyan]',
     )
 
     class ReusableTCPServer(socketserver.TCPServer):
@@ -146,18 +146,18 @@ def _run_local_server(
             code, state, error = code_queue.get(timeout=timeout)
             dt = (time.perf_counter() - t0) * 1000
             log(
-                "api",
-                f"[cyan]api[/cyan] [dim]·[/dim] callback {'[green]ok[/green]' if code else '[red]error[/red]'} [dim]·[/dim] [cyan]{dt:.0f}ms[/cyan]"
-                + (f" [dim]({error})[/dim]" if error else ""),
+                'api',
+                f'[cyan]api[/cyan] [dim]·[/dim] callback {"[green]ok[/green]" if code else "[red]error[/red]"} [dim]·[/dim] [cyan]{dt:.0f}ms[/cyan]'
+                + (f' [dim]({error})[/dim]' if error else ''),
             )
             return code, state, error
         except queue.Empty:
             dt = (time.perf_counter() - t0) * 1000
             log(
-                "api",
-                f"[yellow]api[/yellow] [dim]·[/dim] callback timeout [dim]·[/dim] [yellow]{dt:.0f}ms[/yellow]",
+                'api',
+                f'[yellow]api[/yellow] [dim]·[/dim] callback timeout [dim]·[/dim] [yellow]{dt:.0f}ms[/yellow]',
             )
-            return None, None, "timeout"
+            return None, None, 'timeout'
         finally:
             httpd.shutdown()
             thread.join(timeout=2)

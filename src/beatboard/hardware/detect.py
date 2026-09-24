@@ -121,14 +121,14 @@ def detect_hardware(
     try:
         from ..globs import Globs
 
-        _dbg = Globs().debug.get("all")
+        _dbg = Globs().debug.get('all')
     except Exception:
         _dbg = False
 
     if _is_windows():
-        vendor_name_win = system_vendor if system_vendor is not None else ""
+        vendor_name_win = system_vendor if system_vendor is not None else ''
         usb_ids_win: set[tuple[int, int]] = set()
-        core_order = ["g213", "razer", "asus"]
+        core_order = ['g213', 'razer', 'asus']
         for name in core_order:
             if name in hardware:
                 spec = _core_detect.get(name)
@@ -173,7 +173,7 @@ def detect_hardware(
         except Exception:
             pass
 
-    core_order = ["g213", "razer", "asus"]
+    core_order = ['g213', 'razer', 'asus']
     for name in core_order:
         if name in hardware:
             spec = _core_detect.get(name)

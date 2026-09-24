@@ -9,7 +9,7 @@ from pathlib import Path
 from .registry import _core_detect, hardware
 
 _g213_script = os.path.join(
-    os.path.dirname(os.path.dirname(__file__)), "G213Colors", "G213Colors.py"
+    os.path.dirname(os.path.dirname(__file__)), 'G213Colors', 'G213Colors.py'
 )
 
 
@@ -17,11 +17,11 @@ def _resolve_core_command(template: list[str]) -> list[str]:
     """Resolve placeholders for core hardware commands."""
     resolved: list[str] = []
     for part in template:
-        if part == "__python__":
+        if part == '__python__':
             resolved.append(sys.executable)
-        elif part == "__g213_script__":
+        elif part == '__g213_script__':
             resolved.append(_g213_script)
-        elif part == "__python":
+        elif part == '__python':
             resolved.append(sys.executable)
         else:
             resolved.append(part)
@@ -31,11 +31,11 @@ def _resolve_core_command(template: list[str]) -> list[str]:
 def _find_core_plugins_dirs() -> list[Path]:
     """Return candidate core_plugins directories (package + project root)."""
     candidates: list[Path] = []
-    pkg_dir = Path(__file__).parent.parent / "core_plugins"
+    pkg_dir = Path(__file__).parent.parent / 'core_plugins'
     if pkg_dir.is_dir():
         candidates.append(pkg_dir)
     try:
-        root_dir = Path(__file__).parent.parent.parent.parent / "core_plugins"
+        root_dir = Path(__file__).parent.parent.parent.parent / 'core_plugins'
         if root_dir.is_dir() and root_dir.resolve() != pkg_dir.resolve():
             candidates.append(root_dir)
     except Exception:
@@ -56,18 +56,18 @@ def _load_core_hardware() -> None:
     seen: set[str] = set()
     for d in dirs:
         all_files: dict[str, Path] = {}
-        for pattern in ("*.yaml", "*.yml"):
+        for pattern in ('*.yaml', '*.yml'):
             for p in d.glob(pattern):
                 all_files[p.stem] = p
         ordered_paths: list[Path] = sorted(all_files.values(), key=lambda x: x.name)
         for p in ordered_paths:
             try:
-                text = p.read_text(encoding="utf-8")
+                text = p.read_text(encoding='utf-8')
                 data = yaml.safe_load(text)
                 if data is None:
                     continue
                 plugin = validate_plugin_dict(data, p, allow_reserved=True)
-                if plugin.type != "hardware" or plugin.hardware is None:
+                if plugin.type != 'hardware' or plugin.hardware is None:
                     continue
                 if plugin.name in seen or plugin.name in hardware:
                     continue
@@ -80,7 +80,7 @@ def _load_core_hardware() -> None:
                 try:
                     from rich import print as _rprint
 
-                    _rprint(f"[yellow]Warning:[/yellow] skipping core plugin {p.name}")
+                    _rprint(f'[yellow]Warning:[/yellow] skipping core plugin {p.name}')
                 except Exception:
                     pass
                 continue

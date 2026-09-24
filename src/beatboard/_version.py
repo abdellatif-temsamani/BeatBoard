@@ -30,11 +30,11 @@ def _read_version_from_pyproject() -> str | None:
     try:
         # pyproject.toml is at the repository root: <root>/pyproject.toml
         # This file lives at <root>/src/beatboard/_version.py -> parents[2] == <root>
-        pyproject = Path(__file__).resolve().parents[2] / "pyproject.toml"
+        pyproject = Path(__file__).resolve().parents[2] / 'pyproject.toml'
         if not pyproject.is_file():
             # Fallback: walk upwards (covers editable installs with different layout)
             for parent in Path(__file__).resolve().parents:
-                candidate = parent / "pyproject.toml"
+                candidate = parent / 'pyproject.toml'
                 if candidate.is_file():
                     pyproject = candidate
                     break
@@ -45,16 +45,16 @@ def _read_version_from_pyproject() -> str | None:
         try:
             import tomllib  # Python 3.11+
 
-            with pyproject.open("rb") as f:
+            with pyproject.open('rb') as f:
                 data = tomllib.load(f)
-            v = data.get("project", {}).get("version")
+            v = data.get('project', {}).get('version')
             if isinstance(v, str) and v.strip():
                 return v.strip()
         except Exception:
             pass
 
         # Regex fallback – works even when tomllib is unavailable or file is minimal
-        text = pyproject.read_text(encoding="utf-8")
+        text = pyproject.read_text(encoding='utf-8')
         m = re.search(r'^\s*version\s*=\s*["\']([^"\']+)["\']', text, re.MULTILINE)
         if m:
             return m.group(1).strip()
@@ -68,16 +68,16 @@ def _get_version() -> str:
     file_version = _read_version_from_pyproject()
     if file_version:
         return file_version
-    for dist_name in ("BeatBoard", "beatboard"):
+    for dist_name in ('BeatBoard', 'beatboard'):
         try:
             return version(dist_name)
         except PackageNotFoundError:
             continue
         except Exception:
             continue
-    return "0.0.0"
+    return '0.0.0'
 
 
 __version__ = _get_version()
 
-__all__ = ["__version__"]
+__all__ = ['__version__']

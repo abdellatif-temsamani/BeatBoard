@@ -23,14 +23,14 @@ async def get_image(
     if not art_url:
         url = await asyncio.to_thread(
             subprocess.run,
-            playerctl("metadata", "mpris:artUrl"),
+            playerctl('metadata', 'mpris:artUrl'),
             capture_output=True,
             text=True,
         )
 
         art_url = url.stdout.strip()
 
-    if art_url.startswith("file://"):
+    if art_url.startswith('file://'):
         """just in case the image is local"""
         file_path = art_url[7:]
         image_data = await asyncio.to_thread(Path(file_path).read_bytes)

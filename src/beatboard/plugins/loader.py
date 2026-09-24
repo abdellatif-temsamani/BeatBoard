@@ -8,9 +8,9 @@ import yaml
 from .errors import PluginError, PluginValidationError
 from .models import Plugin, validate_plugin_dict
 
-log = logging.getLogger("beatboard.plugins")
+log = logging.getLogger('beatboard.plugins')
 
-DEFAULT_PLUGIN_DIR = Path.home() / ".config" / "beatboard" / "plugins"
+DEFAULT_PLUGIN_DIR = Path.home() / '.config' / 'beatboard' / 'plugins'
 
 
 def get_plugin_dir(config_plugin_dir: str | None = None) -> Path | None:
@@ -34,7 +34,7 @@ def discover_plugin_files(plugin_dir: Path) -> list[Path]:
     if not plugin_dir.is_dir():
         return []
     files: list[Path] = []
-    for pattern in ("*.yaml", "*.yml"):
+    for pattern in ('*.yaml', '*.yml'):
         files.extend(plugin_dir.glob(pattern))
     # Also include subdirs one level? For now only top level. Sort deterministic.
     return sorted(files)
@@ -46,15 +46,15 @@ def load_plugin_file(path: Path) -> Plugin:
     Raises PluginError on failure.
     """
     try:
-        text = path.read_text(encoding="utf-8")
+        text = path.read_text(encoding='utf-8')
     except OSError as exc:
-        raise PluginError(f"{path}: cannot read file: {exc}") from exc
+        raise PluginError(f'{path}: cannot read file: {exc}') from exc
     try:
         data = yaml.safe_load(text)
     except yaml.YAMLError as exc:
-        raise PluginValidationError(str(path), f"invalid YAML: {exc}") from exc
+        raise PluginValidationError(str(path), f'invalid YAML: {exc}') from exc
     if data is None:
-        raise PluginValidationError(str(path), "file is empty")
+        raise PluginValidationError(str(path), 'file is empty')
     return validate_plugin_dict(data, path)
 
 
@@ -94,7 +94,7 @@ def load_plugins(
     try:
         dir_path.mkdir(parents=True, exist_ok=True)
     except OSError as exc:
-        err = PluginError(f"{dir_path}: cannot create plugin dir: {exc}")
+        err = PluginError(f'{dir_path}: cannot create plugin dir: {exc}')
         if strict:
             raise err from exc
         errors.append(err)
@@ -112,9 +112,9 @@ def load_plugins(
             try:
                 from rich import print as rprint
 
-                rprint(f"[yellow]Warning:[/yellow] Skipping plugin {f.name}: {exc}")
+                rprint(f'[yellow]Warning:[/yellow] Skipping plugin {f.name}: {exc}')
             except Exception:
-                print(f"Warning: Skipping plugin {f.name}: {exc}")
+                print(f'Warning: Skipping plugin {f.name}: {exc}')
             continue
 
         if plugin.name in plugins:
@@ -156,7 +156,7 @@ def register_plugins(plugins: dict[str, Plugin]) -> tuple[int, list[str]]:
     registered = 0
     skipped: list[str] = []
     for name, plugin in plugins.items():
-        if plugin.type == "hardware" and plugin.hardware is not None:
+        if plugin.type == 'hardware' and plugin.hardware is not None:
             try:
                 hw_module.register_plugin_hardware(
                     name, plugin.hardware.command, plugin.hardware.detect
@@ -172,7 +172,7 @@ def register_plugins(plugins: dict[str, Plugin]) -> tuple[int, list[str]]:
                     )
                 except Exception:
                     print(f"Warning: Skipping hardware plugin '{name}': {exc}")
-        elif plugin.type == "extension":
+        elif plugin.type == 'extension':
             # Keep extension plugins in a separate registry
             try:
                 from beatboard.plugins.registry import extension_registry

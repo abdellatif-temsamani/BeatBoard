@@ -16,10 +16,10 @@ def _expand_command(template: list[str], context: dict[str, str]) -> list[str]:
     for part in template:
         out = part
         for k, v in context.items():
-            out = out.replace(f"{{{k}}}", v)
+            out = out.replace(f'{{{k}}}', v)
             # also support {hex} as alias for color
-            if k == "color":
-                out = out.replace("{hex}", v)
+            if k == 'color':
+                out = out.replace('{hex}', v)
         expanded.append(out)
     return expanded
 
@@ -33,7 +33,7 @@ def run_extension_hooks(event: str, **context: str) -> None:
     """
     globs = Globs()
     # Only run if debug or not? Always run, but log when plugins debug is on
-    debug = globs.debug.get("plugins") or globs.debug.get("all")
+    debug = globs.debug.get('plugins') or globs.debug.get('all')
     for name, plugin in extension_registry.items():
         if plugin.extension is None:
             continue
@@ -44,14 +44,14 @@ def run_extension_hooks(event: str, **context: str) -> None:
             if not cmd:
                 continue
             if debug:
-                rprint(f"[dim]extension:{name} event:{event} → {' '.join(cmd)}[/dim]")
+                rprint(f'[dim]extension:{name} event:{event} → {" ".join(cmd)}[/dim]')
             # Check executable exists
             if not (shutil.which(cmd[0]) or Path(cmd[0]).exists()):
                 if debug:
-                    rprint(f"[dim]extension:{name} skip, not found: {cmd[0]}[/dim]")
+                    rprint(f'[dim]extension:{name} skip, not found: {cmd[0]}[/dim]')
                 continue
             try:
                 subprocess.run(cmd, check=False, timeout=5)
             except Exception as exc:
                 if debug:
-                    rprint(f"[yellow]extension:{name} failed: {exc}[/yellow]")
+                    rprint(f'[yellow]extension:{name} failed: {exc}[/yellow]')

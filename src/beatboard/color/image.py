@@ -23,10 +23,10 @@ def _load_pixels(
     path: str | Path, quality: int = 5
 ) -> tuple[list[RGBA], tuple[int, int]]:
     if quality < 1:
-        raise ValueError("quality must be at least 1")
+        raise ValueError('quality must be at least 1')
 
     with Image.open(path) as source:
-        image = ImageOps.exif_transpose(source).convert("RGBA")
+        image = ImageOps.exif_transpose(source).convert('RGBA')
         if quality > 1:
             width = max(1, image.width // quality)
             height = max(1, image.height // quality)
@@ -54,30 +54,30 @@ def debug_palette(
 ) -> None:
     """Print one or both color palettes in the terminal, with labels."""
     if hex_colors is None and palette is None:
-        raise ValueError("You must pass either `hex_colors` or `palette`.")
+        raise ValueError('You must pass either `hex_colors` or `palette`.')
 
     rows: list[tuple[str, list[str]]] = []
     if hex_colors:
-        rows.append(("final colors", [_to_hex(color) for color in hex_colors]))
+        rows.append(('final colors', [_to_hex(color) for color in hex_colors]))
     if palette:
-        rows.append(("quantized colors", [_to_hex(color) for color in palette]))
+        rows.append(('quantized colors', [_to_hex(color) for color in palette]))
     if not rows:
-        raise ValueError("At least one non-empty palette must be provided")
+        raise ValueError('At least one non-empty palette must be provided')
 
     console = Console()
-    console.print("[bold]Palette debug[/bold]")
+    console.print('[bold]Palette debug[/bold]')
     for label, colors in rows:
         swatches_and_values = Text()
         for color in colors:
             try:
                 red, green, blue = _hex_to_rgb(color)
                 swatches_and_values.append(
-                    "  ", style=Style(bgcolor=Color.from_rgb(red, green, blue))
+                    '  ', style=Style(bgcolor=Color.from_rgb(red, green, blue))
                 )
             except (TypeError, ValueError):
                 pass
-            swatches_and_values.append(f" #{color} ", style="dim")
-        console.print(f"[bold cyan]{label:17}[/bold cyan]", swatches_and_values)
+            swatches_and_values.append(f' #{color} ', style='dim')
+        console.print(f'[bold cyan]{label:17}[/bold cyan]', swatches_and_values)
 
 
 async def get_color_palette(path: str) -> list[str]:
@@ -92,16 +92,16 @@ async def get_color_palette(path: str) -> list[str]:
     palette, raw_swatches, size = _extract_vibrant(path)
     hex_colors = [swatch.hex for swatch in palette.swatches()]
 
-    if globs.debug.get("perf") or globs.debug.get("all"):
+    if globs.debug.get('perf') or globs.debug.get('all'):
         total_ms = (time.perf_counter() - start_time) * 1000
         print(
-            f"[cyan]perf[/cyan] [dim]·[/dim] palette "
-            f"[cyan]{total_ms:.0f}ms[/cyan] [dim]·[/dim] "
-            f"{len(raw_swatches)}→{len(hex_colors)} colors [dim]·[/dim] "
-            f"{size[0]}×{size[1]}"
+            f'[cyan]perf[/cyan] [dim]·[/dim] palette '
+            f'[cyan]{total_ms:.0f}ms[/cyan] [dim]·[/dim] '
+            f'{len(raw_swatches)}→{len(hex_colors)} colors [dim]·[/dim] '
+            f'{size[0]}×{size[1]}'
         )
 
-    if globs.debug.get("palette") or globs.debug.get("all"):
+    if globs.debug.get('palette') or globs.debug.get('all'):
         debug_palette(hex_colors, [swatch.rgb for swatch in raw_swatches])
 
     return hex_colors
@@ -124,16 +124,16 @@ async def get_argb_color(path: str) -> str | None:
     palette, raw_swatches, size = _extract_vibrant(path)
     argb_color = select_argb_color(palette)
 
-    if globs.debug.get("perf") or globs.debug.get("all"):
+    if globs.debug.get('perf') or globs.debug.get('all'):
         total_ms = (time.perf_counter() - start_time) * 1000
         print(
-            f"[cyan]perf[/cyan] [dim]·[/dim] argb selection "
-            f"[cyan]{total_ms:.0f}ms[/cyan] [dim]·[/dim] "
-            f"{len(raw_swatches)} swatches [dim]·[/dim] "
-            f"{size[0]}×{size[1]}"
+            f'[cyan]perf[/cyan] [dim]·[/dim] argb selection '
+            f'[cyan]{total_ms:.0f}ms[/cyan] [dim]·[/dim] '
+            f'{len(raw_swatches)} swatches [dim]·[/dim] '
+            f'{size[0]}×{size[1]}'
         )
 
-    if globs.debug.get("palette") or globs.debug.get("all"):
+    if globs.debug.get('palette') or globs.debug.get('all'):
         debug_palette(
             [argb_color] if argb_color else None,
             [swatch.rgb for swatch in raw_swatches],

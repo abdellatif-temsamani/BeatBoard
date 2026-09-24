@@ -36,7 +36,7 @@ def register_plugin_hardware(
     if name in _plugin_hardware:
         raise ValueError(f"plugin hardware name '{name}' already registered")
     if not command or not all(isinstance(c, str) and c for c in command):
-        raise ValueError("command must be non-empty list of strings")
+        raise ValueError('command must be non-empty list of strings')
     _plugin_hardware[name] = list(command)
     if detect is not None:
         _plugin_detect[name] = detect

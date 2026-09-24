@@ -16,10 +16,10 @@ def create_cache_key(art_url: str) -> str:
     Returns:
         A SHA256 hex digest suitable for use as a cache key.
     """
-    value = f"{COLOR_CACHE_VERSION}\0{art_url}"
-    return hashlib.sha256(value.encode("utf-8")).hexdigest()
+    value = f'{COLOR_CACHE_VERSION}\0{art_url}'
+    return hashlib.sha256(value.encode('utf-8')).hexdigest()
 
 
 def create_track_cache_key(track_id: str) -> str:
     """Namespace a Spotify track id by the active palette algorithm."""
-    return f"{COLOR_CACHE_VERSION}:{track_id}"
+    return f'{COLOR_CACHE_VERSION}:{track_id}'

@@ -20,10 +20,10 @@ async def watch_playerctl(once: bool = False):
     """
     process = await asyncio.create_subprocess_exec(
         *playerctl(
-            "metadata",
-            "--format",
-            "{{mpris:artUrl}}|{{xesam:title}}|{{xesam:artist}}",
-            "--follow",
+            'metadata',
+            '--format',
+            '{{mpris:artUrl}}|{{xesam:title}}|{{xesam:artist}}',
+            '--follow',
         ),
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
@@ -34,35 +34,35 @@ async def watch_playerctl(once: bool = False):
     async for raw_line in process.stdout:
         decoded = raw_line.decode().strip()
 
-        if not decoded or "|" not in decoded:
+        if not decoded or '|' not in decoded:
             continue
 
-        art_url, title, artist = decoded.split("|", 2)
+        art_url, title, artist = decoded.split('|', 2)
 
         if not art_url:
             continue  # no image? skip event
 
-        song_label = f"{title} – {artist}" if artist else title
+        song_label = f'{title} – {artist}' if artist else title
 
         # Extension hook: track_change
         try:
             run_extension_hooks(
-                "track_change", title=title, artist=artist, art_url=art_url
+                'track_change', title=title, artist=artist, art_url=art_url
             )
         except Exception:
             pass
 
         print(
-            f"[bold yellow]Processing[/bold yellow] [bold green]{song_label}[/bold green]..."
+            f'[bold yellow]Processing[/bold yellow] [bold green]{song_label}[/bold green]...'
         )
 
         await process_art_url(art_url, track_id=None)
         # Extension hook: track processing done, color will be handled in process_art_url
         # color_applied is triggered inside process_art_url after palette extraction
 
-        print("[bold green]Processing done[/bold green].")
-        print("[dim]" + "─" * 50 + "[/dim]")
-        print("")
+        print('[bold green]Processing done[/bold green].')
+        print('[dim]' + '─' * 50 + '[/dim]')
+        print('')
 
         if once:
             break

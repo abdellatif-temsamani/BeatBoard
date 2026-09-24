@@ -53,27 +53,27 @@ from .registry import (
 )
 
 __all__ = [
-    "Plugin",
-    "HardwareSpec",
-    "DetectSpec",
-    "UsbId",
-    "ExtensionSpec",
-    "HookSpec",
-    "PluginError",
-    "PluginValidationError",
-    "load_plugins",
-    "register_plugins",
-    "load_plugin_file",
-    "discover_plugin_files",
-    "get_plugin_dir",
-    "DEFAULT_PLUGIN_DIR",
-    "extension_registry",
-    "get_extension_plugins",
-    "clear_extension_registry",
-    "run_extension_hooks",
+    'Plugin',
+    'HardwareSpec',
+    'DetectSpec',
+    'UsbId',
+    'ExtensionSpec',
+    'HookSpec',
+    'PluginError',
+    'PluginValidationError',
+    'load_plugins',
+    'register_plugins',
+    'load_plugin_file',
+    'discover_plugin_files',
+    'get_plugin_dir',
+    'DEFAULT_PLUGIN_DIR',
+    'extension_registry',
+    'get_extension_plugins',
+    'clear_extension_registry',
+    'run_extension_hooks',
 ]
 
 
 def get_default_plugin_dir() -> Path:
     """Return default plugin directory (``~/.config/beatboard/plugins``)."""
-    return Path.home() / ".config" / "beatboard" / "plugins"
+    return Path.home() / '.config' / 'beatboard' / 'plugins'
