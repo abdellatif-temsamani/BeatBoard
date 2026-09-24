@@ -14,7 +14,7 @@ def diagnose_permissions(
     detected_hardware: list[str] | None = None,
 ) -> list[dict[str, str]]:
     """Check filesystem and USB permissions.
-    
+
     Args:
         config_path: Optional config path override.
         cache_path_str: Optional cache path override.
@@ -202,7 +202,9 @@ def diagnose_permissions(
                     "check": "G213Colors script",
                     "status": "ok" if exists else "warn",
                     "detail": str(p) + (" exists" if exists else " missing"),
-                    "hint": "" if exists else "Reinstall BeatBoard; G213 driver missing",
+                    "hint": ""
+                    if exists
+                    else "Reinstall BeatBoard; G213 driver missing",
                 }
             )
             if exists:
@@ -272,7 +274,7 @@ def diagnose_permissions(
     }
     # playerctl is always checked as it's used for player control
     executables_to_check = ["playerctl"]
-    
+
     if detected_hardware:
         for hw in detected_hardware:
             if hw in hardware_to_exe:
@@ -282,7 +284,7 @@ def diagnose_permissions(
     else:
         # If no hardware detected, check all hardware executables
         executables_to_check.extend(hardware_to_exe.values())
-    
+
     for exe in executables_to_check:
         found = shutil.which(exe)
         results.append(

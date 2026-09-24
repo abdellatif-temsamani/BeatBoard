@@ -147,7 +147,9 @@ def diagnose_hardware() -> list[dict[str, str]]:
                 _ = _build_plugin_command  # keep import used
                 all_hw = get_all_hardware()
                 # Only check commands for detected hardware
-                detected_hw = {name: cmd for name, cmd in all_hw.items() if name in detected}
+                detected_hw = {
+                    name: cmd for name, cmd in all_hw.items() if name in detected
+                }
                 for name, cmd in detected_hw.items():
                     # cmd is list[str]
                     exe = cmd[0] if cmd else ""
@@ -159,7 +161,9 @@ def diagnose_hardware() -> list[dict[str, str]]:
                         detail = f"{exe} {'found' if exists else 'missing'}"
                         status = "ok" if exists else "fail"
                         hint = (
-                            "" if exists else "Python executable not found – reinstall Python"
+                            ""
+                            if exists
+                            else "Python executable not found – reinstall Python"
                         )
                     elif exe == _g213_script or exe.endswith("G213Colors.py"):
                         exists = Path(exe).is_file()

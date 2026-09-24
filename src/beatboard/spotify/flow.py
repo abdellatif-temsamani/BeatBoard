@@ -37,12 +37,18 @@ def run_oauth_flow(
 ) -> str | None:
     """Run the full Spotify Authorization Code flow."""
     globs = Globs()
-    client_id = client_id or getattr(globs, "spotify_client_id", None) or DEFAULT_CLIENT_ID
+    client_id = (
+        client_id or getattr(globs, "spotify_client_id", None) or DEFAULT_CLIENT_ID
+    )
     client_secret = (
-        client_secret or getattr(globs, "spotify_client_secret", None) or DEFAULT_CLIENT_SECRET
+        client_secret
+        or getattr(globs, "spotify_client_secret", None)
+        or DEFAULT_CLIENT_SECRET
     )
     redirect_uri = (
-        redirect_uri or getattr(globs, "spotify_redirect_uri", None) or DEFAULT_REDIRECT_URI
+        redirect_uri
+        or getattr(globs, "spotify_redirect_uri", None)
+        or DEFAULT_REDIRECT_URI
     )
 
     if not client_id:

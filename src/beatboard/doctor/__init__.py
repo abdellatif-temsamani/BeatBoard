@@ -164,6 +164,7 @@ def run_doctor(
     # Detect hardware early for dynamic permission checks
     try:
         from beatboard.hardware import detect_hardware
+
         detected_hardware = detect_hardware()
     except Exception:
         detected_hardware = []
@@ -174,7 +175,12 @@ def run_doctor(
         ("Config", lambda: diagnose_config(config_path)),
         ("Cache", lambda: diagnose_cache(cache_path_str)),
         ("Hardware", lambda: diagnose_hardware()),
-        ("Permissions", lambda: diagnose_permissions(config_path, cache_path_str, detected_hardware)),
+        (
+            "Permissions",
+            lambda: diagnose_permissions(
+                config_path, cache_path_str, detected_hardware
+            ),
+        ),
         ("Spotify", lambda: diagnose_spotify()),
         ("OpenRGB", lambda: diagnose_openrgb()),
     ]

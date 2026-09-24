@@ -109,7 +109,11 @@ async def process_art_url(
     try:
         run_extension_hooks(
             "color_applied",
-            color=argb_color if argb_color else hex_colors[0] if hex_colors else "ffffff",
+            color=argb_color
+            if argb_color
+            else hex_colors[0]
+            if hex_colors
+            else "ffffff",
             art_url=art_url or "",
             track_id=track_id or "",
         )
@@ -118,7 +122,9 @@ async def process_art_url(
 
     # Hardware first – latency matters. Palette debug after.
     command_start = time.time()
-    await _run_hardware(argb_color if argb_color else hex_colors[0] if hex_colors else "ffffff")
+    await _run_hardware(
+        argb_color if argb_color else hex_colors[0] if hex_colors else "ffffff"
+    )
     command_time = time.time() - command_start
 
     if globs.debug.get("perf") or globs.debug.get("all"):

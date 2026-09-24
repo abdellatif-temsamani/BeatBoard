@@ -27,7 +27,9 @@ def diagnose_spotify() -> list[dict[str, str]]:
                 "check": "spotify_token (config)",
                 "status": "ok" if token else "info",
                 "detail": f"{len(token)} chars masked" if token else "not set",
-                "hint": "" if token else "Add spotify_token to config.yaml or run --api",
+                "hint": ""
+                if token
+                else "Add spotify_token to config.yaml or run --api",
             }
         )
         results.append(
@@ -42,8 +44,12 @@ def diagnose_spotify() -> list[dict[str, str]]:
             {
                 "check": "Spotify client_id",
                 "status": "ok" if client_id else "warn",
-                "detail": f"{client_id[:6]}… ({len(client_id)} chars)" if client_id else "not set",
-                "hint": "" if client_id else "Create app at https://developer.spotify.com/dashboard",
+                "detail": f"{client_id[:6]}… ({len(client_id)} chars)"
+                if client_id
+                else "not set",
+                "hint": ""
+                if client_id
+                else "Create app at https://developer.spotify.com/dashboard",
             }
         )
         results.append(
@@ -64,7 +70,9 @@ def diagnose_spotify() -> list[dict[str, str]]:
                 }
             )
         if ws_url:
-            results.append({"check": "WebSocket URL", "status": "ok", "detail": ws_url, "hint": ""})
+            results.append(
+                {"check": "WebSocket URL", "status": "ok", "detail": ws_url, "hint": ""}
+            )
     except Exception as exc:
         results.append(
             {
@@ -105,7 +113,9 @@ def diagnose_spotify() -> list[dict[str, str]]:
             "check": "playerctl binary",
             "status": "ok" if which_pc else "warn",
             "detail": which_pc or "not found in PATH",
-            "hint": "" if which_pc else "Install: apt install playerctl / dnf install playerctl",
+            "hint": ""
+            if which_pc
+            else "Install: apt install playerctl / dnf install playerctl",
         }
     )
     if which_pc:
@@ -117,7 +127,9 @@ def diagnose_spotify() -> list[dict[str, str]]:
                 {
                     "check": "Spotify via playerctl",
                     "status": "ok" if avail else "warn",
-                    "detail": "spotify player found" if avail else "spotify not in `playerctl --list-all`",
+                    "detail": "spotify player found"
+                    if avail
+                    else "spotify not in `playerctl --list-all`",
                     "hint": "" if avail else "Ensure Spotify Desktop is running",
                 }
             )
@@ -189,8 +201,12 @@ def diagnose_spotify() -> list[dict[str, str]]:
             {
                 "check": "Spotify API available",
                 "status": "ok" if api_ok else "warn",
-                "detail": "token or OAuth credentials present" if api_ok else "no token and no client credentials",
-                "hint": "" if api_ok else "Set spotify_token or client_id/secret in config.yaml and run --api",
+                "detail": "token or OAuth credentials present"
+                if api_ok
+                else "no token and no client credentials",
+                "hint": ""
+                if api_ok
+                else "Set spotify_token or client_id/secret in config.yaml and run --api",
             }
         )
     except Exception as exc:
@@ -208,7 +224,9 @@ def diagnose_spotify() -> list[dict[str, str]]:
         import websockets  # type: ignore
 
         ver = getattr(websockets, "__version__", "unknown")
-        results.append({"check": "websockets lib", "status": "ok", "detail": f"v{ver}", "hint": ""})
+        results.append(
+            {"check": "websockets lib", "status": "ok", "detail": f"v{ver}", "hint": ""}
+        )
     except Exception as exc:
         results.append(
             {
