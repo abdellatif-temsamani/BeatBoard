@@ -2,6 +2,42 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2026-09-24
+
+### 🚀 Features
+
+- Modular plugin system with core drivers and configurable plugin_dir
+- *(agents)* Enforce modular dev style via rule, agent and CI check
+- Add doctor diagnostics and apply ruff formatting
+- Add ARGB-optimized color selection for LED lighting
+- Add g502 SE HERO plugin via ratbagctl, move openrgb to examples
+
+### 🐛 Bug Fixes
+
+- Resolve CI syntax error and add cross-platform documentation
+- Hardware detection, debug and color handling
+- *(plugins)* Make ~/.config/beatboard/plugins extensions actually run
+- Apply {color} placeholder substitution to core hardware commands
+
+### 🚜 Refactor
+
+- *(spotify)* Split monolithic spotify.py into modular package
+- Fix all remaining modularity violations
+- Make all version references dynamic from pyproject.toml
+- Remove Spotify environment variable support
+- Make doctor diagnostics dynamic based on detected hardware
+- Remove all legacy fallbacks and hardcoded hardware
+
+### 📚 Documentation
+
+- Update README, AGENTS and guides for modular spotify package
+- Sync project structure for full modularity refactor
+- Sync README and hardware docs with YAML-driven hardware system
+
+### 🧪 Testing
+
+- Update tests and add plugin documentation
+
 ## [0.2.0] - 2026-09-21
 
 ### 🚀 Features
@@ -18,6 +54,7 @@ All notable changes to this project will be documented in this file.
 - *(color)* Handle missing sklearn in kmeans_colors fallback
 - *(cache, spotify)* Deduplicate cache logs and add track fast-path
 - *(spotify)* Eliminate ws head-of-line blocking and broaden Dealer art URL extraction
+- Testing
 
 ### 🚜 Refactor
 
@@ -30,6 +67,10 @@ All notable changes to this project will be documented in this file.
 ### ⚡ Performance
 
 - *(cache,spotify)* Fast track_id cache path and 401 auto-refresh
+
+### 🎨 Styling
+
+- Apply ruff formatting
 
 ### ⚙️ Miscellaneous Tasks
 
