@@ -20,7 +20,7 @@ _g213_script = os.path.join(
         (["g213"], "00ff00"),
         (["g213", "g213", "razer"], "000000"),
         (["razer"], "55ff99"),
-        (["openrgb"], "d46c76"),
+        (["g502"], "d46c76"),
     ],
 )
 def test_get_command_valid(hardware, color):
@@ -80,21 +80,21 @@ def test_detect_hardware_finds_all_controllable_hardware() -> None:
 
     detected = detect_hardware(
         devices=devices,
-        executable_finder=make_executable_finder("razer-cli", "asusctl", "openrgb"),
+        executable_finder=make_executable_finder("razer-cli", "asusctl"),
         system_vendor="Generic",
     )
 
-    assert detected == ["g213", "razer", "asus", "openrgb"]
+    assert detected == ["g213", "razer", "asus"]
 
 
 def test_detect_hardware_finds_asus_system_without_usb_device() -> None:
     detected = detect_hardware(
         devices=[],
-        executable_finder=make_executable_finder("asusctl", "openrgb"),
+        executable_finder=make_executable_finder("asusctl"),
         system_vendor="ASUSTeK COMPUTER INC.",
     )
 
-    assert detected == ["asus", "openrgb"]
+    assert detected == ["asus"]
 
 
 def test_is_windows():
@@ -113,14 +113,13 @@ def test_detect_hardware_on_windows():
     with patch("beatboard.hardware.is_windows", return_value=True):
         # On Windows, should only detect based on available executables
         detected = detect_hardware(
-            executable_finder=make_executable_finder("razer-cli", "asusctl", "openrgb"),
+            executable_finder=make_executable_finder("razer-cli", "asusctl"),
         )
         # Should not include g213 on Windows
         assert "g213" not in detected
         # Should include tools that are available
         assert "razer" in detected
         assert "asus" in detected
-        assert "openrgb" in detected
 
 
 def test_detect_hardware_on_windows_no_tools():
